@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
+<style>
+/* CSS específico do módulo Dizimistas - se necessário */
+.panel-container_estatistica {
+    display: none !important; /* COR: Oculta o painel de estatísticas */
+}
+</style>
+{% endblock %}
+
+{% block title %}
+    {% if modo_criacao %}
+        Criar Dizimista
+    {% elif modo_edicao_crud %}
+        Editar Dizimista
+    {% elif modo_visualizacao_crud %}
+        Visualizar Dizimista
+    {% else %}
+        Cadastro de Dizimistas
+    {% endif %}
+{% endblock %}
+
+<!-- === BLOCO DASHBOARD === -->
+{% block icone_dashboard %}fas fa-users{% endblock %}
+{% block nome_modulo_dashboard %}Dizimistas{% endblock %}
+{% block url_retornar_dashboard %}{% url 'app_igreja:admin_area' %}{% endblock %}
+{% block url_criar_novo_dashboard %}{% url 'app_igreja:criar_dizimista' %}{% endblock %}
+{% block nome_modulo_lista_dashboard %}Dizimistas{% endblock %}
+
+<!-- === BLOCO ESTATÍSTICAS DASHBOARD === -->
+{% block estatisticas_dashboard %}
+<!-- PAINEL DE ESTATÍSTICAS OCULTO PARA DIZIMISTAS -->
+{% endblock %}
+
+<!-- === BLOCO BUSCA DASHBOARD === -->
+{% block busca_dashboard %}
+<form method="get" class="busca-campos">
+    <div class="campo-busca">
+        <label for="busca_nome">Nome do Dizimista</label>
+                    <input type="text" id="busca_nome" name="q" value="{{ query }}" placeholder="Digite o nome..." autocomplete="off">
+    </div>
+    <div class="campo-busca">
+        <label for="filtro_status">Status</label>
+        <select id="filtro_status" name="status">
+            <option value="">Todos</option>
+            <option value="ativo" {% if status_filter == 'ativo' %}selected{% endif %}>Ativo</option>
+            <option value="pendente" {% if status_filter == 'pendente' %}selected{% endif %}>Pendente</option>
+        </select>
+    </div>
+                <button type="submit" class="cont_busca_btnbusca"><i class="fas fa-search"></i></button>
+</form>
+{% endblock %}
+
+<!-- === BLOCO COLUNAS CABEÇALHO DASHBOARD === -->
+{% block colunas_cabecalho_dashboard %}
+<th width="20%">Foto</th>
+<th width="25%">Nome</th>
+<th width="15%">Telefone</th>
+<th width="15%">Status</th>
+<th width="25%">Data Nascimento</th>
+{% endblock %}
+
+<!-- === BLOCO LINHAS TABELA DASHBOARD === -->
+{% block linhas_tabela_dashboard %}
+{% for dizimista in page_obj %}
+<tr>
+    {% block linha_completa_dashboard %}
+    <td><i class="fas fa-ellipsis-v" onclick="selecionarRegistroDashboard({{ dizimista.id }})" style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;" onmouseover="this.style.backgroundColor='#e9ecef'" onmouseout="this.style.backgroundColor='transparent'"></i></td>
+    <td>
+        <div>
+            <div class="mb-2">
+                {% if dizimista.DIS_foto %}
+                    <img src="{{ dizimista.DIS_foto.url }}" alt="Foto" class="img-thumbnail" style="width: 40px; height: 40px;">
+                {% else %}
+                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="fas fa-user text-muted"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <!-- Botões de ação -->
+            <div class="botoes-acao" id="acoes_{{ dizimista.id }}" style="display: none;">
+                <div class="d-flex gap-2 justify-content-start align-items-center">
+                    <a href="{% url 'app_igreja:detalhar_dizimista' dizimista.id %}" class="btn btn-info btn-sm d-flex align-items-center">
+                        <i class="fas fa-eye me-1"></i>Consultar
+                    </a>
+                    <a href="{% url 'app_igreja:editar_dizimista' dizimista.id %}" class="btn btn-warning btn-sm d-flex align-items-center">
+                        <i class="fas fa-edit me-1"></i>Editar
+                    </a>
+                    <a href="{% url 'app_igreja:excluir_dizimista' dizimista.id %}" class="btn btn-danger btn-sm d-flex align-items-center">
+                        <i class="fas fa-trash me-1"></i>Excluir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </td>
+    <td>{{ dizimista.DIS_nome }}</td>
+    <td>{{ dizimista.DIS_telefone|default:"-" }}</td>
+    <td>{% if dizimista.DIS_status %}<span class="badge bg-success">Ativo</span>{% else %}<span class="badge bg-secondary">Inativo</span>{% endif %}</td>
+    <td>{{ dizimista.DIS_data_nascimento|date:"d/m/Y"|default:"-" }}</td>
+    {% endblock %}
+</tr>
+{% empty %}
+<tr>
+    <td colspan="6" class="text-center text-muted">
+        <i class="fas fa-users fa-2x mb-2"></i>
+        <br>
+        Nenhum dizimista encontrado.
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
+
+<!-- === BLOCO MENSAGEM VAZIO DASHBOARD === -->
+{% block mensagem_vazio_dashboard %}Não há dizimistas cadastrados ou que correspondam aos filtros aplicados.{% endblock %}
+
+{% block conteudo_detalhe %}
+<!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES -->
+{% if acao == 'incluir' or acao == 'editar' %}
+<form id="detail-form" method="post" enctype="multipart/form-data" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_dizimista' dizimista.id %}{% else %}{% url 'app_igreja:criar_dizimista' %}{% endif %}">
+{% elif acao == 'excluir' %}
+<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_dizimista' dizimista.id %}">
+{% endif %}
+
+{% if acao == 'incluir' or acao == 'editar' %}
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            <h6>Erro ao {% if acao == 'editar' %}editar{% else %}cadastrar{% endif %} dizimista:</h6>
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+{% elif acao == 'excluir' %}
+{% csrf_token %}
+                {% endif %}
+
+<!-- ESTRUTURA ÚNICA DE CAMPOS PARA TODAS AS AÇÕES -->
+<div class="row detalhe-dizimista">
+    <div class="col-md-6">
+        <div class="mb-3"><label class="form-label fw-bold">Nome Dizimista</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.DIS_nome }}{% if form.DIS_nome.errors %}<div class="text-danger small">{% for error in form.DIS_nome.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<input type="text" class="form-control" value="{{ dizimista.DIS_nome|default:'Não informado' }}" readonly>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Telefone</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.DIS_telefone }}{% if form.DIS_telefone.errors %}<div class="text-danger small">{% for error in form.DIS_telefone.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<input type="text" class="form-control" value="{{ dizimista.DIS_telefone|default:'Não informado' }}" readonly>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">E-mail</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.DIS_email }}{% if form.DIS_email.errors %}<div class="text-danger small">{% for error in form.DIS_email.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<input type="email" class="form-control" value="{{ dizimista.DIS_email|default:'Não informado' }}" readonly>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Data de Nascimento</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.DIS_data_nascimento }}{% if form.DIS_data_nascimento.errors %}<div class="text-danger small">{% for error in form.DIS_data_nascimento.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<input type="text" class="form-control" value="{{ dizimista.DIS_data_nascimento|date:'d/m/Y'|default:'Não informado' }}" readonly>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Sexo</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.DIS_sexo }}{% if form.DIS_sexo.errors %}<div class="text-danger small">{% for error in form.DIS_sexo.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<input type="text" class="form-control" value="{{ dizimista.DIS_sexo|default:'-' }}" readonly>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">CPF</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.DIS_cpf }}{% if form.DIS_cpf.errors %}<div class="text-danger small">{% for error in form.DIS_cpf.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<input type="text" class="form-control" value="{{ dizimista.DIS_cpf|default:'Não informado' }}" readonly>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Status</label>
+            {% if acao == 'incluir' or acao == 'editar' %}<div class="form-check">{{ form.DIS_status }}<label class="form-check-label fw-bold" for="{{ form.DIS_status.id_for_label }}">Dizimista Ativo</label></div>{% if form.DIS_status.errors %}<div class="text-danger small">{% for error in form.DIS_status.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<div class="form-control" readonly>{% if dizimista.DIS_status %}<span class="badge bg-success">Ativo</span>{% else %}<span class="badge bg-secondary">Inativo</span>{% endif %}</div>{% endif %}
+        </div>
+    </div>
+        <div class="col-md-6">
+        <div class="mb-3"><label class="form-label fw-bold">CEP</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.DIS_cep }}{% if form.DIS_cep.errors %}<div class="text-danger small">{% for error in form.DIS_cep.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<input type="text" class="form-control" value="{{ dizimista.DIS_cep|default:'-' }}" readonly>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Endereço</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.DIS_endereco }}{% if form.DIS_endereco.errors %}<div class="text-danger small">{% for error in form.DIS_endereco.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<input type="text" class="form-control" value="{{ dizimista.DIS_endereco|default:'-' }}" readonly>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Número</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.DIS_numero }}{% if form.DIS_numero.errors %}<div class="text-danger small">{% for error in form.DIS_numero.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<input type="text" class="form-control" value="{{ dizimista.DIS_numero|default:'-' }}" readonly>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Complemento</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.DIS_complemento }}{% if form.DIS_complemento.errors %}<div class="text-danger small">{% for error in form.DIS_complemento.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<input type="text" class="form-control" value="{{ dizimista.DIS_complemento|default:'-' }}" readonly>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Bairro</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.DIS_bairro }}{% if form.DIS_bairro.errors %}<div class="text-danger small">{% for error in form.DIS_bairro.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<input type="text" class="form-control" value="{{ dizimista.DIS_bairro|default:'-' }}" readonly>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Cidade</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.DIS_cidade }}{% if form.DIS_cidade.errors %}<div class="text-danger small">{% for error in form.DIS_cidade.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<input type="text" class="form-control" value="{{ dizimista.DIS_cidade|default:'-' }}" readonly>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Estado</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.DIS_estado }}{% if form.DIS_estado.errors %}<div class="text-danger small">{% for error in form.DIS_estado.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<input type="text" class="form-control" value="{{ dizimista.DIS_estado|default:'-' }}" readonly>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Foto do Dizimista</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.DIS_foto }}{% if form.DIS_foto.errors %}<div class="text-danger small">{% for error in form.DIS_foto.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<div class="form-control" readonly>{% if dizimista.DIS_foto %}<img src="{{ dizimista.DIS_foto.url }}" alt="Foto do Dizimista" class="img-thumbnail" style="max-width: 100px; max-height: 100px;">{% else %}<span class="text-muted">Não informada</span>{% endif %}</div>{% endif %}
+        </div>
+        {% if acao == 'consultar' %}
+        <div class="mb-3"><label class="form-label fw-bold">Cadastro</label><input type="text" class="form-control" value="{{ dizimista.DIS_data_cadastro|date:'d/m/Y H:i'|default:'-' }}" readonly></div>
+        <div class="mb-3"><label class="form-label fw-bold">Atualização</label><input type="text" class="form-control" value="{{ dizimista.DIS_data_atualizacao|date:'d/m/Y H:i'|default:'-' }}" readonly></div>
+            {% endif %}
+    </div>
+</div>
+
+{% if acao == 'incluir' or acao == 'editar' or acao == 'excluir' %}
+</form>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar máscaras usando a função centralizada
+    inicializarMascaras({
+        campos: {
+            telefone: 'DIS_telefone',
+            cep: 'DIS_cep',
+            cpf: 'DIS_cpf'
+        },
+        cepCampos: {
+            endereco: 'DIS_endereco',
+            bairro: 'DIS_bairro',
+            cidade: 'DIS_cidade',
+            estado: 'DIS_estado'
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,561 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if modelos_section == 'crud' %}
+        {% if modo_manutencao %}Manutenção Modelo: {{ modelo.MOD_DESCRICAO }}{% else %}Novo Modelo{% endif %}
+    {% elif modelos_section == 'view' %}
+        Visualizar Modelo
+    {% else %}
+        Cadastro de Modelos
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
+<style>
+/* CSS específico do módulo Modelos */
+.panel-container_estatistica {
+    display: none !important;
+}
+
+{% if modelos_section == 'crud' or modelos_section == 'view' %}
+/* === CORES ESPECÍFICAS DO MÓDULO MODELOS === */
+:root {
+    --cor-principal: #4c1d95;
+    --cor-secundaria: #7c3aed;
+    --cor-fundo: #a78bfa;
+    --cor-texto: #ffffff;
+}
+
+/* Classes específicas usam as genéricas do base.html */
+.cabecalho-modelo {
+    /* Herda de .cabecalho-master-detail do base.html */
+}
+
+/* Badge específico de ocorrências */
+.badge-ocorrencia {
+    background: rgba(76, 29, 149, 0.1);
+    color: #4c1d95;
+    border-radius: 15px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Confirmação de exclusão */
+.confirmacao-exclusao-container {
+    background: #f2cc78;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.confirmacao-exclusao-content {
+    text-align: center;
+}
+
+.confirmacao-exclusao-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.btn-cancelar-exclusao {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-cancelar-exclusao:hover {
+    background: #5a6268;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-confirmar-exclusao {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-confirmar-exclusao:hover {
+    background: #c82333;
+}
+{% endif %}
+</style>
+{% endblock %}
+
+{% if modelos_section == 'list' or not modelos_section %}
+
+{% block icone_dashboard %}fas fa-layer-group{% endblock %}
+{% block nome_modulo_dashboard %}Modelos{% endblock %}
+{% block url_retornar_dashboard %}{% url 'app_igreja:admin_area' %}{% endblock %}
+{% block url_criar_novo_dashboard %}{% url 'app_igreja:modelos_master_detail_create' %}{% endblock %}
+{% block nome_modulo_lista_dashboard %}Modelos disponíveis{% endblock %}
+
+{% block estatisticas_dashboard %}{% endblock %}
+
+{% block busca_dashboard %}
+<form method="get" class="busca-campos">
+    <div class="campo-busca">
+        <label for="busca_modelo">Descrição do Modelo</label>
+        <input type="text" id="busca_modelo" name="busca" value="{{ busca }}" placeholder="Buscar por descrição...">
+    </div>
+    <button type="submit" class="cont_busca_btnbusca">
+        <i class="fas fa-search"></i>
+    </button>
+</form>
+{% endblock %}
+
+{% block colunas_cabecalho_dashboard %}
+<th width="10%">ID</th>
+<th width="50%">Descrição</th>
+<th width="20%">Criado em</th>
+<th width="20%">Atualizado em</th>
+{% endblock %}
+
+{% block linhas_tabela_dashboard %}
+{% for modelo in page_obj %}
+<tr>
+    {% block linha_completa_dashboard %}
+    <td>
+        <i class="fas fa-ellipsis-v" 
+           onclick="selecionarRegistroDashboard({{ modelo.MOD_ID }})"
+           style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;"
+           onmouseover="this.style.backgroundColor='#e9ecef'" 
+           onmouseout="this.style.backgroundColor='transparent'"></i>
+    </td>
+    <td>{{ modelo.MOD_ID }}</td>
+    <td>
+        <div>
+            <div class="mb-2">
+                <strong>{{ modelo.MOD_DESCRICAO }}</strong>
+            </div>
+            <!-- Botões de ação -->
+            <div class="botoes-acao" id="acoes_{{ modelo.MOD_ID }}" style="display: none;">
+                <div class="d-flex gap-2 justify-content-start align-items-center">
+                    <a href="{% url 'app_igreja:modelos_master_detail_view' modelo.MOD_ID %}" class="btn btn-info btn-sm d-flex align-items-center">
+                        <i class="fas fa-eye me-1"></i>Consultar
+                    </a>
+                    <a href="{% url 'app_igreja:modelos_master_detail_create_pk' modelo.MOD_ID %}" class="btn btn-warning btn-sm d-flex align-items-center">
+                        <i class="fas fa-cogs me-1"></i>Manutenção
+                    </a>
+                    <a href="{% url 'app_igreja:modelos_master_detail_view' modelo.MOD_ID %}?confirmar_exclusao=1" class="btn btn-danger btn-sm d-flex align-items-center">
+                        <i class="fas fa-trash me-1"></i>Excluir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </td>
+    <td>{{ modelo.MOD_DATA_CRIACAO|date:'d/m/Y' }}</td>
+    <td>{{ modelo.MOD_DATA_ALTERACAO|date:'d/m/Y' }}</td>
+    {% endblock %}
+</tr>
+{% empty %}
+<tr>
+    <td colspan="5" class="text-center text-muted py-5">
+        <i class="fas fa-layer-group fa-2x mb-3"></i><br>
+        Nenhum modelo cadastrado.
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
+
+{% endif %}
+
+{% block content %}
+{% if modelos_section == 'crud' %}
+<div class="container-principal">
+    <div class="cabecalho-master-detail cabecalho-modelo">
+        <h2>{% if modo_manutencao %}🔧 Manutenção Modelo: {{ modelo.MOD_DESCRICAO }}{% else %}📄 Novo Modelo{% endif %}</h2>
+    </div>
+
+    <div class="formulario-master">
+        <form id="formularioModelo">
+            {% csrf_token %}
+            <div class="grid-campos">
+                <div class="campo-formulario" style="grid-column: 1 / -1;">
+                    <label class="label-campo">Descrição do Modelo *</label>
+                    <input type="text" name="MOD_DESCRICAO" class="input-campo" placeholder="Descrição" required
+                           {% if modo_manutencao %}value="{{ modelo.MOD_DESCRICAO }}"{% endif %}>
+                </div>
+                {% if modo_manutencao %}
+                <div class="campo-formulario">
+                    <label class="label-campo">Data de Criação</label>
+                    <input type="text" class="input-campo input-readonly" value="{{ modelo.MOD_DATA_CRIACAO|date:'d/m/Y' }}" readonly>
+                </div>
+                <div class="campo-formulario">
+                    <label class="label-campo">Última Alteração</label>
+                    <input type="text" class="input-campo input-readonly" value="{{ modelo.MOD_DATA_ALTERACAO|date:'d/m/Y' }}" readonly>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="panel-acoes">
+                <div class="conteudo-acoes" id="panelAcoes">
+                    <a href="{% url 'app_igreja:modelos_master_detail_list' %}" class="btn-cancelar" id="btnCancelar">
+                        <i class="fas fa-arrow-left"></i>
+                        Cancelar
+                    </a>
+                    
+                    <button type="button" class="btn-gravar" id="btnGravar" onclick="salvarModelo()">
+                        <i class="fas fa-save"></i>
+                        Gravar
+                    </button>
+                    
+                    <a href="{% url 'app_igreja:modelos_master_detail_list' %}" class="btn-retornar" id="btnRetornar" style="display: none;">
+                        <i class="fas fa-arrow-left"></i>
+                        Retornar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if modo_manutencao %}
+    <div class="secao-itens">
+                <div class="cabecalho-itens">
+            <h3>📋 Itens do Modelo: {{ modelo.MOD_DESCRICAO }}</h3>
+            <button class="btn-adicionar-item" onclick="mostrarModalItem()">
+                <i class="fas fa-plus"></i> Adicionar Item
+            </button>
+        </div>
+
+        <div class="lista-itens" id="listaItens">
+            {% if itens %}
+                {% for item in itens %}
+                <div class="item-lista" data-item-id="{{ item.ITEM_MOD_ID }}">
+                    <div class="info-item">
+                        <span class="encargo-item"><strong>Encargo:</strong> {{ item.ITEM_MOD_ENCARGO }}</span>
+                        <div class="ocorrencias-badges">
+                            {% for label in item.ocorrencias_verbose_list %}
+                            <span class="badge-ocorrencia">{{ label }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="acoes-item">
+                        <button class="btn-editar-item" onclick="editarItem({{ item.ITEM_MOD_ID }}, '{{ item.ITEM_MOD_ENCARGO|escapejs }}', '{{ item.ITEM_MOD_OCORRENCIA|escapejs }}')">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn-excluir-item" onclick="excluirItem({{ item.ITEM_MOD_ID }})">
+                            <i class="fas fa-trash"></i> Excluir
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="sem-itens">
+                <i class="fas fa-info-circle fa-2x mb-2"></i>
+                <p>Nenhum item cadastrado para este modelo.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if ocorrencia_choices %}{{ ocorrencia_choices|json_script:"ocorrencia-choices" }}{% endif %}
+
+<script>
+let modeloId = {% if modelo %}{{ modelo.MOD_ID }}{% else %}null{% endif %};
+let itemEditando = null;
+const ocorrenciaChoices = document.getElementById('ocorrencia-choices') ? JSON.parse(document.getElementById('ocorrencia-choices').textContent) : [];
+
+function salvarModelo() {
+    const form = document.getElementById('formularioModelo');
+    const formData = new FormData(form);
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    formData.append('csrfmiddlewaretoken', csrfToken);
+
+    let url = '';
+    if (!modeloId) {
+        url = '{% url "app_igreja:modelos_master_detail_create" %}';
+    } else {
+        url = window.location.href;
+        formData.append('action', 'atualizar_modelo');
+    }
+
+    fetch(url, { method: 'POST', body: formData })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (!modeloId && data.modelo_id) {
+                    modeloId = data.modelo_id;
+                    window.location.href = `/app_igreja/admin-area/modelos-master-detail/create/?modelo_id=${data.modelo_id}`;
+                } else {
+                    // Modo edição: ocultar botão Gravar e mostrar botão Retornar
+                    const btnGravar = document.getElementById('btnGravar');
+                    const btnCancelar = document.getElementById('btnCancelar');
+                    const btnRetornar = document.getElementById('btnRetornar');
+                    
+                    if (btnGravar) btnGravar.style.display = 'none';
+                    if (btnCancelar) btnCancelar.style.display = 'none';
+                    if (btnRetornar) btnRetornar.style.display = 'flex';
+                    
+                    alert(data.message || 'Dados atualizados com sucesso!');
+                }
+            } else {
+                alert(data.message || 'Não foi possível salvar.');
+            }
+        })
+        .catch(() => alert('Erro ao salvar o modelo.'));
+}
+
+function renderOcorrencias(selected = []) {
+    return ocorrenciaChoices.map(([value, label]) => {
+        const checked = selected.includes(value) ? 'checked' : '';
+        return `<label><input type="checkbox" value="${value}" class="checkbox-ocorrencia" ${checked}> ${label}</label>`;
+    }).join('');
+}
+
+function mostrarModalItem() {
+    if (!modeloId) {
+        alert('Salve o modelo antes de adicionar itens.');
+        return;
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    const selecionados = itemEditando && itemEditando.ocorrencias ? itemEditando.ocorrencias : [];
+    modal.innerHTML = `
+        <div class="modal-content">
+                <div class="modal-header">
+                <h3>📋 ${itemEditando ? 'Editar' : 'Adicionar'} Item do Modelo</h3>
+                <button class="modal-close" onclick="fecharModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formItem">
+                    <div class="formulario-item">
+                        <div class="campo-item campo-acao">
+                            <label>Encargo *</label>
+                            <input type="text" id="encargoItem" class="input-item" required placeholder="Descrição do encargo"
+                                   value="${itemEditando ? itemEditando.encargo : ''}">
+                        </div>
+                        <div class="campo-item">
+                            <label>Ocorrências *</label>
+                            <div class="checkbox-ocorrencias">
+                                ${renderOcorrencias(selecionados)}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="container-botoes-modal">
+                <button type="button" class="btn-cancelar-modal" onclick="fecharModal()">Cancelar</button>
+                <button type="button" class="btn-adicionar-modal" onclick="salvarItem()">
+                    <i class="fas fa-save"></i> ${itemEditando ? 'Salvar' : 'Adicionar'}
+                </button>
+            </div>
+        </div>`;
+
+    document.body.appendChild(modal);
+}
+
+function salvarItem() {
+    const encargo = document.getElementById('encargoItem').value.trim();
+    const ocorrenciaInputs = Array.from(document.querySelectorAll('.checkbox-ocorrencia:checked'));
+    const ocorrencias = ocorrenciaInputs.map(input => input.value);
+
+    if (!encargo) {
+        alert('Informe o encargo do item.');
+        return;
+    }
+
+    if (!ocorrencias.length) {
+        alert('Selecione pelo menos uma ocorrência.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('action', itemEditando ? 'editar_item' : 'adicionar_item');
+    formData.append('ITEM_MOD_ENCARGO', encargo);
+    formData.append('ITEM_MOD_OCORRENCIA', ocorrencias.join(','));
+    formData.append('modelo_id', modeloId);
+    if (itemEditando) {
+        formData.append('item_id', itemEditando.id);
+    }
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+    fetch(window.location.href, { method: 'POST', body: formData })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'Item salvo com sucesso!');
+                fecharModal();
+                window.location.reload();
+            } else {
+                alert(data.message || 'Erro ao salvar item.');
+            }
+        })
+        .catch(() => alert('Erro ao salvar item.'));
+}
+
+function editarItem(id, encargo, ocorrencias) {
+    const ocorrenciasLista = ocorrencias ? ocorrencias.split(',') : [];
+    itemEditando = {
+        id,
+        encargo,
+        ocorrencias: ocorrenciasLista
+    };
+    mostrarModalItem();
+}
+
+function excluirItem(id) {
+    if (!confirm('Tem certeza que deseja excluir este item?')) {
+        return;
+    }
+    const formData = new FormData();
+    formData.append('action', 'excluir_item');
+    formData.append('item_id', id);
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+    fetch(window.location.href, { method: 'POST', body: formData })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'Item excluído com sucesso!');
+                window.location.reload();
+            } else {
+                alert(data.message || 'Erro ao excluir item.');
+            }
+        })
+        .catch(() => alert('Erro ao excluir item.'));
+}
+
+function fecharModal() {
+    const modal = document.querySelector('.modal-overlay');
+    if (modal) {
+        modal.remove();
+    }
+    itemEditando = null;
+}
+</script>
+{% endif %}
+{% endblock %}
+
+{% if modelos_section == 'view' and modo_detalhe %}
+{# Usar padrão PAI-FILHO do base.html para Consultar e Excluir #}
+{# O base.html renderiza o card automaticamente quando modo_detalhe é True #}
+{% block conteudo_detalhe %}
+{% if acao == 'excluir' %}
+<form id="detail-form" method="post" action="{% url 'app_igreja:modelos_master_detail_delete' modelo.MOD_ID %}">
+{% csrf_token %}
+{% endif %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Descrição do Modelo</label>
+            <input type="text" class="form-control" value="{{ modelo.MOD_DESCRICAO }}" readonly>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Data de Criação</label>
+            <input type="text" class="form-control" value="{{ modelo.MOD_DATA_CRIACAO|date:'d/m/Y' }}" readonly>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Última Alteração</label>
+            <input type="text" class="form-control" value="{{ modelo.MOD_DATA_ALTERACAO|date:'d/m/Y' }}" readonly>
+        </div>
+    </div>
+</div>
+
+{% if acao == 'consultar' %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-list me-2"></i>Itens do Modelo</h6>
+            </div>
+            <div class="card-body">
+                {% if itens %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Encargo</th>
+                                    <th>Ocorrências</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in itens %}
+                                <tr>
+                                    <td><strong>{{ item.ITEM_MOD_ENCARGO }}</strong></td>
+                                    <td>
+                                        {% for label in item.ocorrencias_verbose_list %}
+                                        <span class="badge bg-info me-1">{{ label }}</span>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Nenhum item cadastrado neste modelo.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% elif acao == 'excluir' %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="alert alert-warning">
+            <h6><i class="fas fa-exclamation-triangle me-2"></i>Atenção!</h6>
+            <p class="mb-0">Ao confirmar a exclusão, <strong>todos os itens deste modelo também serão excluídos!</strong></p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if acao == 'excluir' %}
+</form>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Funções do formulário pai
+function bdCancelar() {
+    window.location.href = "{{ next_url|default:'/app_igreja/admin-area/modelos-master-detail/' }}";
+}
+
+function bdRetornar() {
+    window.location.href = "{{ next_url|default:'/app_igreja/admin-area/modelos-master-detail/' }}";
+}
+
+function bdConfirmarExclusao() {
+    if (confirm('Tem certeza que deseja excluir o modelo "{{ modelo.MOD_DESCRICAO }}"?\n\nAtenção: Todos os itens deste modelo também serão excluídos!')) {
+        document.querySelector('#detail-form').submit();
+    }
+}
+</script>
+{% endblock %}
+{% endif %}

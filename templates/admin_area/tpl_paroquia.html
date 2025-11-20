@@ -1,0 +1,422 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load paroquia_extras %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
+{% endblock %}
+
+{% block title %}
+    {% if modo_edicao %}
+        Editar Paróquia
+    {% else %}
+        Dados da Paróquia
+    {% endif %}
+{% endblock %}
+
+{% block icone_formulario %}fas fa-church{% endblock %}
+
+{% block titulo_formulario %}Informações da Paróquia{% endblock %}
+
+{% block url_retornar %}{% url 'app_igreja:admin_area' %}{% endblock %}
+
+{% block url_editar_formulario %}{% url 'app_igreja:paroquia_generic' %}?edit=1{% endblock %}
+
+{% block url_cancelar_edicao %}{% url 'app_igreja:paroquia_generic' %}{% endblock %}
+
+{% block url_cancelar_horarios %}{% url 'app_igreja:paroquia_generic' %}{% endblock %}
+
+{% block conteudo_edicao %}
+                    <!-- CONTAINER INFORMAÇÕES BÁSICAS -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-info-basicas">
+                            <h5 class="mb-0">Informações Básicas</h5>
+                        </div>
+                        <div class="card-body info-basicas-bg">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Nome da Paróquia:</label>
+                                        {{ form.PAR_nome_paroquia }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Diocese:</label>
+                                        {{ form.PAR_diocese }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Pároco:</label>
+                                        {{ form.PAR_paroco }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Secretário(a):</label>
+                                        {{ form.PAR_secretario }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Foto do Pároco:</label>
+                                        {% comment %}<!-- Foto -->{% endcomment %}
+                                        {{ form.PAR_foto_paroco }}
+                                        <small class="form-text text-muted">{{ form.PAR_foto_paroco.help_text }}</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">CEP:</label>
+                                        {{ form.PAR_cep }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Endereço:</label>
+                                        {{ form.PAR_endereco }}
+                                    </div>
+                                </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Número:</label>
+                                    {{ form.PAR_numero }}
+                                </div>
+                            </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Cidade:</label>
+                                        {{ form.PAR_cidade }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">UF:</label>
+                                        {{ form.PAR_uf }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Bairro:</label>
+                                        {{ form.PAR_bairro }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Telefone:</label>
+                                        {{ form.PAR_telefone }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">E-mail:</label>
+                                        {{ form.PAR_email }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTAINER DADOS BANCÁRIOS/PIX -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-dados-bancarios">
+                            <h5 class="mb-0">Dados Bancários e PIX</h5>
+                        </div>
+                        <div class="card-body dados-bancarios-bg">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">CNPJ:</label>
+                                        {{ form.PAR_cnpj }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Banco:</label>
+                                        {{ form.PAR_banco }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Agência:</label>
+                                        {{ form.PAR_agencia }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Conta:</label>
+                                        {{ form.PAR_conta }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Chave PIX:</label>
+                                        {{ form.PAR_pix_chave }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Tipo PIX:</label>
+                                        {{ form.PAR_pix_tipo }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Beneficiário PIX:</label>
+                                        {{ form.PAR_pix_beneficiario }}
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="mb-3">
+                                                <label class="form-label">Cidade PIX:</label>
+                                                {{ form.PAR_pix_cidade }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">UF PIX:</label>
+                                                {{ form.PAR_pix_uf }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTAINER HORÁRIOS FIXOS -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-horarios-fixos">
+                            <h5 class="mb-0">Horários Fixos de Celebração</h5>
+                        </div>
+                        <div class="card-body horarios-fixos-bg">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Domingo:</label>
+                                        {{ form_horarios.domingo_horarios }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Segunda:</label>
+                                        {{ form_horarios.segunda_horarios }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Terça:</label>
+                                        {{ form_horarios.terca_horarios }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Quarta:</label>
+                                        {{ form_horarios.quarta_horarios }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Quinta:</label>
+                                        {{ form_horarios.quinta_horarios }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Sexta:</label>
+                                        {{ form_horarios.sexta_horarios }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Sábado:</label>
+                                        {{ form_horarios.sabado_horarios }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+{% endblock %}
+
+{% block conteudo_visualizacao %}
+                    <!-- CONTAINER INFORMAÇÕES BÁSICAS -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-info-basicas">
+                            <h5 class="mb-0">Informações Básicas</h5>
+                        </div>
+                        <div class="card-body info-basicas-bg">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Paróquia:</strong> {{ paroquia.PAR_nome_paroquia|default:"Não informado" }}</p>
+                                    <p><strong>Diocese:</strong> {% if paroquia.PAR_diocese %}{{ paroquia.PAR_diocese }}{% else %}Não informado{% endif %}</p>
+                                    <p><strong>Pároco:</strong> {{ paroquia.PAR_paroco|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Secretário(a):</strong> {{ paroquia.PAR_secretario|default:"Não informado" }}</p>
+                                    <p><strong>Foto:</strong> 
+                                        {% if paroquia.PAR_foto_paroco %}
+                                            <img src="{{ paroquia.PAR_foto_paroco.url }}" alt="Foto do Pároco" class="img-thumbnail" style="max-width: 60px; max-height: 60px;">
+                                        {% else %}
+                                            <span class="text-muted">Não informado</span>
+                                        {% endif %}
+                                    </p>
+                                    <p><strong>CEP:</strong> {{ paroquia.PAR_cep|default:"Não informado" }}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Endereço:</strong> {{ paroquia.PAR_endereco|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Número:</strong> {{ paroquia.PAR_numero|default:"Não informado" }}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Cidade:</strong> {{ paroquia.PAR_cidade|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p><strong>UF:</strong> {{ paroquia.PAR_uf|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p><strong>Bairro:</strong> {{ paroquia.PAR_bairro|default:"Não informado" }}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Telefone:</strong> {{ paroquia.PAR_telefone|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>E-mail:</strong> {{ paroquia.PAR_email|default:"Não informado" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTAINER DADOS BANCÁRIOS/PIX -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-dados-bancarios">
+                            <h5 class="mb-0">Dados Bancários e PIX</h5>
+                        </div>
+                        <div class="card-body dados-bancarios-bg">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>CNPJ:</strong> {{ paroquia.PAR_cnpj|default:"Não informado" }}</p>
+                                    <p><strong>Banco:</strong> {{ paroquia.PAR_banco|default:"Não informado" }}</p>
+                                    <p><strong>Agência:</strong> {{ paroquia.PAR_agencia|default:"Não informado" }}</p>
+                                    <p><strong>Conta:</strong> {{ paroquia.PAR_conta|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Chave PIX:</strong> {{ paroquia.PAR_pix_chave|default:"Não informado" }}</p>
+                                    <p><strong>Tipo PIX:</strong> {% if paroquia.PAR_pix_tipo %}{{ paroquia.get_pix_tipo_display }}{% else %}Não informado{% endif %}</p>
+                                    <p><strong>Beneficiário PIX:</strong> {{ paroquia.PAR_pix_beneficiario|default:"Não informado" }}</p>
+                                    <p><strong>Cidade PIX:</strong> {{ paroquia.PAR_pix_cidade|default:"Não informado" }}</p>
+                                    <p><strong>UF PIX:</strong> {{ paroquia.PAR_pix_uf|default:"Não informado" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTAINER HORÁRIOS FIXOS -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-horarios-fixos">
+                            <h5 class="mb-0">Horários Fixos de Celebração</h5>
+                        </div>
+                        <div class="card-body horarios-fixos-bg">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <p><strong>Domingo:</strong> {{ paroquia|get_horario_dia:"domingo"|format_horarios }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p><strong>Segunda:</strong> {{ paroquia|get_horario_dia:"segunda"|format_horarios }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p><strong>Terça:</strong> {{ paroquia|get_horario_dia:"terca"|format_horarios }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p><strong>Quarta:</strong> {{ paroquia|get_horario_dia:"quarta"|format_horarios }}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <p><strong>Quinta:</strong> {{ paroquia|get_horario_dia:"quinta"|format_horarios }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p><strong>Sexta:</strong> {{ paroquia|get_horario_dia:"sexta"|format_horarios }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p><strong>Sábado:</strong> {{ paroquia|get_horario_dia:"sabado"|format_horarios }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+{% endblock %}
+
+{% block conteudo_horarios %}
+                    <!-- CONTAINER HORÁRIOS FIXOS -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-horarios-fixos">
+                            <h5 class="mb-0">Horários Fixos de Celebração</h5>
+                        </div>
+                        <div class="card-body horarios-fixos-bg">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Domingo:</label>
+                                        {{ form_horarios.domingo_horarios }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Segunda:</label>
+                                        {{ form_horarios.segunda_horarios }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Terça:</label>
+                                        {{ form_horarios.terca_horarios }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Quarta:</label>
+                                        {{ form_horarios.quarta_horarios }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Quinta:</label>
+                                        {{ form_horarios.quinta_horarios }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Sexta:</label>
+                                        {{ form_horarios.sexta_horarios }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Sábado:</label>
+                                        {{ form_horarios.sabado_horarios }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar máscaras usando a função centralizada
+    inicializarMascaras({
+        campos: {
+            telefone: 'PAR_telefone',
+            cep: 'PAR_cep',
+            cnpj: 'PAR_cnpj'
+        },
+        cepCampos: {
+            endereco: 'PAR_endereco',
+            bairro: 'PAR_bairro',
+            cidade: 'PAR_cidade',
+            uf: 'PAR_uf'
+        }
+    });
+});
+</script>
+{% endblock %}

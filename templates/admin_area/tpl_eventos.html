@@ -1,0 +1,1537 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if eventos_section == 'crud' %}
+        {% if modo_manutencao %}Manutenção Evento: {{ evento.EVE_TITULO }}{% else %}Novo Evento{% endif %}
+    {% elif eventos_section == 'view' %}
+        Evento: {{ evento.EVE_TITULO }}
+    {% elif eventos_section == 'item_list' %}
+        Itens do Evento
+    {% elif eventos_section == 'item_detail' %}
+        {% if acao == 'incluir' %}Criar Item do Evento
+        {% elif acao == 'editar' %}Editar Item do Evento
+        {% elif acao == 'consultar' %}Visualizar Item do Evento
+        {% elif acao == 'excluir' %}Excluir Item do Evento
+        {% else %}Item do Evento{% endif %}
+    {% elif modo_criacao %}
+        Criar Evento
+    {% elif modo_edicao_crud %}
+        Editar Evento
+    {% elif modo_visualizacao_crud %}
+        Visualizar Evento
+    {% else %}
+        Cadastro de Eventos
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
+<style>
+/* CSS específico do módulo Eventos */
+.panel-container_estatistica {
+    display: none !important;
+}
+
+{% if eventos_section == 'crud' or eventos_section == 'view' %}
+/* === CORES ESPECÍFICAS DO MÓDULO EVENTOS === */
+:root {
+    --cor-principal: #28a745;
+    --cor-secundaria: #20c997;
+    --cor-fundo: #6edd99;
+    --cor-texto: #ffffff;
+}
+
+/* Classes específicas usam as genéricas do base.html */
+.cabecalho-evento {
+    /* Herda de .cabecalho-master-detail do base.html */
+}
+
+/* Estilos específicos de Eventos (não duplicados no base) */
+.hora-item {
+    font-weight: bold;
+    color: #495057;
+    min-width: 100px;
+}
+
+.acao-item {
+    color: #6c757d;
+    flex: 1;
+}
+
+.input-item {
+    padding: 10px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.input-item:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.campo-item.campo-acao .input-item {
+    width: 100%;
+}
+
+.formulario-item {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.linha-item {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.linha-item .campo-item {
+    flex: 1;
+}
+
+.campo-item label {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.btn-retornar-evento {
+    /* Usa .btn-retornar do base.html */
+}
+
+/* === ESTILOS MASTER-DETAIL VIEW === */
+.master-detail-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+.master-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+}
+
+.master-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.master-title {
+    font-size: 1.6rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.master-status {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-weight: bold;
+    backdrop-filter: blur(10px);
+    font-size: 0.9rem;
+}
+
+.master-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.master-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.master-field-label {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-bottom: 4px;
+}
+
+.master-field-value {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.master-actions-panel {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.master-actions-content {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn-editar-evento {
+    background: rgba(255, 193, 7, 0.3);
+    color: white;
+    border: 2px solid rgba(255, 193, 7, 0.5);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-editar-evento:hover {
+    background: rgba(255, 193, 7, 0.5);
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-excluir-evento {
+    background: rgba(220, 53, 69, 0.3);
+    color: white;
+    border: 2px solid rgba(220, 53, 69, 0.5);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-excluir-evento:hover {
+    background: rgba(220, 53, 69, 0.5);
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-retornar-evento {
+    background: rgba(52, 58, 64, 0.3);
+    color: white;
+    border: 2px solid rgba(52, 58, 64, 0.5);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-retornar-evento:hover {
+    background: rgba(52, 58, 64, 0.5);
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+}
+
+.detail-section {
+    background: #9ff3f9;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.detail-title {
+    font-size: 1.3rem;
+    color: #333;
+    margin: 0;
+}
+
+.detail-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.detail-count {
+    background: #667eea;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    min-width: 80px;
+    text-align: center;
+}
+
+.detail-table-desktop {
+    display: block;
+    overflow-x: auto;
+}
+
+.detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.detail-table th {
+    background: #f8f9fa;
+    color: #495057;
+    padding: 12px 10px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+    font-size: 0.9rem;
+}
+
+.detail-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+.detail-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.detail-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.detail-cards-mobile {
+    display: none;
+}
+
+.item-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.item-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.item-hora {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #667eea;
+}
+
+.item-acao {
+    font-size: 1rem;
+    color: #333;
+    flex: 1;
+    margin-left: 15px;
+}
+
+.confirmacao-exclusao-container {
+    background: #f2cc78;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.confirmacao-exclusao-content {
+    text-align: center;
+}
+
+.confirmacao-exclusao-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.btn-cancelar-exclusao {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-cancelar-exclusao:hover {
+    background: #5a6268;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-confirmar-exclusao {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-confirmar-exclusao:hover {
+    background: #c82333;
+}
+
+.status-ativo {
+    background: rgba(40, 167, 69, 0.2);
+    color: #155724;
+}
+
+.status-inativo {
+    background: rgba(220, 53, 69, 0.2);
+    color: #721c24;
+}
+
+/* === RESPONSIVIDADE ESPECÍFICA DE EVENTOS === */
+@media (max-width: 768px) {
+    .master-detail-container {
+        padding: 15px;
+    }
+    
+    .master-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .detail-table-desktop {
+        display: none;
+    }
+    
+    .detail-cards-mobile {
+        display: block;
+    }
+    
+    .master-actions-content {
+        flex-direction: column;
+    }
+    
+    .btn-editar-evento,
+    .btn-excluir-evento {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* === AJUSTES MOBILE PARA DATA/HORA === */
+    .container-data-hora {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .container-data-hora input[type="date"],
+    .container-data-hora input[type="time"] {
+        width: 100%;
+        flex: 1;
+        min-width: 100%;
+    }
+    
+    .campo-data-hora {
+        grid-column: 1 / -1 !important;
+    }
+}
+{% endif %}
+</style>
+{% endblock %}
+
+{# ============================================================ #}
+{# SEÇÃO: LISTAGEM DE EVENTOS E ITENS (DASHBOARD)                #}
+{# ============================================================ #}
+{% if eventos_section == 'list' or eventos_section == 'item_list' or not eventos_section %}
+
+<!-- === BLOCO DASHBOARD === -->
+{% block icone_dashboard %}{% if eventos_section == 'item_list' %}fas fa-list-check{% else %}fas fa-calendar-check{% endif %}{% endblock %}
+{% block nome_modulo_dashboard %}{% if eventos_section == 'item_list' %}Itens do Evento{% else %}Eventos{% endif %}{% endblock %}
+{% block url_retornar_dashboard %}{% url 'app_igreja:admin_area' %}{% endblock %}
+{% block url_criar_novo_dashboard %}{% if eventos_section == 'item_list' %}{% if evento %}{% url 'app_igreja:criar_item_evento_por_evento' evento.EVE_ID %}{% else %}{% url 'app_igreja:criar_item_evento' %}{% endif %}{% else %}{% if master_detail_mode %}{% url 'app_igreja:eventos_master_detail_create' %}{% else %}{% url 'app_igreja:criar_evento' %}{% endif %}{% endif %}{% endblock %}
+{% block nome_modulo_lista_dashboard %}{% if eventos_section == 'item_list' %}Itens do Evento{% else %}Eventos{% endif %}{% endblock %}
+
+<!-- === BLOCO ESTATÍSTICAS DASHBOARD === -->
+{% block estatisticas_dashboard %}
+<!-- PAINEL DE ESTATÍSTICAS OCULTO -->
+{% endblock %}
+
+<!-- === BLOCO BUSCA DASHBOARD === -->
+{% block busca_dashboard %}
+{% if eventos_section == 'item_list' %}
+<form method="get" class="busca-campos">
+    <div class="campo-busca">
+        <label for="busca_acao">Buscar por Ação ou Evento</label>
+        <input type="text" id="busca_acao" name="busca" 
+               value="{{ busca }}" 
+               placeholder="Digite a ação ou o evento...">
+    </div>
+    {% if evento %}
+    <div class="campo-busca">
+        <label>Evento Selecionado</label>
+        <input type="text" value="{{ evento.EVE_TITULO }}" readonly class="form-control">
+    </div>
+    {% endif %}
+    <button type="submit" class="cont_busca_btnbusca">
+        <i class="fas fa-search"></i>
+    </button>
+</form>
+{% else %}
+<form method="get" class="busca-campos">
+    <div class="campo-busca">
+        <label for="busca_titulo">Título do Evento</label>
+        <input type="text" id="busca_titulo" name="busca" 
+               value="{{ busca }}" 
+               placeholder="Digite o título...">
+    </div>
+    <div class="campo-busca">
+        <label for="filtro_status">Status</label>
+        <select id="filtro_status" name="status">
+            <option value="">Todos</option>
+            <option value="Ativo" {% if status == 'Ativo' %}selected{% endif %}>Ativo</option>
+            <option value="Inativo" {% if status == 'Inativo' %}selected{% endif %}>Inativo</option>
+            <option value="Cancelado" {% if status == 'Cancelado' %}selected{% endif %}>Cancelado</option>
+            <option value="Concluído" {% if status == 'Concluído' %}selected{% endif %}>Concluído</option>
+            <option value="Adiado" {% if status == 'Adiado' %}selected{% endif %}>Adiado</option>
+        </select>
+        </div>
+    <button type="submit" class="cont_busca_btnbusca">
+        <i class="fas fa-search"></i>
+                </button>
+</form>
+{% endif %}
+{% endblock %}
+
+<!-- === BLOCO COLUNAS CABEÇALHO DASHBOARD === -->
+{% block colunas_cabecalho_dashboard %}
+{% if eventos_section == 'item_list' %}
+<th width="10%">ID</th>
+<th width="25%">Evento</th>
+<th width="20%">Data</th>
+<th width="15%">Hora</th>
+<th width="20%">Ação</th>
+<th width="10%">Ações</th>
+{% else %}
+<th width="10%">ID</th>
+<th width="50%">Título</th>
+<th width="15%">Status</th>
+<th width="15%">Data Cadastro</th>
+<th width="10%">Data Atualização</th>
+{% endif %}
+{% endblock %}
+
+<!-- === BLOCO LINHAS TABELA DASHBOARD === -->
+{% block linhas_tabela_dashboard %}
+{% if eventos_section == 'item_list' %}
+{% for item in page_obj %}
+<tr>
+    <td>
+        <i class="fas fa-ellipsis-v" 
+           onclick="selecionarRegistroDashboard({{ item.ITEM_EVE_ID }})"
+           style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;"
+           onmouseover="this.style.backgroundColor='#e9ecef'" 
+           onmouseout="this.style.backgroundColor='transparent'"></i>
+    </td>
+    <td>{{ item.ITEM_EVE_ID }}</td>
+    <td>{{ item.ITEM_EVE_EVENTO.EVE_TITULO }}</td>
+    <td>{{ item.ITEM_EVE_DATA_INICIAL|date:"d/m/Y" }}{% if item.ITEM_EVE_DATA_FINAL %} - {{ item.ITEM_EVE_DATA_FINAL|date:"d/m/Y" }}{% endif %}</td>
+    <td>{{ item.ITEM_EVE_HORA_INICIAL|time:"H:i" }}{% if item.ITEM_EVE_HORA_FINAL %} - {{ item.ITEM_EVE_HORA_FINAL|time:"H:i" }}{% endif %}</td>
+    <td>{{ item.ITEM_EVE_ACAO|truncatechars:50 }}</td>
+    <td>
+        <div class="botoes-acao" id="acoes_{{ item.ITEM_EVE_ID }}" style="display: none;">
+            <div class="d-flex gap-2 justify-content-start align-items-center">
+                <a href="{% url 'app_igreja:detalhar_item_evento' item.ITEM_EVE_ID %}" class="btn btn-info btn-sm d-flex align-items-center">
+                    <i class="fas fa-eye me-1"></i>Consultar
+                </a>
+                <a href="{% url 'app_igreja:editar_item_evento' item.ITEM_EVE_ID %}" class="btn btn-warning btn-sm d-flex align-items-center">
+                    <i class="fas fa-cogs me-1"></i>Manutenção
+                </a>
+                <a href="{% url 'app_igreja:excluir_item_evento' item.ITEM_EVE_ID %}" class="btn btn-danger btn-sm d-flex align-items-center">
+                    <i class="fas fa-trash me-1"></i>Excluir
+                </a>
+            </div>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="7" class="text-center py-4">
+        <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+        <p class="text-muted">Nenhum item encontrado.</p>
+        {% if evento %}
+        <a href="{% url 'app_igreja:criar_item_evento_por_evento' evento.EVE_ID %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Adicionar Item ao Evento
+        </a>
+        {% else %}
+        <a href="{% url 'app_igreja:criar_item_evento' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Adicionar Novo Item
+        </a>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+{% else %}
+{% for evento in page_obj %}
+<tr>
+    <td>
+        <i class="fas fa-ellipsis-v" 
+           onclick="selecionarRegistroDashboard({{ evento.EVE_ID }})"
+           style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;"
+           onmouseover="this.style.backgroundColor='#e9ecef'" 
+           onmouseout="this.style.backgroundColor='transparent'"></i>
+    </td>
+    <td>{{ evento.EVE_ID }}</td>
+    <td>
+        <div>
+            <div class="mb-2">
+                <strong>{{ evento.EVE_TITULO }}</strong>
+            </div>
+            <!-- Botões de ação -->
+            <div class="botoes-acao" id="acoes_{{ evento.EVE_ID }}" style="display: none;">
+                <div class="d-flex gap-2 justify-content-start align-items-center">
+                    <a href="{% if master_detail_mode %}{% url 'app_igreja:eventos_master_detail_view' evento.EVE_ID %}{% else %}{% url 'app_igreja:detalhar_evento' evento.EVE_ID %}{% endif %}" class="btn btn-info btn-sm d-flex align-items-center">
+                        <i class="fas fa-eye me-1"></i>Consultar
+                    </a>
+                    <a href="{% if master_detail_mode %}{% url 'app_igreja:eventos_master_detail_create_pk' evento.EVE_ID %}{% else %}{% url 'app_igreja:editar_evento' evento.EVE_ID %}{% endif %}" class="btn btn-warning btn-sm d-flex align-items-center">
+                        <i class="fas fa-cogs me-1"></i>Manutenção
+                    </a>
+                    <a href="{% if master_detail_mode %}{% url 'app_igreja:eventos_master_detail_view' evento.EVE_ID %}?confirmar_exclusao=1{% else %}{% url 'app_igreja:excluir_evento' evento.EVE_ID %}{% endif %}" class="btn btn-danger btn-sm d-flex align-items-center">
+                        <i class="fas fa-trash me-1"></i>Excluir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </td>
+    <td>
+        <span class="badge {{ evento.status_badge_class }}">
+            {{ evento.status_display }}
+        </span>
+    </td>
+    <td>{{ evento.EVE_DTCADASTRO|date:"d/m/Y" }}</td>
+    <td>{{ evento.EVE_DTATUALIZACAO|date:"d/m/Y" }}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="6" class="text-center text-muted">
+        <i class="fas fa-calendar-check fa-2x mb-2"></i>
+        <br>
+        Nenhum evento encontrado.
+    </td>
+</tr>
+{% endfor %}
+{% endif %}
+{% endblock %}
+
+<!-- === BLOCO MENSAGEM VAZIO DASHBOARD === -->
+{% block mensagem_vazio_dashboard %}{% if eventos_section == 'item_list' %}Clique em "Novo Item" para adicionar o primeiro item.{% else %}Clique em "Novo Evento" para adicionar o primeiro evento.{% endif %}{% endblock %}
+
+{% endif %}
+
+{# ============================================================ #}
+{# BLOCO CONTENT UNIFICADO                                      #}
+{# ============================================================ #}
+{% if eventos_section == 'crud' or eventos_section == 'view' %}
+{% block content %}
+
+{# ============================================================ #}
+{# SEÇÃO: CRUD MASTER-DETAIL (CRIAR/EDITAR COM ITENS)          #}
+{# ============================================================ #}
+{% if eventos_section == 'crud' %}
+<div class="container-principal">
+    
+    <!-- === CABEÇALHO === -->
+    <div class="cabecalho-master-detail cabecalho-evento">
+        <h2>{% if modo_manutencao %}🔧 Manutenção Evento: {{ evento.EVE_TITULO }}{% else %}📄 Novo Evento{% endif %}</h2>
+    </div>
+    
+    <!-- === FORMULÁRIO MASTER === -->
+    <div class="formulario-master">
+        <form id="formularioMaster">
+            {% csrf_token %}
+            <div class="grid-campos">
+                <!-- === INFORMAÇÕES BÁSICAS === -->
+                <div class="campo-formulario" style="grid-column: 1 / -1;">
+                    <label class="label-campo">Título do Evento *</label>
+                    <input type="text" name="EVE_TITULO" class="input-campo" 
+                           placeholder="Digite o título do evento" required
+                           {% if modo_manutencao %}value="{{ evento.EVE_TITULO }}"{% endif %}>
+                </div>
+                
+                <div class="campo-formulario">
+                    <label class="label-campo">Tipo do Evento *</label>
+                    <select name="EVE_TIPO" class="input-campo" required>
+                        <option value="">Selecione o tipo...</option>
+                        <option value="Missa" {% if modo_manutencao and evento.EVE_TIPO == 'Missa' %}selected{% endif %}>Missa</option>
+                        <option value="Celebração" {% if modo_manutencao and evento.EVE_TIPO == 'Celebração' %}selected{% endif %}>Celebração</option>
+                        <option value="Casamento" {% if modo_manutencao and evento.EVE_TIPO == 'Casamento' %}selected{% endif %}>Casamento</option>
+                        <option value="Reunião" {% if modo_manutencao and evento.EVE_TIPO == 'Reunião' %}selected{% endif %}>Reunião</option>
+                        <option value="Formação" {% if modo_manutencao and evento.EVE_TIPO == 'Formação' %}selected{% endif %}>Formação</option>
+                        <option value="Festa" {% if modo_manutencao and evento.EVE_TIPO == 'Festa' %}selected{% endif %}>Festa</option>
+                        <option value="Retiro" {% if modo_manutencao and evento.EVE_TIPO == 'Retiro' %}selected{% endif %}>Retiro</option>
+                        <option value="Confissão" {% if modo_manutencao and evento.EVE_TIPO == 'Confissão' %}selected{% endif %}>Confissão</option>
+                        <option value="Adoração" {% if modo_manutencao and evento.EVE_TIPO == 'Adoração' %}selected{% endif %}>Adoração</option>
+                        <option value="Novena" {% if modo_manutencao and evento.EVE_TIPO == 'Novena' %}selected{% endif %}>Novena</option>
+                        <option value="Outro" {% if modo_manutencao and evento.EVE_TIPO == 'Outro' %}selected{% endif %}>Outro</option>
+                    </select>
+                </div>
+                
+                <div class="campo-formulario">
+                    <label class="label-campo">Status *</label>
+                    <select name="EVE_STATUS" class="input-campo" required>
+                        <option value="Ativo" {% if modo_manutencao and evento.EVE_STATUS == 'Ativo' or not modo_manutencao %}selected{% endif %}>Ativo</option>
+                        <option value="Inativo" {% if modo_manutencao and evento.EVE_STATUS == 'Inativo' %}selected{% endif %}>Inativo</option>
+                        <option value="Cancelado" {% if modo_manutencao and evento.EVE_STATUS == 'Cancelado' %}selected{% endif %}>Cancelado</option>
+                        <option value="Concluído" {% if modo_manutencao and evento.EVE_STATUS == 'Concluído' %}selected{% endif %}>Concluído</option>
+                        <option value="Adiado" {% if modo_manutencao and evento.EVE_STATUS == 'Adiado' %}selected{% endif %}>Adiado</option>
+                    </select>
+                </div>
+                
+                <div class="campo-formulario" style="grid-column: 1 / -1;">
+                    <label class="label-campo">Descrição</label>
+                    <textarea name="EVE_DESCRICAO" class="input-campo" rows="3" 
+                              placeholder="Descrição do evento" maxlength="255">{% if modo_manutencao %}{{ evento.EVE_DESCRICAO }}{% endif %}</textarea>
+                </div>
+                
+                <!-- === DATAS E HORÁRIOS === -->
+                <div class="campo-formulario campo-data-hora" style="grid-column: 1 / -1;">
+                    <label class="label-campo">Data Inicial * / Hora Inicial</label>
+                    <div class="container-data-hora">
+                        <input type="date" name="EVE_DT_INICIAL" class="input-campo" required
+                               {% if modo_manutencao and evento.EVE_DT_INICIAL %}value="{{ evento.EVE_DT_INICIAL|date:'Y-m-d' }}"{% endif %}>
+                        <input type="time" name="EVE_HORA_INICIAL" class="input-campo"
+                               {% if modo_manutencao and evento.EVE_HORA_INICIAL %}value="{{ evento.EVE_HORA_INICIAL|time:'H:i' }}"{% endif %}>
+                    </div>
+                </div>
+                
+                <div class="campo-formulario campo-data-hora" style="grid-column: 1 / -1;">
+                    <label class="label-campo">Data Final / Hora Final</label>
+                    <div class="container-data-hora">
+                        <input type="date" name="EVE_DT_FINAL" class="input-campo"
+                               {% if modo_manutencao and evento.EVE_DT_FINAL %}value="{{ evento.EVE_DT_FINAL|date:'Y-m-d' }}"{% endif %}>
+                        <input type="time" name="EVE_HORA_FINAL" class="input-campo"
+                               {% if modo_manutencao and evento.EVE_HORA_FINAL %}value="{{ evento.EVE_HORA_FINAL|time:'H:i' }}"{% endif %}>
+                    </div>
+                </div>
+                
+                <!-- === LOCALIZAÇÃO === -->
+                <div class="campo-formulario">
+                    <label class="label-campo">Local</label>
+                    <input type="text" name="EVE_LOCAL" class="input-campo" 
+                           placeholder="Local do evento" maxlength="100"
+                           {% if modo_manutencao %}value="{{ evento.EVE_LOCAL }}"{% endif %}>
+                </div>
+                
+                <div class="campo-formulario">
+                    <label class="label-campo">Endereço</label>
+                    <input type="text" name="EVE_ENDERECO" class="input-campo" 
+                           placeholder="Endereço do evento" maxlength="100"
+                           {% if modo_manutencao %}value="{{ evento.EVE_ENDERECO }}"{% endif %}>
+                </div>
+                
+                <!-- === RESPONSABILIDADE === -->
+                <div class="campo-formulario">
+                    <label class="label-campo">Responsável</label>
+                    <input type="text" name="EVE_RESPONSAVEL" class="input-campo" 
+                           placeholder="Responsável pelo evento" maxlength="100"
+                           {% if modo_manutencao %}value="{{ evento.EVE_RESPONSAVEL }}"{% endif %}>
+                </div>
+                
+                <div class="campo-formulario">
+                    <label class="label-campo">Celebrante</label>
+                    <select name="EVE_CELEBRANTE" class="input-campo">
+                        <option value="">Selecione um celebrante...</option>
+                        {% if celebrantes %}
+                            {% for celebrante in celebrantes %}
+                            <option value="{{ celebrante.CEL_id }}" 
+                                    {% if modo_manutencao and evento.EVE_CELEBRANTE and evento.EVE_CELEBRANTE.CEL_id == celebrante.CEL_id %}selected{% endif %}>
+                                {{ celebrante.CEL_nome_celebrante }}
+                            </option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+                
+                <!-- === PARTICIPANTES === -->
+                <div class="campo-formulario">
+                    <label class="label-campo">Participantes</label>
+                    <input type="number" name="EVE_PARTICIPANTES" class="input-campo" 
+                           placeholder="0" min="0" step="1"
+                           {% if modo_manutencao %}value="{{ evento.EVE_PARTICIPANTES|default:0 }}"{% else %}value="0"{% endif %}>
+                </div>
+                
+                <div class="campo-formulario">
+                    <label class="label-campo">Confirmados</label>
+                    <input type="number" name="EVE_CONFIRMADOS" class="input-campo" 
+                           placeholder="0" min="0" step="1"
+                           {% if modo_manutencao %}value="{{ evento.EVE_CONFIRMADOS|default:0 }}"{% else %}value="0"{% endif %}>
+                </div>
+                
+                <!-- === RECURSOS === -->
+                <div class="campo-formulario" style="grid-column: 1 / -1;">
+                    <label class="label-campo">Recursos</label>
+                    <input type="text" name="EVE_RECURSOS" class="input-campo" 
+                           placeholder="Recursos necessários para o evento" maxlength="255"
+                           {% if modo_manutencao %}value="{{ evento.EVE_RECURSOS }}"{% endif %}>
+                </div>
+            </div>
+            
+            <!-- === PANEL DE AÇÕES === -->
+            <div class="panel-acoes">
+                <div class="conteudo-acoes" id="panelAcoes">
+                    <a href="{% url 'app_igreja:eventos_master_detail_list' %}" class="btn-cancelar" id="btnCancelar" {% if modo_manutencao %}style="display: none;"{% endif %}>
+                        <i class="fas fa-arrow-left"></i>
+                        Cancelar
+                    </a>
+                    
+                    <button type="button" class="btn-gravar" id="btnGravar" onclick="salvarEvento()" {% if modo_manutencao %}style="display: none;"{% endif %}>
+                        <i class="fas fa-save"></i>
+                        Gravar
+                    </button>
+                    
+                    <a href="{% url 'app_igreja:eventos_master_detail_list' %}" class="btn-retornar" id="btnRetornar" {% if modo_manutencao %}style="display: flex;"{% else %}style="display: none;"{% endif %}>
+                        <i class="fas fa-arrow-left"></i>
+                        Retornar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- === SEÇÃO DE ITENS === -->
+    {% if modo_manutencao %}
+    <div class="secao-itens">
+        <div class="cabecalho-itens">
+            <h3>📋 Itens do Evento: {{ evento.EVE_TITULO }}</h3>
+            <button class="btn-adicionar-item" onclick="mostrarModalItem()">
+                <i class="fas fa-plus"></i> Adicionar Item
+            </button>
+        </div>
+        
+        <div class="lista-itens" id="listaItens">
+            {% if itens %}
+                {% for item in itens %}
+                <div class="item-lista" data-item-id="{{ item.ITEM_EVE_ID }}">
+                    <div class="info-item">
+                        <span class="data-item">{{ item.ITEM_EVE_DATA_INICIAL|date:"d/m/Y" }}{% if item.ITEM_EVE_DATA_FINAL %} - {{ item.ITEM_EVE_DATA_FINAL|date:"d/m/Y" }}{% endif %}</span>
+                        <span class="hora-item">{{ item.ITEM_EVE_HORA_INICIAL|time:"H:i" }}{% if item.ITEM_EVE_HORA_FINAL %} - {{ item.ITEM_EVE_HORA_FINAL|time:"H:i" }}{% endif %}</span>
+                        <span class="acao-item">{{ item.ITEM_EVE_ACAO }}</span>
+                    </div>
+                    <div class="acoes-item">
+                        <button class="btn-editar-item" onclick="editarItem({{ item.ITEM_EVE_ID }}, '{{ item.ITEM_EVE_DATA_INICIAL|date:"Y-m-d" }}', '{{ item.ITEM_EVE_DATA_FINAL|date:"Y-m-d"|default:"" }}', '{{ item.ITEM_EVE_ACAO|escapejs }}', '{{ item.ITEM_EVE_HORA_INICIAL|time:"H:i" }}', '{{ item.ITEM_EVE_HORA_FINAL|time:"H:i"|default:"" }}')">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn-excluir-item" onclick="excluirItem({{ item.ITEM_EVE_ID }})">
+                            <i class="fas fa-trash"></i> Excluir
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="sem-itens">
+                    <p><i class="fas fa-info-circle"></i> Nenhum item encontrado.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="secao-itens">
+        <div class="sem-itens">
+            <p><i class="fas fa-info-circle"></i> Crie o evento primeiro para adicionar itens.</p>
+        </div>
+    </div>
+    {% endif %}
+    
+</div>
+
+<script>
+// === VARIÁVEIS GLOBAIS ===
+let eventoId = {% if evento %}{{ evento.EVE_ID }}{% else %}null{% endif %};
+let modoCriacao = {% if modo_manutencao %}false{% else %}true{% endif %};
+let itemEditando = null;
+const eventoDataInicial = '{% if evento and evento.EVE_DT_INICIAL %}{{ evento.EVE_DT_INICIAL|date:"Y-m-d" }}{% endif %}';
+let botoesOcultos = {% if modo_manutencao %}true{% else %}false{% endif %}; // Flag para controlar se os botões devem estar ocultos
+
+// === FUNÇÕES PRINCIPAIS ===
+
+// Salvar evento
+function salvarEvento() {
+    const form = document.getElementById('formularioMaster');
+    const formData = new FormData(form);
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    
+    let url;
+    if (modoCriacao) {
+        url = '{% url "app_igreja:eventos_master_detail_create" %}';
+    } else {
+        url = window.location.href;
+        formData.append('action', 'atualizar_evento');
+    }
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Ocultar botões Cancelar e Gravar, mostrar botão Retornar
+            const btnGravar = document.getElementById('btnGravar');
+            const btnCancelar = document.getElementById('btnCancelar');
+            const btnRetornar = document.getElementById('btnRetornar');
+            
+            if (btnGravar) btnGravar.style.display = 'none';
+            if (btnCancelar) btnCancelar.style.display = 'none';
+            if (btnRetornar) {
+                btnRetornar.style.display = 'flex';
+            }
+            // Marcar que os botões foram ocultos
+            botoesOcultos = true;
+            
+            if (modoCriacao) {
+                eventoId = data.evento_id;
+                modoCriacao = false;
+                // Atualizar URL sem recarregar a página
+                const newUrl = `/app_igreja/admin-area/eventos-master-detail/create/${data.evento_id}/`;
+                window.history.pushState({}, '', newUrl);
+                alert('Evento criado com sucesso!');
+            } else {
+                alert('Dados atualizados com sucesso!');
+            }
+        } else {
+            alert('Erro: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao salvar evento!');
+    });
+}
+
+// Mostrar modal de item
+function mostrarModalItem() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 ${itemEditando ? 'Editar' : 'Adicionar'} Item do Evento</h3>
+                <button class="modal-close" onclick="fecharModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formItem">
+                    <div class="formulario-item">
+                        <div class="linha-item">
+                            <div class="campo-item">
+                                <label>Data Inicial (dd/mm/aaaa):</label>
+                                <input type="date" id="dataInicialItem" class="input-item" required
+                                       value="${itemEditando ? itemEditando.data_inicial : (eventoDataInicial || '')}">
+                            </div>
+                            <div class="campo-item">
+                                <label>Data Final (dd/mm/aaaa):</label>
+                                <input type="date" id="dataFinalItem" class="input-item"
+                                       value="${itemEditando ? itemEditando.data_final || '' : ''}">
+                            </div>
+                        </div>
+                        <div class="linha-item">
+                            <div class="campo-item">
+                                <label>Hora Inicial:</label>
+                                <input type="time" id="horaInicialItem" class="input-item" required
+                                       value="${itemEditando ? itemEditando.hora_inicial : ''}">
+                            </div>
+                            <div class="campo-item">
+                                <label>Hora Final:</label>
+                                <input type="time" id="horaFinalItem" class="input-item"
+                                       value="${itemEditando ? itemEditando.hora_final || '' : ''}">
+                            </div>
+                        </div>
+                        <div class="campo-item campo-acao">
+                            <label>Ação:</label>
+                            <input type="text" id="acaoItem" class="input-item" required
+                                   placeholder="Descrição da ação" maxlength="100"
+                                   value="${itemEditando ? itemEditando.acao || '' : ''}">
+                        </div>
+                    </div>
+                    <div class="container-botoes-modal">
+                        <button type="button" class="btn-cancelar-modal" onclick="fecharModal()">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="button" class="btn-adicionar-modal" onclick="salvarItem()">
+                            <i class="fas fa-save"></i> ${itemEditando ? 'Salvar' : 'Adicionar'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Salvar item
+function salvarItem() {
+    const dataInicial = document.getElementById('dataInicialItem').value;
+    const dataFinal = document.getElementById('dataFinalItem').value;
+    const acao = document.getElementById('acaoItem').value;
+    const horaInicial = document.getElementById('horaInicialItem').value;
+    const horaFinal = document.getElementById('horaFinalItem').value;
+    
+    if (!dataInicial || !horaInicial || !acao) {
+        alert('Preencha os campos obrigatórios (Data Inicial, Ação e Hora Inicial)!');
+        return;
+    }
+    
+    if (!eventoId) {
+        alert('ID do evento não encontrado!');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('action', itemEditando ? 'editar_item' : 'adicionar_item');
+    formData.append('ITEM_EVE_DATA_INICIAL', dataInicial);
+    formData.append('ITEM_EVE_ACAO', acao);
+    if (dataFinal) formData.append('ITEM_EVE_DATA_FINAL', dataFinal);
+    formData.append('ITEM_EVE_HORA_INICIAL', horaInicial);
+    if (horaFinal) formData.append('ITEM_EVE_HORA_FINAL', horaFinal);
+    formData.append('evento_id', eventoId);
+    if (itemEditando) {
+        formData.append('item_id', itemEditando.id);
+    }
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            fecharModal();
+            // Recarregar a página mantendo estado dos botões
+            atualizarListaItens();
+        } else {
+            alert('Erro: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao salvar item!');
+    });
+}
+
+// Editar item
+function editarItem(itemId, dataInicial, dataFinal, acao, horaInicial, horaFinal) {
+    itemEditando = { 
+        id: itemId, 
+        data_inicial: dataInicial, 
+        data_final: dataFinal || '', 
+        acao: acao || '',
+        hora_inicial: horaInicial, 
+        hora_final: horaFinal || '' 
+    };
+    mostrarModalItem();
+}
+
+// Excluir item
+function excluirItem(itemId) {
+    if (!confirm('Tem certeza que deseja excluir este item?')) {
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('action', 'excluir_item');
+    formData.append('item_id', itemId);
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            // Recarregar a página mantendo estado dos botões
+            atualizarListaItens();
+        } else {
+            alert('Erro: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao excluir item!');
+    });
+}
+
+// Fechar modal
+function fecharModal() {
+    const modal = document.querySelector('.modal-overlay');
+    if (modal) {
+        modal.remove();
+        itemEditando = null;
+    }
+}
+
+// Atualizar lista de itens recarregando a página mas mantendo estado dos botões
+function atualizarListaItens() {
+    // Usar sessionStorage para manter o estado dos botões após reload
+    if (botoesOcultos) {
+        sessionStorage.setItem('eventos_botoes_ocultos', 'true');
+    }
+    // Recarregar a página
+    window.location.reload();
+}
+
+
+// === INICIALIZAÇÃO ===
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Master-Detail Eventos inicializado');
+    console.log('Modo criação:', modoCriacao);
+    console.log('ID do evento:', eventoId);
+    
+    // Verificar se há flag no sessionStorage indicando que os botões devem estar ocultos
+    const botoesDevemEstarOcultos = sessionStorage.getItem('eventos_botoes_ocultos') === 'true';
+    if (botoesDevemEstarOcultos) {
+        const btnGravar = document.getElementById('btnGravar');
+        const btnCancelar = document.getElementById('btnCancelar');
+        const btnRetornar = document.getElementById('btnRetornar');
+        
+        if (btnGravar) btnGravar.style.display = 'none';
+        if (btnCancelar) btnCancelar.style.display = 'none';
+        if (btnRetornar) btnRetornar.style.display = 'flex';
+        
+        botoesOcultos = true;
+        // Limpar a flag do sessionStorage
+        sessionStorage.removeItem('eventos_botoes_ocultos');
+    }
+    
+    // Se não está em modo criação, os botões já devem estar no estado correto pelo template
+    // Mas garantimos aqui também
+    if (!modoCriacao && eventoId) {
+        botoesOcultos = true;
+    }
+});
+</script>
+{% endif %}
+
+{# ============================================================ #}
+{# SEÇÃO: VISUALIZAÇÃO MASTER-DETAIL (VER PLANO COM ITENS)     #}
+{# ============================================================ #}
+{% if eventos_section == 'view' %}
+<div class="master-detail-container">
+    {% csrf_token %}
+    
+    <!-- === MASTER SECTION === -->
+    <div class="master-section">
+        <div class="master-header">
+            <h1 class="master-title">📄 Evento: {{ evento.EVE_TITULO }}</h1>
+            <span class="master-status {{ evento.status_badge_class }}">
+                {{ evento.status_display }}
+            </span>
+        </div>
+        
+        <div class="master-info">
+            <div class="master-field">
+                <span class="master-field-label">📋 Tipo</span>
+                <span class="master-field-value">{{ evento.EVE_TIPO }}</span>
+            </div>
+            
+            <div class="master-field">
+                <span class="master-field-label">📅 Data Inicial</span>
+                <span class="master-field-value">{{ evento.EVE_DT_INICIAL|date:"d/m/Y" }}{% if evento.EVE_DT_FINAL %} - {{ evento.EVE_DT_FINAL|date:"d/m/Y" }}{% endif %}</span>
+            </div>
+            
+            {% if evento.EVE_HORA_INICIAL %}
+            <div class="master-field">
+                <span class="master-field-label">🕐 Horário</span>
+                <span class="master-field-value">{{ evento.EVE_HORA_INICIAL|time:"H:i" }}{% if evento.EVE_HORA_FINAL %} - {{ evento.EVE_HORA_FINAL|time:"H:i" }}{% endif %}</span>
+            </div>
+            {% endif %}
+            
+            {% if evento.EVE_LOCAL %}
+            <div class="master-field">
+                <span class="master-field-label">📍 Local</span>
+                <span class="master-field-value">{{ evento.EVE_LOCAL }}</span>
+            </div>
+            {% endif %}
+            
+            {% if evento.EVE_CELEBRANTE %}
+            <div class="master-field">
+                <span class="master-field-label">👤 Celebrante</span>
+                <span class="master-field-value">{{ evento.EVE_CELEBRANTE.CEL_nome_celebrante }}</span>
+            </div>
+            {% endif %}
+            
+            {% if evento.EVE_RESPONSAVEL %}
+            <div class="master-field">
+                <span class="master-field-label">👥 Responsável</span>
+                <span class="master-field-value">{{ evento.EVE_RESPONSAVEL }}</span>
+            </div>
+            {% endif %}
+            
+            {% if evento.EVE_PARTICIPANTES > 0 %}
+            <div class="master-field">
+                <span class="master-field-label">👥 Participantes</span>
+                <span class="master-field-value">{{ evento.EVE_PARTICIPANTES }} ({{ evento.EVE_CONFIRMADOS }} confirmados)</span>
+            </div>
+            {% endif %}
+            
+            <div class="master-field">
+                <span class="master-field-label">📅 Data de Cadastro</span>
+                <span class="master-field-value">{{ evento.EVE_DTCADASTRO|date:"d/m/Y" }}</span>
+            </div>
+            
+            <div class="master-field">
+                <span class="master-field-label">🔄 Última Atualização</span>
+                <span class="master-field-value">{{ evento.EVE_DTATUALIZACAO|date:"d/m/Y" }}</span>
+            </div>
+        </div>
+        
+        {% if evento.EVE_DESCRICAO %}
+        <div class="master-info" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+            <div class="master-field" style="grid-column: 1 / -1;">
+                <span class="master-field-label">📝 Descrição</span>
+                <span class="master-field-value">{{ evento.EVE_DESCRICAO }}</span>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if evento.EVE_RECURSOS %}
+        <div class="master-info" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+            <div class="master-field" style="grid-column: 1 / -1;">
+                <span class="master-field-label">📦 Recursos</span>
+                <span class="master-field-value">{{ evento.EVE_RECURSOS }}</span>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="master-actions-panel">
+            <div class="master-actions-content">
+                {% if return_url %}
+                <a href="{{ return_url }}" class="btn-retornar">
+                {% else %}
+                <a href="{% url 'app_igreja:eventos_master_detail_list' %}" class="btn-retornar">
+                {% endif %}
+                    <i class="fas fa-arrow-left"></i>
+                    Retornar
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- === DETAIL SECTION === -->
+    <div class="detail-section">
+        <div class="detail-header">
+            <h2 class="detail-title">📋 Itens do Evento</h2>
+            <div class="detail-info">
+                <span class="detail-count">{{ itens.count }} item{{ itens.count|pluralize }}</span>
+            </div>
+        </div>
+        
+        <!-- === TABELA DESKTOP === -->
+        <div class="detail-table-desktop">
+            <table class="detail-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Hora</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in itens %}
+                    <tr>
+                        <td><strong>{{ item.ITEM_EVE_DATA_INICIAL|date:"d/m/Y" }}{% if item.ITEM_EVE_DATA_FINAL %} - {{ item.ITEM_EVE_DATA_FINAL|date:"d/m/Y" }}{% endif %}</strong></td>
+                        <td>{{ item.ITEM_EVE_HORA_INICIAL|time:"H:i" }}{% if item.ITEM_EVE_HORA_FINAL %} - {{ item.ITEM_EVE_HORA_FINAL|time:"H:i" }}{% endif %}</td>
+                        <td>{{ item.ITEM_EVE_ACAO }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 40px; color: #666;">
+                            <i class="fas fa-list" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                            Nenhum item encontrado neste evento
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- === CARDS MOBILE === -->
+        <div class="detail-cards-mobile">
+            {% for item in itens %}
+            <div class="item-card">
+                <div class="item-card-header">
+                    <span class="item-hora">{{ item.ITEM_EVE_DATA_INICIAL|date:"d/m/Y" }}{% if item.ITEM_EVE_DATA_FINAL %} - {{ item.ITEM_EVE_DATA_FINAL|date:"d/m/Y" }}{% endif %}</span>
+                    <span class="item-hora">{{ item.ITEM_EVE_HORA_INICIAL|time:"H:i" }}{% if item.ITEM_EVE_HORA_FINAL %} - {{ item.ITEM_EVE_HORA_FINAL|time:"H:i" }}{% endif %}</span>
+                </div>
+                <div class="item-acao">{{ item.ITEM_EVE_ACAO }}</div>
+            </div>
+            {% empty %}
+            <div class="item-card" style="text-align: center; padding: 40px;">
+                <i class="fas fa-list" style="font-size: 2rem; margin-bottom: 10px; color: #666;"></i>
+                <p style="color: #666; margin: 0;">Nenhum item encontrado neste evento</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- === CONFIRMAÇÃO DE EXCLUSÃO === -->
+    {% if confirmar_exclusao %}
+    <div class="confirmacao-exclusao-container">
+        <div class="confirmacao-exclusao-content">
+            <h4><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h4>
+            <p>Tem certeza que deseja excluir o evento "{{ evento.EVE_TITULO }}"?</p>
+            <p class="text-danger"><strong>Atenção:</strong> Todos os itens deste evento também serão excluídos!</p>
+            <div class="confirmacao-exclusao-buttons">
+                {% if return_url %}
+                <a href="{{ return_url }}" class="btn-cancelar-exclusao">
+                {% else %}
+                <a href="{% url 'app_igreja:eventos_master_detail_view' evento.EVE_ID %}" class="btn-cancelar-exclusao">
+                {% endif %}
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </a>
+                <form method="post" action="{% url 'app_igreja:eventos_master_detail_delete' evento.EVE_ID %}{% if return_url %}?return_url={{ return_url|urlencode }}{% endif %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-confirmar-exclusao">
+                        <i class="fas fa-check"></i>
+                        Confirmar Exclusão
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+</div>
+{% endif %}
+
+{% endblock %}
+{% endif %}
+
+{# ============================================================ #}
+{# SEÇÃO: CRUD BÁSICO (INCLUIR/EDITAR/CONSULTAR/EXCLUIR)       #}
+{# ============================================================ #}
+{% if eventos_section == 'item_detail' or eventos_section == 'detail' or modo_detalhe %}
+
+{% block conteudo_detalhe %}
+{% if eventos_section == 'item_detail' %}
+<!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES DE ITEM -->
+{% if acao == 'incluir' or acao == 'editar' %}
+<form id="detail-form" method="post" action="{% if acao == 'editar' and item %}{% url 'app_igreja:editar_item_evento' item.ITEM_EVE_ID %}{% else %}{% url 'app_igreja:criar_item_evento' %}{% endif %}">
+{% elif acao == 'excluir' %}
+<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_item_evento' item.ITEM_EVE_ID %}">
+{% endif %}
+
+{% if acao == 'incluir' or acao == 'editar' %}
+{% csrf_token %}
+{% if form.non_field_errors %}
+    <div class="alert alert-danger">
+        <h6>Erro ao {% if acao == 'editar' %}editar{% else %}cadastrar{% endif %} item:</h6>
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+    </div>
+{% endif %}
+{% elif acao == 'excluir' %}
+{% csrf_token %}
+{% endif %}
+
+<!-- ESTRUTURA ÚNICA DE CAMPOS PARA TODAS AS AÇÕES -->
+<div class="row detalhe-item-evento">
+    <div class="col-md-12">
+        <div class="mb-3">
+            <label for="{{ form.ITEM_EVE_EVENTO.id_for_label }}" class="form-label fw-bold">
+                <strong>{{ form.ITEM_EVE_EVENTO.label }}</strong>
+            </label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.ITEM_EVE_EVENTO }}
+                {% if form.ITEM_EVE_EVENTO.errors %}
+                    <div class="text-danger small">{% for error in form.ITEM_EVE_EVENTO.errors %}<div>{{ error }}</div>{% endfor %}</div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{{ item.ITEM_EVE_EVENTO.EVE_TITULO|default:'Não informado' }}" readonly>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label for="{{ form.ITEM_EVE_DATA_INICIAL.id_for_label }}" class="form-label fw-bold">
+                <strong>{{ form.ITEM_EVE_DATA_INICIAL.label }}</strong>
+            </label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.ITEM_EVE_DATA_INICIAL }}
+                {% if form.ITEM_EVE_DATA_INICIAL.errors %}
+                    <div class="text-danger small">{% for error in form.ITEM_EVE_DATA_INICIAL.errors %}<div>{{ error }}</div>{% endfor %}</div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{{ item.ITEM_EVE_DATA_INICIAL|date:'d/m/Y'|default:'-' }}" readonly>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label for="{{ form.ITEM_EVE_DATA_FINAL.id_for_label }}" class="form-label fw-bold">
+                <strong>{{ form.ITEM_EVE_DATA_FINAL.label }}</strong>
+            </label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.ITEM_EVE_DATA_FINAL }}
+                {% if form.ITEM_EVE_DATA_FINAL.errors %}
+                    <div class="text-danger small">{% for error in form.ITEM_EVE_DATA_FINAL.errors %}<div>{{ error }}</div>{% endfor %}</div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{% if item.ITEM_EVE_DATA_FINAL %}{{ item.ITEM_EVE_DATA_FINAL|date:'d/m/Y' }}{% else %}-{% endif %}" readonly>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label for="{{ form.ITEM_EVE_HORA_INICIAL.id_for_label }}" class="form-label fw-bold">
+                <strong>{{ form.ITEM_EVE_HORA_INICIAL.label }}</strong>
+            </label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.ITEM_EVE_HORA_INICIAL }}
+                {% if form.ITEM_EVE_HORA_INICIAL.errors %}
+                    <div class="text-danger small">{% for error in form.ITEM_EVE_HORA_INICIAL.errors %}<div>{{ error }}</div>{% endfor %}</div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{{ item.ITEM_EVE_HORA_INICIAL|time:'H:i'|default:'-' }}" readonly>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label for="{{ form.ITEM_EVE_HORA_FINAL.id_for_label }}" class="form-label fw-bold">
+                <strong>{{ form.ITEM_EVE_HORA_FINAL.label }}</strong>
+            </label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.ITEM_EVE_HORA_FINAL }}
+                {% if form.ITEM_EVE_HORA_FINAL.errors %}
+                    <div class="text-danger small">{% for error in form.ITEM_EVE_HORA_FINAL.errors %}<div>{{ error }}</div>{% endfor %}</div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{% if item.ITEM_EVE_HORA_FINAL %}{{ item.ITEM_EVE_HORA_FINAL|time:'H:i' }}{% else %}-{% endif %}" readonly>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-12">
+        <div class="mb-3">
+            <label for="{{ form.ITEM_EVE_ACAO.id_for_label }}" class="form-label fw-bold">
+                <strong>{{ form.ITEM_EVE_ACAO.label }}</strong>
+            </label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.ITEM_EVE_ACAO }}
+                {% if form.ITEM_EVE_ACAO.errors %}
+                    <div class="text-danger small">{% for error in form.ITEM_EVE_ACAO.errors %}<div>{{ error }}</div>{% endfor %}</div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{{ item.ITEM_EVE_ACAO|default:'Não informado' }}" readonly>
+            {% endif %}
+        </div>
+    </div>
+    {% if acao == 'consultar' %}
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label class="form-label fw-bold">ID</label>
+            <input type="text" class="form-control" value="{{ item.ITEM_EVE_ID }}" readonly>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if acao == 'incluir' or acao == 'editar' or acao == 'excluir' %}
+</form>
+{% endif %}
+
+{% endif %}
+
+{% if eventos_section == 'detail' or modo_detalhe %}
+<!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES DE EVENTO -->
+{% if acao == 'incluir' or acao == 'editar' %}
+<form id="detail-form" method="post" action="{% if acao == 'editar' and evento %}{% url 'app_igreja:editar_evento' evento.EVE_ID %}{% else %}{% url 'app_igreja:criar_evento' %}{% endif %}">
+{% elif acao == 'excluir' %}
+<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_evento' evento.EVE_ID %}">
+                                {% endif %}
+                                
+{% if acao == 'incluir' or acao == 'editar' %}
+{% csrf_token %}
+{% if form.non_field_errors %}
+    <div class="alert alert-danger">
+        <h6>Erro ao {% if acao == 'editar' %}editar{% else %}cadastrar{% endif %} evento:</h6>
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+                        </div>
+                        {% endif %}
+{% elif acao == 'excluir' %}
+{% csrf_token %}
+{% endif %}
+
+<!-- ESTRUTURA ÚNICA DE CAMPOS PARA TODAS AS AÇÕES -->
+<div class="row detalhe-evento">
+    <div class="col-md-6">
+        <div class="mb-3"><label class="form-label fw-bold">Título do Evento</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.EVE_TITULO }}{% if form.EVE_TITULO.errors %}<div class="text-danger small">{% for error in form.EVE_TITULO.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<input type="text" class="form-control" value="{{ evento.EVE_TITULO|default:'Não informado' }}" readonly>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Status</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.EVE_STATUS }}{% if form.EVE_STATUS.errors %}<div class="text-danger small">{% for error in form.EVE_STATUS.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<div class="form-control" readonly>{% if evento.EVE_STATUS == 'Ativo' %}<span class="badge bg-success">Ativo</span>{% elif evento.EVE_STATUS == 'Inativo' %}<span class="badge bg-secondary">Inativo</span>{% elif evento.EVE_STATUS == 'Cancelado' %}<span class="badge bg-danger">Cancelado</span>{% elif evento.EVE_STATUS == 'Concluído' %}<span class="badge bg-info">Concluído</span>{% elif evento.EVE_STATUS == 'Adiado' %}<span class="badge bg-warning">Adiado</span>{% else %}<span class="badge bg-secondary">{{ evento.EVE_STATUS|default:'Não informado' }}</span>{% endif %}</div>{% endif %}
+                                    </div>
+                                </div>
+    <div class="col-md-6">
+        {% if acao == 'consultar' %}
+        <div class="mb-3"><label class="form-label fw-bold">Cadastro</label><input type="text" class="form-control" value="{{ evento.EVE_DTCADASTRO|date:'d/m/Y'|default:'-' }}" readonly></div>
+        <div class="mb-3"><label class="form-label fw-bold">Atualização</label><input type="text" class="form-control" value="{{ evento.EVE_DTATUALIZACAO|date:'d/m/Y'|default:'-' }}" readonly></div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+{% if acao == 'incluir' or acao == 'editar' or acao == 'excluir' %}
+                        </form>
+                        {% endif %}
+{% endif %}
+{% endblock %}
+
+{% endif %}

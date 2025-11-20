@@ -1,0 +1,493 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if mural_section == 'form' %}
+        {{ title }}
+    {% elif mural_section == 'detail' %}
+        Detalhes do Mural
+    {% elif mural_section == 'delete' %}
+        Excluir Mural
+    {% else %}
+        Mural da Paróquia
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
+<style>
+.panel-container_estatistica {
+    display: none !important;
+}
+
+/* === ESTILOS PARA FORMULÁRIO === */
+{% if mural_section == 'form' %}
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+{% endif %}
+
+/* === ESTILOS PARA DETALHES === */
+{% if mural_section == 'detail' %}
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+{% endif %}
+</style>
+{% endblock %}
+
+{# ============================================================ #}
+{# SEÇÃO: LISTA DE MURAIS                                        #}
+{# ============================================================ #}
+{% if mural_section == 'list' or not mural_section %}
+<!-- === BLOCO DASHBOARD === -->
+{% block icone_dashboard %}fas fa-images{% endblock %}
+{% block nome_modulo_dashboard %}Mural da Paróquia{% endblock %}
+{% block url_retornar_dashboard %}{% url 'app_igreja:admin_area' %}{% endblock %}
+{% block url_criar_novo_dashboard %}{% url 'app_igreja:criar_mural' %}{% endblock %}
+{% block nome_modulo_lista_dashboard %}Murais{% endblock %}
+
+<!-- === BLOCO ESTATÍSTICAS DASHBOARD === -->
+{% block estatisticas_dashboard %}
+<!-- PAINEL DE ESTATÍSTICAS OCULTO PARA MURAL -->
+{% endblock %}
+
+<!-- === BLOCO BUSCA DASHBOARD === -->
+{% block busca_dashboard %}
+<form method="get" class="busca-campos">
+    <div class="campo-busca">
+        <label for="busca">Título</label>
+        <input type="text" id="busca" name="busca" 
+               value="{{ busca }}" 
+               placeholder="Digite o título...">
+    </div>
+    <div class="campo-busca">
+        <label for="status">Status</label>
+        <select id="status" name="status">
+            <option value="">Todos</option>
+            <option value="ativo" {% if status == 'ativo' %}selected{% endif %}>Ativo</option>
+            <option value="inativo" {% if status == 'inativo' %}selected{% endif %}>Inativo</option>
+        </select>
+    </div>
+    <button type="submit" class="cont_busca_btnbusca">
+        <i class="fas fa-search"></i>
+    </button>
+</form>
+{% endblock %}
+
+<!-- === BLOCO COLUNAS CABEÇALHO DASHBOARD === -->
+{% block colunas_cabecalho_dashboard %}
+<th width="5%">ID</th>
+<th width="50%">Título</th>
+<th width="15%">Data do Evento</th>
+<th width="10%">Fotos</th>
+<th width="10%">Status</th>
+<th width="10%">Data Cadastro</th>
+{% endblock %}
+
+<!-- === BLOCO LINHAS TABELA DASHBOARD === -->
+{% block linhas_tabela_dashboard %}
+{% for mural in page_obj %}
+<tr>
+    {% block linha_completa_dashboard %}
+    <td>
+        <i class="fas fa-ellipsis-v" 
+           onclick="selecionarRegistroDashboard({{ mural.MUR_ID }})"
+           style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;"
+           onmouseover="this.style.backgroundColor='#e9ecef'" 
+           onmouseout="this.style.backgroundColor='transparent'"></i>
+    </td>
+    <td>{{ mural.MUR_ID }}</td>
+    <td>
+        <div>
+            <div class="mb-2">
+                <strong>{{ mural.MUR_titulo_mural }}</strong>
+            </div>
+            <!-- Botões de ação -->
+            <div class="botoes-acao" id="acoes_{{ mural.MUR_ID }}" style="display: none;">
+                <div class="d-flex gap-2 justify-content-start align-items-center">
+                    <a href="{% url 'app_igreja:detalhar_mural' mural.MUR_ID %}" class="btn btn-info btn-sm d-flex align-items-center">
+                        <i class="fas fa-eye me-1"></i>Consultar
+                    </a>
+                    <a href="{% url 'app_igreja:editar_mural' mural.MUR_ID %}" class="btn btn-warning btn-sm d-flex align-items-center">
+                        <i class="fas fa-edit me-1"></i>Editar
+                    </a>
+                    <a href="{% url 'app_igreja:excluir_mural' mural.MUR_ID %}" class="btn btn-danger btn-sm d-flex align-items-center">
+                        <i class="fas fa-trash me-1"></i>Excluir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </td>
+    <td>
+        <span class="badge bg-info">
+            {{ mural.MUR_data_mural|date:"d/m/Y" }}
+        </span>
+    </td>
+    <td>
+        <span class="badge bg-secondary">
+            {{ mural.get_fotos_count }} foto(s)
+        </span>
+    </td>
+    <td>
+        {% if mural.MUR_ativo %}
+            <span class="badge bg-success">Ativo</span>
+        {% else %}
+            <span class="badge bg-danger">Inativo</span>
+        {% endif %}
+    </td>
+    <td>
+        <small class="text-muted">
+            {{ mural.MUR_data_mural|date:"d/m/Y" }}
+        </small>
+    </td>
+    {% endblock %}
+</tr>
+{% empty %}
+<tr>
+    <td colspan="7" class="text-center text-muted">
+        <i class="fas fa-images fa-2x mb-2"></i>
+        <br>
+        Nenhum mural encontrado.
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
+
+<!-- === BLOCO MENSAGEM VAZIO DASHBOARD === -->
+{% block mensagem_vazio_dashboard %}Não há murais cadastrados ou que correspondam aos filtros aplicados.{% endblock %}
+
+{% block crud_pai %}
+{{ block.super }}
+{% endblock %}
+{% endif %}
+
+{# ============================================================ #}
+{# SEÇÃO: FORMULÁRIO E DETALHES (USANDO PADRÃO BASE.HTML)        #}
+{# ============================================================ #}
+{% if modo_detalhe %}
+{% block conteudo_detalhe %}
+<!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES -->
+{% if acao == 'incluir' or acao == 'editar' %}
+<form id="detail-form" method="post" enctype="multipart/form-data" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_mural' mural.MUR_ID %}{% else %}{% url 'app_igreja:criar_mural' %}{% endif %}">
+{% elif acao == 'excluir' %}
+<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_mural' mural.MUR_ID %}">
+{% endif %}
+
+{% if acao == 'incluir' or acao == 'editar' %}
+{% csrf_token %}
+<input type="hidden" name="next" value="{{ next_url }}">
+{% if form.non_field_errors %}
+    <div class="alert alert-danger">
+        <h6>Erro ao {% if acao == 'editar' %}editar{% else %}cadastrar{% endif %} mural:</h6>
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+    </div>
+{% endif %}
+{% elif acao == 'excluir' %}
+{% csrf_token %}
+<input type="hidden" name="next" value="{{ next_url }}">
+{% endif %}
+
+<!-- ESTRUTURA ÚNICA DE CAMPOS PARA TODAS AS AÇÕES -->
+<div class="row detalhe-mural">
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Data do Evento *</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.MUR_data_mural }}
+                {% if form.MUR_data_mural.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.MUR_data_mural.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{{ mural.MUR_data_mural|date:'d/m/Y'|default:'Não informado' }}" readonly>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Título do Mural *</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.MUR_titulo_mural }}
+                {% if form.MUR_titulo_mural.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.MUR_titulo_mural.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{{ mural.MUR_titulo_mural|default:'Não informado' }}" readonly>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Mural Ativo</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                <div class="form-check">
+                    {{ form.MUR_ativo }}
+                    <label class="form-check-label fw-bold" for="{{ form.MUR_ativo.id_for_label }}">Mural Ativo</label>
+                </div>
+                {% if form.MUR_ativo.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.MUR_ativo.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="form-control" readonly>
+                    {% if mural.MUR_ativo %}
+                        <span class="badge bg-success">Ativo</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inativo</span>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% if acao == 'consultar' %}
+    <!-- MODO CONSULTA: Legendas à esquerda, Fotos à direita -->
+    <div class="col-md-6">
+        <!-- Legendas -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">Legenda Foto 1</label>
+            <input type="text" class="form-control" value="{{ mural.MUR_legenda1_mural|default:'Não informado' }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Legenda Foto 2</label>
+            <input type="text" class="form-control" value="{{ mural.MUR_legenda2_mural|default:'Não informado' }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Legenda Foto 3</label>
+            <input type="text" class="form-control" value="{{ mural.MUR_legenda3_mural|default:'Não informado' }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Legenda Foto 4</label>
+            <input type="text" class="form-control" value="{{ mural.MUR_legenda4_mural|default:'Não informado' }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Legenda Foto 5</label>
+            <input type="text" class="form-control" value="{{ mural.MUR_legenda5_mural|default:'Não informado' }}" readonly>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <!-- Fotos -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">Foto 1</label>
+            {% if mural.MUR_foto1_mural %}
+                <div>
+                    <img src="{{ mural.MUR_foto1_mural.url }}" alt="Foto 1" class="img-fluid rounded shadow-sm" style="max-width: 100%;">
+                </div>
+            {% else %}
+                <div class="form-control" readonly>
+                    <span class="text-muted">Não informada</span>
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Foto 2</label>
+            {% if mural.MUR_foto2_mural %}
+                <div>
+                    <img src="{{ mural.MUR_foto2_mural.url }}" alt="Foto 2" class="img-fluid rounded shadow-sm" style="max-width: 100%;">
+                </div>
+            {% else %}
+                <div class="form-control" readonly>
+                    <span class="text-muted">Não informada</span>
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Foto 3</label>
+            {% if mural.MUR_foto3_mural %}
+                <div>
+                    <img src="{{ mural.MUR_foto3_mural.url }}" alt="Foto 3" class="img-fluid rounded shadow-sm" style="max-width: 100%;">
+                </div>
+            {% else %}
+                <div class="form-control" readonly>
+                    <span class="text-muted">Não informada</span>
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Foto 4</label>
+            {% if mural.MUR_foto4_mural %}
+                <div>
+                    <img src="{{ mural.MUR_foto4_mural.url }}" alt="Foto 4" class="img-fluid rounded shadow-sm" style="max-width: 100%;">
+                </div>
+            {% else %}
+                <div class="form-control" readonly>
+                    <span class="text-muted">Não informada</span>
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Foto 5</label>
+            {% if mural.MUR_foto5_mural %}
+                <div>
+                    <img src="{{ mural.MUR_foto5_mural.url }}" alt="Foto 5" class="img-fluid rounded shadow-sm" style="max-width: 100%;">
+                </div>
+            {% else %}
+                <div class="form-control" readonly>
+                    <span class="text-muted">Não informada</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <!-- MODO INCLUIR/EDITAR: Estrutura original -->
+    <div class="col-md-6">
+        <!-- Fotos -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">Foto 1 *</label>
+            {{ form.MUR_foto1_mural }}
+            {% if mural and mural.MUR_foto1_mural %}
+                <div class="mt-2">
+                    <img src="{{ mural.MUR_foto1_mural.url }}" alt="Foto 1" class="img-thumbnail" style="max-width: 200px;">
+                </div>
+            {% endif %}
+            {% if form.MUR_foto1_mural.errors %}
+                <div class="text-danger small">
+                    {% for error in form.MUR_foto1_mural.errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Legenda Foto 1</label>
+            {{ form.MUR_legenda1_mural }}
+            {% if form.MUR_legenda1_mural.errors %}
+                <div class="text-danger small">
+                    {% for error in form.MUR_legenda1_mural.errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Foto 2</label>
+            {{ form.MUR_foto2_mural }}
+            {% if mural and mural.MUR_foto2_mural %}
+                <div class="mt-2">
+                    <img src="{{ mural.MUR_foto2_mural.url }}" alt="Foto 2" class="img-thumbnail" style="max-width: 200px;">
+                </div>
+            {% endif %}
+            {% if form.MUR_foto2_mural.errors %}
+                <div class="text-danger small">
+                    {% for error in form.MUR_foto2_mural.errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Legenda Foto 2</label>
+            {{ form.MUR_legenda2_mural }}
+            {% if form.MUR_legenda2_mural.errors %}
+                <div class="text-danger small">
+                    {% for error in form.MUR_legenda2_mural.errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Foto 3</label>
+            {{ form.MUR_foto3_mural }}
+            {% if mural and mural.MUR_foto3_mural %}
+                <div class="mt-2">
+                    <img src="{{ mural.MUR_foto3_mural.url }}" alt="Foto 3" class="img-thumbnail" style="max-width: 200px;">
+                </div>
+            {% endif %}
+            {% if form.MUR_foto3_mural.errors %}
+                <div class="text-danger small">
+                    {% for error in form.MUR_foto3_mural.errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Legenda Foto 3</label>
+            {{ form.MUR_legenda3_mural }}
+            {% if form.MUR_legenda3_mural.errors %}
+                <div class="text-danger small">
+                    {% for error in form.MUR_legenda3_mural.errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Foto 4</label>
+            {{ form.MUR_foto4_mural }}
+            {% if mural and mural.MUR_foto4_mural %}
+                <div class="mt-2">
+                    <img src="{{ mural.MUR_foto4_mural.url }}" alt="Foto 4" class="img-thumbnail" style="max-width: 200px;">
+                </div>
+            {% endif %}
+            {% if form.MUR_foto4_mural.errors %}
+                <div class="text-danger small">
+                    {% for error in form.MUR_foto4_mural.errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Legenda Foto 4</label>
+            {{ form.MUR_legenda4_mural }}
+            {% if form.MUR_legenda4_mural.errors %}
+                <div class="text-danger small">
+                    {% for error in form.MUR_legenda4_mural.errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Foto 5</label>
+            {{ form.MUR_foto5_mural }}
+            {% if mural and mural.MUR_foto5_mural %}
+                <div class="mt-2">
+                    <img src="{{ mural.MUR_foto5_mural.url }}" alt="Foto 5" class="img-thumbnail" style="max-width: 200px;">
+                </div>
+            {% endif %}
+            {% if form.MUR_foto5_mural.errors %}
+                <div class="text-danger small">
+                    {% for error in form.MUR_foto5_mural.errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Legenda Foto 5</label>
+            {{ form.MUR_legenda5_mural }}
+            {% if form.MUR_legenda5_mural.errors %}
+                <div class="text-danger small">
+                    {% for error in form.MUR_legenda5_mural.errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+</div>
+
+{% if acao == 'incluir' or acao == 'editar' or acao == 'excluir' %}
+</form>
+{% endif %} {# fecha o if acao == 'editar' or acao == 'incluir' / elif acao == 'excluir' / else acao == 'consultar' #}
+{% endblock %}
+{% endif %} {# fecha o if modo_detalhe #}

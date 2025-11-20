@@ -1,0 +1,949 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if whatsapp_section == 'enviar' %}Enviar Mensagem WhatsApp
+    {% elif whatsapp_section == 'list' %}{{ title }}
+    {% elif whatsapp_section == 'detail' %}{{ title }}
+    {% elif whatsapp_section == 'debug' %}Debug WhatsApp
+    {% else %}WhatsApp{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{# ============================================================ #}
+{# SEÇÃO: ENVIAR MENSAGEM WHATSAPP                             #}
+{# ============================================================ #}
+{% if whatsapp_section == 'enviar' %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fab fa-whatsapp"></i> Enviar Mensagens via WhatsApp
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Nota:</strong> Localmente não é possível enviar mensagens pelo WhatsApp. Este módulo prepara as mensagens para envio quando a API estiver configurada em produção.
+                    </div>
+                    
+                    <form method="post" id="whatsapp-form" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Seleção Principal -->
+                        <div class="mb-4">
+                            <label class="form-label"><strong>{{ form.tipo_destinatario.label }}</strong></label>
+                            <div class="row">
+                                {% for choice in form.tipo_destinatario %}
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        {{ choice.tag }}
+                                        <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                            {{ choice.choice_label }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.tipo_destinatario.errors %}
+                                <div class="text-danger">{{ form.tipo_destinatario.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Campos para Dizimistas -->
+                        <div id="campos-dizimistas" style="display: none;" class="mb-4">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-users"></i> Configuração para Dizimistas
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="{{ form.dizimista_especifico.id_for_label }}" class="form-label">
+                                            <strong>{{ form.dizimista_especifico.label }}</strong>
+                                        </label>
+                                        {{ form.dizimista_especifico }}
+                                        {% if form.dizimista_especifico.errors %}
+                                            <div class="text-danger">{{ form.dizimista_especifico.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Selecione um dizimista específico ou deixe em branco para usar filtros</div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.filtrar_dizimista.id_for_label }}" class="form-label">
+                                                    <strong>{{ form.filtrar_dizimista.label }}</strong>
+                                                </label>
+                                                {{ form.filtrar_dizimista }}
+                                                {% if form.filtrar_dizimista.errors %}
+                                                    <div class="text-danger">{{ form.filtrar_dizimista.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.data_nascimento_dizimista_inicio.id_for_label }}" class="form-label">
+                                                    <strong>{{ form.data_nascimento_dizimista_inicio.label }}</strong>
+                                                </label>
+                                                {{ form.data_nascimento_dizimista_inicio }}
+                                                {% if form.data_nascimento_dizimista_inicio.errors %}
+                                                    <div class="text-danger">{{ form.data_nascimento_dizimista_inicio.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.data_nascimento_dizimista_fim.id_for_label }}" class="form-label">
+                                                    <strong>{{ form.data_nascimento_dizimista_fim.label }}</strong>
+                                                </label>
+                                                {{ form.data_nascimento_dizimista_fim }}
+                                                {% if form.data_nascimento_dizimista_fim.errors %}
+                                                    <div class="text-danger">{{ form.data_nascimento_dizimista_fim.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos para Colaboradores -->
+                        <div id="campos-colaboradores" style="display: none;" class="mb-4">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-users"></i> Configuração para Colaboradores
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="{{ form.colaborador_especifico.id_for_label }}" class="form-label">
+                                            <strong>{{ form.colaborador_especifico.label }}</strong>
+                                        </label>
+                                        {{ form.colaborador_especifico }}
+                                        {% if form.colaborador_especifico.errors %}
+                                            <div class="text-danger">{{ form.colaborador_especifico.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Selecione um colaborador específico ou deixe em branco para usar filtros</div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.filtrar_colaborador.id_for_label }}" class="form-label">
+                                                    <strong>{{ form.filtrar_colaborador.label }}</strong>
+                                                </label>
+                                                {{ form.filtrar_colaborador }}
+                                                {% if form.filtrar_colaborador.errors %}
+                                                    <div class="text-danger">{{ form.filtrar_colaborador.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.grupo_colaborador.id_for_label }}" class="form-label">
+                                                    <strong>{{ form.grupo_colaborador.label }}</strong>
+                                                </label>
+                                                {{ form.grupo_colaborador }}
+                                                {% if form.grupo_colaborador.errors %}
+                                                    <div class="text-danger">{{ form.grupo_colaborador.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.data_nascimento_colaborador_inicio.id_for_label }}" class="form-label">
+                                                    <strong>{{ form.data_nascimento_colaborador_inicio.label }}</strong>
+                                                </label>
+                                                {{ form.data_nascimento_colaborador_inicio }}
+                                                {% if form.data_nascimento_colaborador_inicio.errors %}
+                                                    <div class="text-danger">{{ form.data_nascimento_colaborador_inicio.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.data_nascimento_colaborador_fim.id_for_label }}" class="form-label">
+                                                    <strong>{{ form.data_nascimento_colaborador_fim.label }}</strong>
+                                                </label>
+                                                {{ form.data_nascimento_colaborador_fim }}
+                                                {% if form.data_nascimento_colaborador_fim.errors %}
+                                                    <div class="text-danger">{{ form.data_nascimento_colaborador_fim.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tipo de Mídia -->
+                        <div class="mb-3">
+                            <label for="{{ form.tipo_midia.id_for_label }}" class="form-label">
+                                <strong>{{ form.tipo_midia.label }}</strong>
+                            </label>
+                            {{ form.tipo_midia }}
+                            {% if form.tipo_midia.errors %}
+                                <div class="text-danger">{{ form.tipo_midia.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Campos condicionais para Imagem -->
+                        <div id="campos-imagem" style="display: none;" class="mb-4">
+                            <div class="card border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-image"></i> Configurações de Imagem
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="{{ form.url_imagem.id_for_label }}" class="form-label">
+                                            <strong>{{ form.url_imagem.label }}</strong>
+                                        </label>
+                                        {{ form.url_imagem }}
+                                        {% if form.url_imagem.errors %}
+                                            <div class="text-danger">{{ form.url_imagem.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.arquivo_imagem.id_for_label }}" class="form-label">
+                                            <strong>{{ form.arquivo_imagem.label }}</strong>
+                                        </label>
+                                        {{ form.arquivo_imagem }}
+                                        {% if form.arquivo_imagem.errors %}
+                                            <div class="text-danger">{{ form.arquivo_imagem.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.legenda_imagem.id_for_label }}" class="form-label">
+                                            <strong>{{ form.legenda_imagem.label }}</strong>
+                                        </label>
+                                        {{ form.legenda_imagem }}
+                                        {% if form.legenda_imagem.errors %}
+                                            <div class="text-danger">{{ form.legenda_imagem.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos condicionais para Áudio -->
+                        <div id="campos-audio" style="display: none;" class="mb-4">
+                            <div class="card border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-music"></i> Configurações de Áudio
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="{{ form.url_audio.id_for_label }}" class="form-label">
+                                            <strong>{{ form.url_audio.label }}</strong>
+                                        </label>
+                                        {{ form.url_audio }}
+                                        {% if form.url_audio.errors %}
+                                            <div class="text-danger">{{ form.url_audio.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.arquivo_audio.id_for_label }}" class="form-label">
+                                            <strong>{{ form.arquivo_audio.label }}</strong>
+                                        </label>
+                                        {{ form.arquivo_audio }}
+                                        {% if form.arquivo_audio.errors %}
+                                            <div class="text-danger">{{ form.arquivo_audio.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos condicionais para Vídeo -->
+                        <div id="campos-video" style="display: none;" class="mb-4">
+                            <div class="card border-danger">
+                                <div class="card-header bg-danger text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-video"></i> Configurações de Vídeo
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="{{ form.url_video.id_for_label }}" class="form-label">
+                                            <strong>{{ form.url_video.label }}</strong>
+                                        </label>
+                                        {{ form.url_video }}
+                                        {% if form.url_video.errors %}
+                                            <div class="text-danger">{{ form.url_video.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.arquivo_video.id_for_label }}" class="form-label">
+                                            <strong>{{ form.arquivo_video.label }}</strong>
+                                        </label>
+                                        {{ form.arquivo_video }}
+                                        {% if form.arquivo_video.errors %}
+                                            <div class="text-danger">{{ form.arquivo_video.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.legenda_video.id_for_label }}" class="form-label">
+                                            <strong>{{ form.legenda_video.label }}</strong>
+                                        </label>
+                                        {{ form.legenda_video }}
+                                        {% if form.legenda_video.errors %}
+                                            <div class="text-danger">{{ form.legenda_video.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mensagem -->
+                        <div class="mb-3">
+                            <label for="{{ form.texto.id_for_label }}" class="form-label">
+                                <strong>{{ form.texto.label }}</strong>
+                                <span id="texto-required-indicator" class="text-danger">*</span>
+                            </label>
+                            {{ form.texto }}
+                            <div class="form-text">
+                                <span id="texto-required-text">Campo obrigatório para mensagens de texto</span>
+                                <span id="texto-optional-text" style="display: none;">Campo opcional para mídias</span>
+                                <br>
+                                <span id="contador-caracteres">0</span> caracteres
+                            </div>
+                            {% if form.texto.errors %}
+                                <div class="text-danger">{{ form.texto.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <a href="{% url 'app_igreja:admin_area' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Voltar
+                                </a>
+                                <a href="{% url 'app_igreja:whatsapp_list' %}" class="btn btn-info">
+                                    <i class="fas fa-list"></i> Ver Mensagens
+                                </a>
+                                <a href="{% url 'app_igreja:whatsapp_debug' %}" class="btn btn-warning">
+                                    <i class="fas fa-bug"></i> Debug
+                                </a>
+                            </div>
+                            <button type="submit" class="btn btn-success" onclick="return confirmarEnvio()">
+                                <i class="fab fa-whatsapp"></i> Preparar Mensagem
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ============================================================ #}
+{# SEÇÃO: LISTAR MENSAGENS WHATSAPP                             #}
+{# ============================================================ #}
+{% if whatsapp_section == 'list' %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <a href="{% url 'app_igreja:admin_area' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </a>
+                    <a href="{% url 'app_igreja:whatsapp_enviar_mensagem' %}" class="btn btn-success">
+                        <i class="fab fa-whatsapp"></i> Nova Mensagem
+                    </a>
+                </div>
+                <h1 class="display-4 text-success">
+                    <i class="fab fa-whatsapp"></i> {{ title }}
+                </h1>
+                <p class="lead text-muted">{{ subtitle }}</p>
+            </div>
+
+            <!-- Filtros -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-filter"></i> Filtrar Mensagens</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Status:</label>
+                            <select name="status" class="form-control">
+                                <option value="">Todos</option>
+                                <option value="PENDENTE" {% if request.GET.status == 'PENDENTE' %}selected{% endif %}>Pendente</option>
+                                <option value="ENVIADA" {% if request.GET.status == 'ENVIADA' %}selected{% endif %}>Enviada</option>
+                                <option value="ERRO" {% if request.GET.status == 'ERRO' %}selected{% endif %}>Erro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Tipo:</label>
+                            <select name="tipo_destinatario" class="form-control">
+                                <option value="">Todos</option>
+                                <option value="DIZIMISTAS" {% if request.GET.tipo_destinatario == 'DIZIMISTAS' %}selected{% endif %}>Dizimistas</option>
+                                <option value="COLABORADORES" {% if request.GET.tipo_destinatario == 'COLABORADORES' %}selected{% endif %}>Colaboradores</option>
+                                <option value="TODOS" {% if request.GET.tipo_destinatario == 'TODOS' %}selected{% endif %}>Todos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Data Início:</label>
+                            <input type="date" name="data_inicio" class="form-control" value="{{ request.GET.data_inicio }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Data Fim:</label>
+                            <input type="date" name="data_fim" class="form-control" value="{{ request.GET.data_fim }}">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search"></i> Filtrar
+                            </button>
+                            <a href="{% url 'app_igreja:whatsapp_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Limpar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Lista de Mensagens -->
+            {% if mensagens %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Destinatário</th>
+                                <th>Tipo</th>
+                                <th>Mensagem</th>
+                                <th>Status</th>
+                                <th>Estatísticas</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mensagem in mensagens %}
+                            <tr>
+                                <td>
+                                    <small>
+                                        {{ mensagem.WHA_data_criacao|date:"d/m/Y" }}<br>
+                                        {{ mensagem.WHA_data_criacao|time:"H:i" }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <strong>{{ mensagem.get_WHA_destinatario_tipo_display }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ mensagem.get_WHA_tipo_midia_display }}</span>
+                                </td>
+                                <td>
+                                    <div style="max-width: 300px;">
+                                        <strong>{{ mensagem.WHA_texto|truncatechars:50|default:"Sem texto" }}</strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ mensagem.get_status_class }}">
+                                        {{ mensagem.get_WHA_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small>
+                                        <strong>Total:</strong> {{ mensagem.WHA_total_enviadas }}<br>
+                                        <strong>Sucessos:</strong> {{ mensagem.WHA_sucessos }}<br>
+                                        <strong>Erros:</strong> {{ mensagem.WHA_erros }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <a href="{% url 'app_igreja:whatsapp_detail' mensagem.WHA_id %}" class="btn btn-sm btn-info" title="Ver detalhes">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginação -->
+                {% if mensagens.has_other_pages %}
+                <nav aria-label="Paginação">
+                    <ul class="pagination justify-content-center">
+                        {% if mensagens.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ mensagens.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="fas fa-chevron-left"></i> Anterior
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in mensagens.paginator.page_range %}
+                            {% if mensagens.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > mensagens.number|add:'-3' and num < mensagens.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if mensagens.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ mensagens.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    Próxima <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fab fa-whatsapp fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">Nenhuma mensagem encontrada</h4>
+                        <p class="text-muted">Não há mensagens enviadas para os filtros selecionados.</p>
+                        <a href="{% url 'app_igreja:whatsapp_enviar_mensagem' %}" class="btn btn-success">
+                            <i class="fab fa-whatsapp"></i> Enviar Primeira Mensagem
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ============================================================ #}
+{# SEÇÃO: DETALHES DA MENSAGEM WHATSAPP                        #}
+{# ============================================================ #}
+{% if whatsapp_section == 'detail' %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <a href="{% url 'app_igreja:whatsapp_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Voltar à Lista
+                    </a>
+                    <a href="{% url 'app_igreja:whatsapp_enviar_mensagem' %}" class="btn btn-success">
+                        <i class="fab fa-whatsapp"></i> Nova Mensagem
+                    </a>
+                </div>
+                <h1 class="display-4 text-success">
+                    <i class="fab fa-whatsapp"></i> {{ title }}
+                </h1>
+                <p class="lead text-muted">{{ subtitle }}</p>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Detalhes da Mensagem</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Destinatário:</strong><br>
+                                        <span class="badge bg-primary">{{ mensagem.get_WHA_destinatario_tipo_display }}</span>
+                                    </p>
+                                    <p><strong>Tipo de Mídia:</strong><br>
+                                        <span class="badge bg-info">{{ mensagem.get_WHA_tipo_midia_display }}</span>
+                                    </p>
+                                    <p><strong>Status:</strong><br>
+                                        <span class="badge bg-{{ mensagem.get_status_class }} fs-6">
+                                            {{ mensagem.get_WHA_status_display }}
+                                        </span>
+                                    </p>
+                                    {% if mensagem.WHA_usuario %}
+                                    <p><strong>Enviado por:</strong><br>
+                                        {{ mensagem.WHA_usuario.username }}
+                                    </p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Data de Criação:</strong><br>
+                                        {{ mensagem.WHA_data_criacao|date:"d/m/Y H:i:s" }}
+                                    </p>
+                                    <p><strong>Última Atualização:</strong><br>
+                                        {{ mensagem.WHA_data_atualizacao|date:"d/m/Y H:i:s" }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="fas fa-comment"></i> Conteúdo da Mensagem</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="bg-light p-3 rounded">
+                                <pre style="white-space: pre-wrap; font-family: inherit; margin: 0;">{{ mensagem.WHA_texto|default:"Sem texto" }}</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if mensagem.WHA_erro %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Erros</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="bg-light p-3 rounded">
+                                <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; color: #dc3545;">{{ mensagem.WHA_erro }}</pre>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Estatísticas</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-6 mb-3">
+                                    <div class="bg-light p-3 rounded">
+                                        <h3 class="text-primary mb-0">{{ mensagem.WHA_total_enviadas }}</h3>
+                                        <small class="text-muted">Total</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="bg-light p-3 rounded">
+                                        <h3 class="text-success mb-0">{{ mensagem.WHA_sucessos }}</h3>
+                                        <small class="text-muted">Sucessos</small>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="bg-light p-3 rounded">
+                                        <h3 class="text-danger mb-0">{{ mensagem.WHA_erros }}</h3>
+                                        <small class="text-muted">Erros</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0"><i class="fas fa-tools"></i> Ações</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'app_igreja:whatsapp_enviar_mensagem' %}" class="btn btn-success">
+                                    <i class="fab fa-whatsapp"></i> Enviar Nova Mensagem
+                                </a>
+                                <a href="{% url 'app_igreja:whatsapp_list' %}" class="btn btn-info">
+                                    <i class="fas fa-list"></i> Ver Todas as Mensagens
+                                </a>
+                                <a href="{% url 'app_igreja:admin_area' %}" class="btn btn-secondary">
+                                    <i class="fas fa-home"></i> Área Administrativa
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ============================================================ #}
+{# SEÇÃO: DEBUG WHATSAPP                                        #}
+{# ============================================================ #}
+{% if whatsapp_section == 'debug' %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-bug"></i> Debug WhatsApp
+                <a href="{% url 'app_igreja:whatsapp_enviar_mensagem' %}" class="btn btn-primary float-end">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+            </h2>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-cog"></i> Configurações da API</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>API Key:</strong></label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="apiKey" value="{{ api_key }}" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('apiKey')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Channel ID:</strong></label>
+                        <input type="text" class="form-control" value="{{ channel_id }}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Base URL:</strong></label>
+                        <input type="text" class="form-control" value="{{ api_base_url }}" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-crown"></i> Status da Conta</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Tipo de Conta:</strong></label>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-warning me-2">{{ conta_status.tipo }}</span>
+                            <span class="badge bg-success">{{ conta_status.status }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Validade:</strong></label>
+                        <div class="d-flex align-items-center">
+                            <span class="text-success">{{ conta_status.dias_restantes }} dias restantes</span>
+                            <span class="text-muted ms-2">(até {{ conta_status.validade }})</span>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Problema Identificado:</strong> {{ conta_status.problema }}
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Solução:</strong> Configure a API do WhatsApp em produção para enviar mensagens.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-history"></i> Últimas 10 Mensagens Enviadas</h5>
+                </div>
+                <div class="card-body">
+                    {% if mensagens %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Tipo</th>
+                                        <th>Total Enviadas</th>
+                                        <th>Sucessos</th>
+                                        <th>Erros</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for msg in mensagens %}
+                                    <tr>
+                                        <td>{{ msg.WHA_data_criacao|date:"d/m/Y H:i" }}</td>
+                                        <td>{{ msg.get_WHA_destinatario_tipo_display }}</td>
+                                        <td>{{ msg.WHA_total_enviadas }}</td>
+                                        <td><span class="badge bg-success">{{ msg.WHA_sucessos }}</span></td>
+                                        <td><span class="badge bg-danger">{{ msg.WHA_erros }}</span></td>
+                                        <td>
+                                            {% if msg.WHA_erros > 0 %}
+                                                <span class="badge bg-warning">Com Erros</span>
+                                            {% else %}
+                                                <span class="badge bg-success">OK</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Nenhuma mensagem encontrada.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Logs de Erro Recentes</h5>
+                </div>
+                <div class="card-body">
+                    {% if logs_erro %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Data/Hora</th>
+                                        <th>Erro</th>
+                                        <th>Detalhes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in logs_erro %}
+                                    <tr>
+                                        <td>{{ log.timestamp }}</td>
+                                        <td><span class="badge bg-danger">{{ log.error_type }}</span></td>
+                                        <td>{{ log.details }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Nenhum erro registrado recentemente.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{# JavaScript para seção ENVIAR #}
+{% if whatsapp_section == 'enviar' %}
+<script>
+function toggleCamposDestinatario() {
+    const tipoDestinatario = document.querySelector('input[name="tipo_destinatario"]:checked');
+    
+    document.getElementById('campos-dizimistas').style.display = 'none';
+    document.getElementById('campos-colaboradores').style.display = 'none';
+    
+    if (tipoDestinatario) {
+        if (tipoDestinatario.value === 'DIZIMISTAS') {
+            document.getElementById('campos-dizimistas').style.display = 'block';
+        } else if (tipoDestinatario.value === 'COLABORADORES') {
+            document.getElementById('campos-colaboradores').style.display = 'block';
+        }
+    }
+}
+
+function toggleCamposMidia() {
+    const tipoMidia = document.getElementById('id_tipo_midia').value;
+    
+    document.getElementById('campos-imagem').style.display = 'none';
+    document.getElementById('campos-audio').style.display = 'none';
+    document.getElementById('campos-video').style.display = 'none';
+    
+    if (tipoMidia === 'IMAGEM') {
+        document.getElementById('campos-imagem').style.display = 'block';
+    } else if (tipoMidia === 'AUDIO') {
+        document.getElementById('campos-audio').style.display = 'block';
+    } else if (tipoMidia === 'VIDEO') {
+        document.getElementById('campos-video').style.display = 'block';
+    }
+    
+    const requiredIndicator = document.getElementById('texto-required-indicator');
+    const requiredText = document.getElementById('texto-required-text');
+    const optionalText = document.getElementById('texto-optional-text');
+    
+    if (tipoMidia === 'TEXTO') {
+        requiredIndicator.style.display = 'inline';
+        requiredText.style.display = 'inline';
+        optionalText.style.display = 'none';
+    } else {
+        requiredIndicator.style.display = 'none';
+        requiredText.style.display = 'none';
+        optionalText.style.display = 'inline';
+    }
+}
+
+function atualizarContador() {
+    const texto = document.getElementById('id_texto').value;
+    const contador = document.getElementById('contador-caracteres');
+    contador.textContent = texto.length;
+}
+
+function confirmarEnvio() {
+    const tipoDestinatario = document.querySelector('input[name="tipo_destinatario"]:checked');
+    const texto = document.getElementById('id_texto').value;
+    
+    if (!tipoDestinatario) {
+        alert('Por favor, selecione um tipo de destinatário.');
+        return false;
+    }
+    
+    if (!texto.trim()) {
+        alert('Por favor, digite uma mensagem.');
+        return false;
+    }
+    
+    return confirm('Deseja preparar esta mensagem para envio?');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const textoMensagem = document.getElementById('id_texto');
+    if (textoMensagem) {
+        textoMensagem.addEventListener('input', atualizarContador);
+    }
+    
+    const tipoDestinatarioInputs = document.querySelectorAll('input[name="tipo_destinatario"]');
+    tipoDestinatarioInputs.forEach(input => {
+        input.addEventListener('change', toggleCamposDestinatario);
+    });
+    
+    const tipoMidiaSelect = document.getElementById('id_tipo_midia');
+    if (tipoMidiaSelect) {
+        tipoMidiaSelect.addEventListener('change', toggleCamposMidia);
+    }
+    
+    toggleCamposDestinatario();
+    toggleCamposMidia();
+});
+</script>
+{% endif %}
+
+{# JavaScript para seção DEBUG #}
+{% if whatsapp_section == 'debug' %}
+<script>
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const button = input.nextElementSibling;
+    const icon = button.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}
+</script>
+{% endif %}
+{% endblock %}
+

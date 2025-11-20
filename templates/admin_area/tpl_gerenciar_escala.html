@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
+<style>
+/* CSS específico do módulo Gerenciar Escala */
+.panel-container_estatistica {
+    display: none !important;
+}
+</style>
+{% endblock %}
+
+{% block title %}
+    {% if acao == 'incluir' %}
+        Criar Item da Escala
+    {% elif acao == 'editar' %}
+        Editar Item da Escala
+    {% elif acao == 'consultar' %}
+        Visualizar Item da Escala
+    {% elif acao == 'excluir' %}
+        Excluir Item da Escala
+    {% else %}
+        Gerenciar Escala de Missas
+    {% endif %}
+{% endblock %}
+
+<!-- === BLOCO DASHBOARD === -->
+{% block icone_dashboard %}fas fa-calendar-alt{% endblock %}
+{% block nome_modulo_dashboard %}Gerenciar Escala de Missas{% endblock %}
+{% block url_retornar_dashboard %}{% url 'app_igreja:admin_area' %}{% endblock %}
+{% block url_criar_novo_dashboard %}#{% endblock %}
+{% block nome_modulo_lista_dashboard %}Itens da Escala{% endblock %}
+
+<!-- === BLOCO ESTATÍSTICAS DASHBOARD === -->
+{% block estatisticas_dashboard %}
+<!-- PAINEL DE ESTATÍSTICAS OCULTO -->
+{% endblock %}
+
+<!-- === BLOCO BUSCA DASHBOARD === -->
+{% block busca_dashboard %}
+<form method="get" class="busca-campos">
+    <div class="campo-busca">
+        <label for="mes">Mês</label>
+        <select id="mes" name="mes" required>
+            <option value="">Selecione...</option>
+            <option value="1" {% if mes == 1 %}selected{% endif %}>Janeiro</option>
+            <option value="2" {% if mes == 2 %}selected{% endif %}>Fevereiro</option>
+            <option value="3" {% if mes == 3 %}selected{% endif %}>Março</option>
+            <option value="4" {% if mes == 4 %}selected{% endif %}>Abril</option>
+            <option value="5" {% if mes == 5 %}selected{% endif %}>Maio</option>
+            <option value="6" {% if mes == 6 %}selected{% endif %}>Junho</option>
+            <option value="7" {% if mes == 7 %}selected{% endif %}>Julho</option>
+            <option value="8" {% if mes == 8 %}selected{% endif %}>Agosto</option>
+            <option value="9" {% if mes == 9 %}selected{% endif %}>Setembro</option>
+            <option value="10" {% if mes == 10 %}selected{% endif %}>Outubro</option>
+            <option value="11" {% if mes == 11 %}selected{% endif %}>Novembro</option>
+            <option value="12" {% if mes == 12 %}selected{% endif %}>Dezembro</option>
+        </select>
+    </div>
+    <div class="campo-busca">
+        <label for="ano">Ano</label>
+        <input type="number" id="ano" name="ano" value="{{ ano|default:'' }}" placeholder="Ex: 2026" min="2000" max="2100" required>
+    </div>
+    <button type="submit" class="cont_busca_btnbusca"><i class="fas fa-search"></i></button>
+</form>
+{% endblock %}
+
+<!-- === BLOCO COLUNAS CABEÇALHO DASHBOARD === -->
+{% block colunas_cabecalho_dashboard %}
+<th width="10%">Dia</th>
+<th width="15%">Dia Semana</th>
+<th width="10%">Hora</th>
+<th width="25%">Encargo</th>
+<th width="15%">Colaborador</th>
+<th width="10%">Grupo</th>
+<th width="10%">Status</th>
+<th width="5%">Ações</th>
+{% endblock %}
+
+<!-- === BLOCO LINHAS TABELA DASHBOARD === -->
+{% block linhas_tabela_dashboard %}
+{% if sem_filtro %}
+<tr>
+    <td colspan="8" class="text-center text-muted py-5">
+        <i class="fas fa-calendar-alt fa-2x mb-3"></i><br>
+        Informe o Mês e Ano para carregar a escala.
+    </td>
+</tr>
+{% else %}
+{% for item in page_obj %}
+<tr>
+    {% block linha_completa_dashboard %}
+    <td><i class="fas fa-ellipsis-v" onclick="selecionarRegistroDashboard({{ item.ITE_ESC_ID }})" style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;" onmouseover="this.style.backgroundColor='#e9ecef'" onmouseout="this.style.backgroundColor='transparent'"></i></td>
+    <td>{{ item.ITE_ESC_DATA|date:"d/M" }}</td>
+    <td>{{ item.dia_semana_nome|default:"-" }}</td>
+    <td>{{ item.ITE_ESC_HORARIO|time:"H:i" }}</td>
+    <td>{{ item.ITE_ESC_ENCARGO|default:"-" }}</td>
+    <td>{{ item.colaborador_nome|default:"-" }}</td>
+    <td>{{ item.grupo_nome|default:"-" }}</td>
+    <td>
+        {% if item.ITE_ESC_STATUS == 'DEFINIDO' %}
+            <span class="badge bg-success">Definido</span>
+        {% else %}
+            <span class="badge bg-warning">Em aberto</span>
+        {% endif %}
+    </td>
+    <td>
+        <div class="botoes-acao" id="acoes_{{ item.ITE_ESC_ID }}" style="display: none;">
+            <div class="d-flex gap-2 justify-content-start align-items-center">
+                <a href="{% url 'app_igreja:criar_item_escala' %}?mes={{ mes }}&ano={{ ano }}" class="btn btn-primary btn-sm d-flex align-items-center"><i class="fas fa-plus me-1"></i>Incluir</a>
+                <a href="{% url 'app_igreja:detalhar_item_escala' item.ITE_ESC_ID %}" class="btn btn-info btn-sm d-flex align-items-center"><i class="fas fa-eye me-1"></i>Consultar</a>
+                <a href="{% url 'app_igreja:editar_item_escala' item.ITE_ESC_ID %}" class="btn btn-warning btn-sm d-flex align-items-center"><i class="fas fa-edit me-1"></i>Editar</a>
+                <a href="{% url 'app_igreja:excluir_item_escala' item.ITE_ESC_ID %}" class="btn btn-danger btn-sm d-flex align-items-center"><i class="fas fa-trash me-1"></i>Excluir</a>
+            </div>
+        </div>
+    </td>
+    {% endblock %}
+</tr>
+{% empty %}
+<tr>
+    <td colspan="8" class="text-center text-muted py-5">
+        <i class="fas fa-calendar-alt fa-2x mb-3"></i><br>
+        Nenhum item encontrado para {{ mes_nome }}/{{ ano }}.
+    </td>
+</tr>
+{% endfor %}
+{% endif %}
+{% endblock %}
+
+<!-- === BLOCO MENSAGEM VAZIO DASHBOARD === -->
+{% block mensagem_vazio_dashboard %}Não há itens cadastrados para o mês/ano informado.{% endblock %}
+
+{% block conteudo_detalhe %}
+<!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES -->
+{% if acao == 'incluir' or acao == 'editar' %}
+<form id="detail-form" method="post" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_item_escala' item.ITE_ESC_ID %}{% else %}{% url 'app_igreja:criar_item_escala' %}?mes={{ mes }}&ano={{ ano }}{% endif %}">
+{% elif acao == 'excluir' %}
+<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_item_escala' item.ITE_ESC_ID %}">
+{% endif %}
+
+{% if acao == 'incluir' or acao == 'editar' %}
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            <h6>Erro ao {% if acao == 'editar' %}editar{% else %}cadastrar{% endif %} item:</h6>
+            {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+        </div>
+    {% endif %}
+{% elif acao == 'excluir' %}
+    {% csrf_token %}
+{% endif %}
+
+<!-- ESTRUTURA ÚNICA DE CAMPOS PARA TODAS AS AÇÕES -->
+<div class="row detalhe-item-escala">
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Dia</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                <input type="date" class="form-control" name="ITE_ESC_DATA" value="{{ form.ITE_ESC_DATA.value|date:'Y-m-d'|default:'' }}" readonly>
+                {% if form.ITE_ESC_DATA.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.ITE_ESC_DATA.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{{ item.ITE_ESC_DATA|date:'d/m/Y'|default:'Não informado' }}" readonly>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Dia Semana</label>
+            <input type="text" id="dia_semana_display" class="form-control" value="{% if acao == 'consultar' or acao == 'editar' or acao == 'excluir' %}{{ dia_semana_nome }}{% else %}{% endif %}" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Hora</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.ITE_ESC_HORARIO }}
+                {% if form.ITE_ESC_HORARIO.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.ITE_ESC_HORARIO.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{{ item.ITE_ESC_HORARIO|time:'H:i'|default:'Não informado' }}" readonly>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Encargo</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.ITE_ESC_ENCARGO }}
+                {% if form.ITE_ESC_ENCARGO.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.ITE_ESC_ENCARGO.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{{ item.ITE_ESC_ENCARGO|default:'Não informado' }}" readonly>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Colaborador</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.ITE_ESC_COLABORADOR }}
+                {% if form.ITE_ESC_COLABORADOR.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.ITE_ESC_COLABORADOR.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                {% if colaborador %}
+                    <input type="text" class="form-control" value="{{ colaborador.COL_nome_completo }}" readonly>
+                {% else %}
+                    <input type="text" class="form-control" value="Não informado" readonly>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Grupo</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.ITE_ESC_GRUPO }}
+                {% if form.ITE_ESC_GRUPO.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.ITE_ESC_GRUPO.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                {% if grupo %}
+                    <input type="text" class="form-control" value="{{ grupo.GRU_nome_grupo }}" readonly>
+                {% else %}
+                    <input type="text" class="form-control" value="Não informado" readonly>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Status</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.ITE_ESC_STATUS }}
+                {% if form.ITE_ESC_STATUS.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.ITE_ESC_STATUS.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="form-control" readonly>
+                    {% if item.ITE_ESC_STATUS == 'DEFINIDO' %}
+                        <span class="badge bg-success">Definido</span>
+                    {% else %}
+                        <span class="badge bg-warning">Em aberto</span>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if acao == 'incluir' or acao == 'editar' or acao == 'excluir' %}
+</form>
+{% endif %}
+
+{% block bd_url_retornar %}
+window.location.href = "{% if mes and ano %}{% url 'app_igreja:listar_itens_escala' %}?mes={{ mes }}&ano={{ ano }}{% else %}{% url 'app_igreja:listar_itens_escala' %}{% endif %}";
+{% endblock %}
+
+{% block bd_url_cancelar %}
+window.location.href = "{% if mes and ano %}{% url 'app_igreja:listar_itens_escala' %}?mes={{ mes }}&ano={{ ano }}{% else %}{% url 'app_igreja:listar_itens_escala' %}{% endif %}";
+{% endblock %}
+
+<script>
+// Atualizar dia da semana automaticamente quando a data mudar
+document.addEventListener('DOMContentLoaded', function() {
+    const dataInput = document.querySelector('input[name="ITE_ESC_DATA"]');
+    const diaSemanaInput = document.querySelector('#dia_semana_display');
+    
+    if (dataInput && diaSemanaInput) {
+        const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+        
+        // Atualizar ao carregar se já tiver valor
+        if (dataInput.value) {
+            const data = new Date(dataInput.value + 'T00:00:00');
+            const diaSemana = diasSemana[data.getDay()];
+            diaSemanaInput.value = diaSemana;
+        }
+        
+        dataInput.addEventListener('change', function() {
+            if (this.value) {
+                const data = new Date(this.value + 'T00:00:00');
+                const diaSemana = diasSemana[data.getDay()];
+                diaSemanaInput.value = diaSemana;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+
+{% block botao_flutuante_dashboard %}
+<!-- Botão flutuante oculto para este módulo -->
+{% endblock %}
+

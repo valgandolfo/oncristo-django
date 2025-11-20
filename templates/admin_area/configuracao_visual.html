@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Configuração Visual{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-info-basicas">
+                    <h4 class="mb-0">🎨 Configuração Visual</h4>
+                </div>
+                <div class="card-body info-basicas-bg">
+                    <div class="row">
+                        <!-- Cor do Fundo -->
+                        <div class="col-md-6 mb-4">
+                            <div class="color-section">
+                                <h5>Cor do Fundo</h5>
+                                
+                                <!-- Quadrado clicável -->
+                                <div class="color-picker-box" onclick="openColorPicker('fundo')">
+                                    <div class="color-preview" id="previewFundo" style="background-color: #b4a0a0;"></div>
+                                    <div class="color-code" id="codeFundo">#ffffff</div>
+                                </div>
+                                
+                                <!-- Input color oculto -->
+                                <input type="color" id="colorFundo" style="display: none;" onchange="updateFundo(this.value)">
+                            </div>
+                        </div>
+                        
+                        <!-- Cor do Texto -->
+                        <div class="col-md-6 mb-4">
+                            <div class="color-section">
+                                <h5>Cor do Texto</h5>
+                                
+                                <!-- Quadrado clicável -->
+                                <div class="color-picker-box" onclick="openColorPicker('texto')">
+                                    <div class="color-preview" id="previewTexto" style="background-color: #000000;"></div>
+                                    <div class="color-code" id="codeTexto">#000000</div>
+                                </div>
+                                
+                                <!-- Input color oculto -->
+                                <input type="color" id="colorTexto" style="display: none;" onchange="updateTexto(this.value)">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Box de Preview Combinada -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="preview-section">
+                                <h5>Preview Combinado</h5>
+                                <div class="combined-preview-box" id="combinedPreview">
+                                    <span>Esta é uma amostra de como ficará o texto com essas cores</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botões de Ação -->
+                    <div class="row mt-4">
+                        <div class="col-12 text-center">
+                            <button type="button" class="btn btn-secondary me-2" onclick="resetarCores()">
+                                <i class="fas fa-undo me-1"></i>Resetar
+                            </button>
+                            <button type="button" class="btn btn-warning" onclick="salvarConfiguracoes()">
+                                <i class="fas fa-save me-1"></i>Salvar Configurações
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- === SEÇÃO DE CAPTURA DE COORDENADAS === -->
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-info-basicas">
+                    <h4 class="mb-0">🎯 Captura de Coordenadas</h4>
+                </div>
+                <div class="card-body info-basicas-bg">
+                    <!-- Área de Captura -->
+                    <div class="capture-area" id="captureArea">
+                        <div class="capture-inner" id="captureInner">
+                            <div class="capture-text">Clique em qualquer lugar dentro desta área para capturar coordenadas</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Box de Coordenadas -->
+                    <div class="coordinates-box" id="coordinatesBox">
+                        <h5>Coordenadas Capturadas:</h5>
+                        <div class="coords-display">
+                            <div class="coord-item">
+                                <span class="coord-label">X:</span>
+                                <span class="coord-value" id="coordX">--</span>
+                            </div>
+                            <div class="coord-item">
+                                <span class="coord-label">Y:</span>
+                                <span class="coord-value" id="coordY">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.color-section {
+    text-align: center;
+}
+
+.color-picker-box {
+    width: 120px;
+    height: 120px;
+    border: 3px solid #ddd;
+    border-radius: 15px;
+    margin: 0 auto 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #f8f9fa;
+}
+
+.color-picker-box:hover {
+    border-color: #007bff;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+}
+
+.color-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.color-code {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 12px;
+    color: #666;
+    background: #fff;
+    padding: 4px 8px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.preview-section {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.combined-preview-box {
+    width: 100%;
+    height: 80px;
+    border: 3px solid #ddd;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+    background-color: #ffffff;
+    color: #000000;
+}
+
+.combined-preview-box:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+h5 {
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+/* === ESTILOS PARA CAPTURA DE COORDENADAS === */
+.capture-area {
+    width: 100%;
+    height: 400px;
+    border: 3px dashed #007bff;
+    border-radius: 15px;
+    background: linear-gradient(45deg, #f8f9fa 25%, transparent 25%), 
+                linear-gradient(-45deg, #f8f9fa 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #f8f9fa 75%), 
+                linear-gradient(-45deg, transparent 75%, #f8f9fa 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    position: relative;
+    cursor: crosshair;
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+}
+
+.capture-area:hover {
+    border-color: #0056b3;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+}
+
+.capture-inner {
+    width: 80%;
+    height: 60%;
+    border: 2px solid #28a745;
+    border-radius: 10px;
+    background: rgba(40, 167, 69, 0.1);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.capture-inner:hover {
+    background: rgba(40, 167, 69, 0.2);
+    border-color: #1e7e34;
+}
+
+.capture-text {
+    color: #28a745;
+    font-weight: bold;
+    text-align: center;
+    font-size: 16px;
+    padding: 20px;
+}
+
+.coordinates-box {
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+}
+
+.coords-display {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 15px;
+}
+
+.coord-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.coord-label {
+    font-weight: bold;
+    color: #495057;
+    font-size: 14px;
+}
+
+.coord-value {
+    font-family: 'Courier New', monospace;
+    font-size: 24px;
+    font-weight: bold;
+    color: #007bff;
+    background: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 2px solid #007bff;
+    min-width: 80px;
+}
+</style>
+
+<script>
+let corFundo = '#ffffff';
+let corTexto = '#000000';
+
+function openColorPicker(tipo) {
+    if (tipo === 'fundo') {
+        document.getElementById('colorFundo').click();
+    } else {
+        document.getElementById('colorTexto').click();
+    }
+}
+
+function updateFundo(cor) {
+    corFundo = cor;
+    document.getElementById('previewFundo').style.backgroundColor = cor;
+    document.getElementById('codeFundo').textContent = cor;
+    updateCombinedPreview();
+}
+
+function updateTexto(cor) {
+    corTexto = cor;
+    document.getElementById('previewTexto').style.backgroundColor = cor;
+    document.getElementById('codeTexto').textContent = cor;
+    updateCombinedPreview();
+}
+
+function updateCombinedPreview() {
+    const previewBox = document.getElementById('combinedPreview');
+    previewBox.style.backgroundColor = corFundo;
+    previewBox.style.color = corTexto;
+}
+
+function resetarCores() {
+    corFundo = '#ffffff';
+    corTexto = '#000000';
+    
+    document.getElementById('previewFundo').style.backgroundColor = corFundo;
+    document.getElementById('codeFundo').textContent = corFundo;
+    document.getElementById('previewTexto').style.backgroundColor = corTexto;
+    document.getElementById('codeTexto').textContent = corTexto;
+    
+    updateCombinedPreview();
+    
+    // Resetar inputs de cor
+    document.getElementById('colorFundo').value = corFundo;
+    document.getElementById('colorTexto').value = corTexto;
+}
+
+function salvarConfiguracoes() {
+    // Salvar no localStorage
+    localStorage.setItem('corFundo', corFundo);
+    localStorage.setItem('corTexto', corTexto);
+    
+    // Aplicar cores globalmente
+    document.documentElement.style.setProperty('--cor-principal', corFundo);
+    document.documentElement.style.setProperty('--cor-secundaria', corTexto);
+    
+    // Mostrar mensagem de sucesso
+    alert('Configurações salvas com sucesso!');
+    
+    console.log('Configurações salvas:', {
+        fundo: corFundo,
+        texto: corTexto
+    });
+}
+
+// === FUNCIONALIDADE DE CAPTURA DE COORDENADAS ===
+document.addEventListener('DOMContentLoaded', function() {
+    const captureArea = document.getElementById('captureArea');
+    const coordX = document.getElementById('coordX');
+    const coordY = document.getElementById('coordY');
+    
+    if (captureArea) {
+        captureArea.addEventListener('click', function(event) {
+            // Obter coordenadas relativas ao elemento
+            const rect = captureArea.getBoundingClientRect();
+            const x = Math.round(event.clientX - rect.left);
+            const y = Math.round(event.clientY - rect.top);
+            
+            // Obter coordenadas absolutas da tela
+            const screenX = event.screenX;
+            const screenY = event.screenY;
+            
+            // Atualizar display
+            coordX.textContent = `${x}px (${screenX})`;
+            coordY.textContent = `${y}px (${screenY})`;
+            
+            // Adicionar efeito visual
+            coordX.style.backgroundColor = '#d4edda';
+            coordY.style.backgroundColor = '#d4edda';
+            
+            setTimeout(() => {
+                coordX.style.backgroundColor = 'white';
+                coordY.style.backgroundColor = 'white';
+            }, 1000);
+            
+            console.log(`Coordenadas capturadas: X=${x}px (${screenX}), Y=${y}px (${screenY})`);
+        });
+        
+        // Adicionar efeito hover
+        captureArea.addEventListener('mouseenter', function() {
+            this.style.cursor = 'crosshair';
+        });
+        
+        captureArea.addEventListener('mouseleave', function() {
+            this.style.cursor = 'default';
+        });
+    }
+});
+</script>
+{% endblock %}

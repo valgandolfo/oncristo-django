@@ -1,0 +1,493 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* === ESTILOS DO HEADER === */
+    .form-header {
+        text-align: center;
+        margin-bottom: 15px;
+        background: linear-gradient(135deg, #18c3f7 0%, #0d8fb8 100%);
+        color: #9dd7f8;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(24, 195, 247, 0.3);
+    }
+    
+    .form-title {
+        color: #000000;
+        font-weight: 600;
+        margin-bottom: 10px;
+        font-size: 1.8em;
+    }
+    
+    .form-subtitle {
+        color: #000000;
+        font-size: 1.1em;
+    }
+    
+    /* === ESTILOS DO CONTAINER (CARD) === */
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(24, 195, 247, 0.15);
+        background: #ca82bc;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #18c3f7 0%, #0d8fb8 100%);
+        color: #27b857;
+        border-radius: 12px 12px 0 0;
+        padding: 15px 20px;
+        font-weight: 600;
+    }
+    
+    .card-body {
+        padding: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- FORMULÁRIO DE SELEÇÃO DE MÊS/ANO/MODELO/TEMA -->
+    {% if modo == 'form' %}
+        <div class="form-header">
+            <h1 class="form-title">Gerar Escala de Missa</h1>
+            <p class="form-subtitle">Selecione o mês, ano, modelo e tema para gerar a escala</p>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <form method="post" class="form-section" id="form-gerar-escala">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ form.ano.id_for_label }}">{{ form.ano.label }}</label>
+                                {{ form.ano }}
+                                {% if form.ano.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.ano.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ form.mes.id_for_label }}">{{ form.mes.label }}</label>
+                                {{ form.mes }}
+                                {% if form.mes.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.mes.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted" id="mes-ano-display"></small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ form.modelo.id_for_label }}">{{ form.modelo.label }}</label>
+                                {{ form.modelo }}
+                                {% if form.modelo.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.modelo.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ form.tema_mes.id_for_label }}">{{ form.tema_mes.label }}</label>
+                                {{ form.tema_mes }}
+                                {% if form.tema_mes.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.tema_mes.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg" id="btn-gerar-escala">
+                                    <i class="fas fa-calendar-plus me-2"></i>Gerar Escala Mensal
+                                </button>
+                                <a href="{% url 'app_igreja:admin_area' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Voltar
+                                </a>
+                            </div>
+                        </form>
+                        
+                        <!-- Modal de Loading -->
+                        <div class="modal fade" id="modal-loading" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-body text-center py-4">
+                                        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                                            <span class="visually-hidden">Carregando...</span>
+                                        </div>
+                                        <h5>Gerando Escala Mensal...</h5>
+                                        <p class="text-muted mb-0">Por favor, aguarde. Isso pode levar alguns instantes.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Modal de Confirmação (Sobrepor Escala) -->
+                        <div class="modal fade" id="modal-confirmar-sobrepor" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-warning text-dark">
+                                        <h5 class="modal-title">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>Escala Já Existe
+                                        </h5>
+                                    </div>
+                                    <div class="modal-body text-center py-4">
+                                        <p id="mensagem-escala-existe" class="mb-3">Escala já existe para este mês/ano.</p>
+                                        <p class="mb-0"><strong>Deseja sobrepor a escala existente?</strong></p>
+                                        <p class="text-muted small mt-2">A escala atual será substituída pela nova escala baseada no modelo selecionado.</p>
+                                    </div>
+                                    <div class="modal-footer justify-content-center">
+                                        <button type="button" class="btn btn-danger" id="btn-confirmar-sobrepor">
+                                            <i class="fas fa-check me-2"></i>Sim, Sobrepor
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" id="btn-cancelar-sobrepor">
+                                            <i class="fas fa-times me-2"></i>Não, Cancelar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Modal de Sucesso -->
+                        <div class="modal fade" id="modal-sucesso" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-success text-white">
+                                        <h5 class="modal-title">
+                                            <i class="fas fa-check-circle me-2"></i>Escala Gerada com Sucesso!
+                                        </h5>
+                                    </div>
+                                    <div class="modal-body text-center py-4">
+                                        <p class="mb-3" id="mensagem-sucesso"></p>
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <strong id="registros-gerados"></strong> registros foram gerados.
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer justify-content-center">
+                                        <button type="button" class="btn btn-primary btn-lg" id="btn-ok-sucesso">
+                                            <i class="fas fa-check me-2"></i>OK
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <!-- EDIÇÃO DE DESCRIÇÃO -->
+    {% elif modo == 'editar_descricao' %}
+        <div class="form-header">
+            <h1 class="form-title">Editar Descrição do Item</h1>
+            <p class="form-subtitle">{{ item_escala.ITE_ESC_DATA|date:"d/m/Y" }} - {{ item_escala.ITE_ESC_HORARIO|time:"H:i" }} - {{ dia_semana }}</p>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <form method="post" class="form-section">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ form.descricao.id_for_label }}">{{ form.descricao.label }}</label>
+                                {{ form.descricao }}
+                                {% if form.descricao.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.descricao.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-2"></i>Salvar Descrição
+                                </button>
+                                <a href="{% url 'app_igreja:escala_mensal_visualizar' mes=item_escala.ITE_ESC_DATA.month ano=item_escala.ITE_ESC_DATA.year %}" 
+                                   class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Voltar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mesSelect = document.getElementById('id_mes');
+    const anoInput = document.getElementById('id_ano');
+    const mesAnoDisplay = document.getElementById('mes-ano-display');
+    const formGerarEscala = document.getElementById('form-gerar-escala');
+    const btnGerarEscala = document.getElementById('btn-gerar-escala');
+    const modalLoading = new bootstrap.Modal(document.getElementById('modal-loading'));
+    const modalSucesso = new bootstrap.Modal(document.getElementById('modal-sucesso'));
+    const modalConfirmarSobrepor = new bootstrap.Modal(document.getElementById('modal-confirmar-sobrepor'));
+    const btnOkSucesso = document.getElementById('btn-ok-sucesso');
+    const btnConfirmarSobrepor = document.getElementById('btn-confirmar-sobrepor');
+    const btnCancelarSobrepor = document.getElementById('btn-cancelar-sobrepor');
+    
+    // Variáveis para armazenar dados da requisição quando escala existe
+    let urlGerarPendente = null;
+    let formDataPendente = null;
+    
+    // Atualizar display "Mês/Ano" dinamicamente
+    function updateMesAnoDisplay() {
+        if (mesSelect && anoInput && mesAnoDisplay) {
+            const mesValue = mesSelect.value;
+            const anoValue = anoInput.value;
+            
+            if (mesValue && anoValue) {
+                const mesText = mesSelect.options[mesSelect.selectedIndex].text;
+                mesAnoDisplay.textContent = `${mesText}/${anoValue}`;
+            } else {
+                mesAnoDisplay.textContent = '';
+            }
+        }
+    }
+    
+    if (mesSelect) mesSelect.addEventListener('change', updateMesAnoDisplay);
+    if (anoInput) anoInput.addEventListener('input', updateMesAnoDisplay);
+    updateMesAnoDisplay();
+    
+    // Submeter formulário via AJAX
+    if (formGerarEscala) {
+        formGerarEscala.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Verificar se já está processando (evitar múltiplos cliques)
+            if (btnGerarEscala && btnGerarEscala.disabled) {
+                return;
+            }
+            
+            // Desabilitar botão
+            if (btnGerarEscala) {
+                btnGerarEscala.disabled = true;
+                btnGerarEscala.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Gerando...';
+            }
+            
+            // Mostrar modal de loading
+            try {
+                modalLoading.show();
+            } catch (e) {
+                console.error('Erro ao mostrar modal:', e);
+            }
+            
+            // Preparar dados do formulário
+            const formData = new FormData(formGerarEscala);
+            const mes = formData.get('mes');
+            const ano = formData.get('ano');
+            const modelo = formData.get('modelo');
+            const tema_mes = formData.get('tema_mes') || '';
+            
+            // Construir URL dinamicamente
+            const urlGerar = `/app_igreja/admin-area/escala-mensal/gerar/${mes}/${ano}/?modelo_id=${modelo}&tema_mes=${encodeURIComponent(tema_mes)}&ajax=true`;
+            
+            // Função para reabilitar botão e fechar modal
+            function resetarFormulario() {
+                // Fechar modal de forma forçada
+                try {
+                    const modalElement = document.getElementById('modal-loading');
+                    if (modalElement) {
+                        // Remover classes do Bootstrap que mantêm o modal aberto
+                        modalElement.classList.remove('show');
+                        modalElement.style.display = 'none';
+                        document.body.classList.remove('modal-open');
+                        const backdrop = document.querySelector('.modal-backdrop');
+                        if (backdrop) {
+                            backdrop.remove();
+                        }
+                    }
+                    modalLoading.hide();
+                } catch (e) {
+                    console.error('Erro ao fechar modal:', e);
+                }
+                
+                // Reabilitar botão
+                if (btnGerarEscala) {
+                    btnGerarEscala.disabled = false;
+                    btnGerarEscala.innerHTML = '<i class="fas fa-calendar-plus me-2"></i>Gerar Escala Mensal';
+                }
+            }
+            
+            // Fazer requisição AJAX
+            fetch(urlGerar, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(async response => {
+                // Ler JSON uma única vez
+                let data;
+                try {
+                    const text = await response.text();
+                    if (!text) {
+                        throw new Error('Resposta vazia do servidor.');
+                    }
+                    data = JSON.parse(text);
+                } catch (e) {
+                    console.error('Erro ao processar JSON:', e);
+                    throw new Error('Erro ao processar resposta do servidor.');
+                }
+                
+                // Verificar se a resposta é OK (exceto quando escala_existe, que retorna 200)
+                if (!response.ok && data && !data.escala_existe) {
+                    throw new Error(data.message || 'Erro ao gerar escala.');
+                }
+                
+                return data;
+            })
+            .then(data => {
+                // Fechar modal de loading primeiro
+                resetarFormulario();
+                
+                if (data.success) {
+                    // Atualizar mensagem de sucesso
+                    document.getElementById('mensagem-sucesso').textContent = 
+                        `Escala mensal para ${data.mes}/${data.ano} gerada com sucesso!`;
+                    document.getElementById('registros-gerados').textContent = 
+                        `${data.registros_gerados}`;
+                    
+                    // Mostrar modal de sucesso
+                    modalSucesso.show();
+                } else if (data.escala_existe === true) {
+                    // Escala já existe - mostrar modal de confirmação
+                    const mesNome = data.mes || mesSelect.options[mesSelect.selectedIndex].text;
+                    const ano = data.ano || anoInput.value;
+                    document.getElementById('mensagem-escala-existe').textContent = 
+                        `Escala já existe para ${mesNome}/${ano} com ${data.itens_existentes} itens cadastrados.`;
+                    
+                    // Armazenar dados para reenviar com sobrepor=true
+                    urlGerarPendente = urlGerar;
+                    formDataPendente = formData;
+                    
+                    // Mostrar modal de confirmação
+                    modalConfirmarSobrepor.show();
+                } else {
+                    // Mostrar erro
+                    alert('Erro: ' + (data.message || 'Erro desconhecido'));
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                resetarFormulario();
+                alert('Erro: ' + error.message);
+            });
+        });
+    }
+    
+    // Botão OK do modal de sucesso
+    if (btnOkSucesso) {
+        btnOkSucesso.addEventListener('click', function() {
+            modalSucesso.hide();
+            window.location.href = '{% url "app_igreja:admin_area" %}';
+        });
+    }
+    
+    // Botão Confirmar Sobrepor
+    if (btnConfirmarSobrepor) {
+        btnConfirmarSobrepor.addEventListener('click', function() {
+            modalConfirmarSobrepor.hide();
+            
+            if (urlGerarPendente) {
+                // Adicionar parâmetro sobrepor=true à URL
+                const urlComSobrepor = urlGerarPendente + (urlGerarPendente.includes('?') ? '&' : '?') + 'sobrepor=true';
+                
+                // Desabilitar botão
+                if (btnGerarEscala) {
+                    btnGerarEscala.disabled = true;
+                    btnGerarEscala.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sobrepondo...';
+                }
+                
+                // Mostrar modal de loading
+                try {
+                    modalLoading.show();
+                } catch (e) {
+                    console.error('Erro ao mostrar modal:', e);
+                }
+                
+                // Fazer requisição AJAX com sobrepor=true
+                fetch(urlComSobrepor, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                })
+                .then(async response => {
+                    let data;
+                    try {
+                        const text = await response.text();
+                        if (!text) {
+                            throw new Error('Resposta vazia do servidor.');
+                        }
+                        data = JSON.parse(text);
+                    } catch (e) {
+                        console.error('Erro ao processar JSON:', e);
+                        throw new Error('Erro ao processar resposta do servidor.');
+                    }
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Erro ao sobrepor escala.');
+                    }
+                    
+                    return data;
+                })
+                .then(data => {
+                    resetarFormulario();
+                    
+                    if (data.success) {
+                        document.getElementById('mensagem-sucesso').textContent = 
+                            `Escala mensal para ${data.mes}/${data.ano} sobreposta com sucesso!`;
+                        document.getElementById('registros-gerados').textContent = 
+                            `${data.registros_gerados}`;
+                        modalSucesso.show();
+                    } else {
+                        alert('Erro: ' + (data.message || 'Erro desconhecido'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    resetarFormulario();
+                    alert('Erro: ' + error.message);
+                });
+            }
+        });
+    }
+    
+    // Botão Cancelar Sobrepor
+    if (btnCancelarSobrepor) {
+        btnCancelarSobrepor.addEventListener('click', function() {
+            modalConfirmarSobrepor.hide();
+            urlGerarPendente = null;
+            formDataPendente = null;
+        });
+    }
+});
+</script>
+{% endblock %}

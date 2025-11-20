@@ -1,0 +1,592 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Doações - {{ paroquia.PAR_nome_paroquia }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* === ESTILOS GERAIS === */
+    .hero-section {
+        padding: 0;  /* Remove padding padrão da seção hero */
+    }
+    
+    /* === HERO CONTENT (Cabeçalho) === */
+    .hero-content {
+        border: 1px solid #ef55b2;  
+        border-radius: 15px;
+        padding: 16px 32px;           /* Espaçamento interno: 16px vertical, 32px horizontal */
+        background: #e8e99e;          /* Cor de fundo amarelo claro */
+        display: block;
+        text-align: center;
+        margin: 10px auto 0 auto;     /* Margem superior 10px, centralizado horizontalmente */
+        max-width: 920px;             /* Largura máxima 920px */
+    }
+    
+    /* === CONTAINER DE CONTEÚDO ===*/   
+    .container-conteudo {
+        border: 1px solid #ef55b2;  
+        background: rgb(200, 237, 185);    /* Cor de fundo verde claro */
+        padding: 20px;                      /* Espaçamento interno 20px */
+        border-radius: 15px;                /* Bordas arredondadas 15px */
+        box-shadow: 0 4px 6px #ef55b2;      /* Sombra com cor rosa */
+        margin-top: 20px;                   /* Margem superior 20px */
+    }
+    
+    /* === ABAS DE PAGAMENTO === */
+    .nav-tabs .nav-link {
+        color: #000000;
+        border: none;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        padding: 12px 20px;
+        font-weight: 500;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        border-color: #accdee;
+        background-color: #a7deec;
+        color: #28a745;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #28a745 !important;
+        border-bottom-color: #28a745 !important;
+        background-color: #f8f9fa !important;
+        font-weight: 600;
+    }
+    
+    .nav-tabs .nav-link:focus {
+        outline: none;
+        box-shadow: none;
+    }
+    
+    .tab-content {
+        min-height: 400px;
+        padding-top: 20px;
+    }
+    
+    .tab-pane {
+        transition: all 0.3s ease;
+    }
+    
+    /* === QR CODE === */
+    .qr-code-container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        display: inline-block;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .qr-code-container img {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .qr-code-container img:hover {
+        transform: scale(1.05);
+    }
+    
+    /* === INFORMAÇÕES === */
+    .info-item {
+        margin-bottom: 15px;
+    }
+    
+    .info-item strong {
+        color: #495057;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .info-item p {
+        margin: 5px 0 0 0;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+    
+    /* === INSTRUÇÕES === */
+    .instructions {
+        border-left: 4px solid #28a745;
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 5px;
+    }
+    
+    .instructions ol {
+        margin-bottom: 0;
+    }
+    
+    .instructions li {
+        margin-bottom: 8px;
+        color: #495057;
+    }
+    
+    .payment-info .alert {
+        border-radius: 10px;
+        border: none;
+    }
+    
+    /* === BOTÃO FLUTUANTE === */
+    .fly-float-btn {
+        position: fixed;
+        bottom: 30px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #16ab2a 0%, #ace9b8 100%);
+        border-radius: 50%;
+        color: white;
+        font-size: 24px;
+        box-shadow: 0 4px 15px rgba(10, 202, 138, 0.4);
+        z-index: 1000;
+        transition: all 0.3s;
+    }
+    
+    /* Botão do lado esquerdo */
+    .fly-float-btn-left {
+        left: 30px;
+    }
+    
+    .fly-float-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(10, 202, 138, 0.6);
+    }
+    
+    /* === RESPONSIVO === */
+    @media (max-width: 768px) {
+        .hero-content {
+            margin: 10px;
+            padding: 12px 16px;
+        }
+        
+        .container-conteudo {
+            padding: 15px;
+            margin: 10px;
+        }
+        
+        .nav-tabs .nav-link {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+        
+        .fly-float-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            bottom: 20px;
+        }
+        
+        .fly-float-btn-left {
+            left: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="mb-3 text-center">
+                <i class="fas fa-hand-holding-heart me-3"></i>
+                Faça sua Doação
+            </h1>
+            <p class="lead mb-0 text-center">
+                Ajude {{ paroquia.PAR_nome_paroquia|default:"nossa paróquia" }} com sua contribuição
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Container Principal -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <!-- Container de Conteúdo -->
+            <div class="container-conteudo">
+                <!-- Abas de métodos de pagamento -->
+                <ul class="nav nav-tabs nav-fill mb-4" id="paymentTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="pix-tab" data-bs-toggle="tab" data-bs-target="#pix" type="button" role="tab" aria-controls="pix" aria-selected="true">
+                            <i class="fas fa-qrcode me-2"></i>PIX
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="credit-tab" data-bs-toggle="tab" data-bs-target="#credit" type="button" role="tab" aria-controls="credit" aria-selected="false">
+                            <i class="fas fa-credit-card me-2"></i>Cartão de Crédito
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="debit-tab" data-bs-toggle="tab" data-bs-target="#debit" type="button" role="tab" aria-controls="debit" aria-selected="false">
+                            <i class="fas fa-credit-card me-2"></i>Cartão de Débito
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="boleto-tab" data-bs-toggle="tab" data-bs-target="#boleto" type="button" role="tab" aria-controls="boleto" aria-selected="false">
+                            <i class="fas fa-barcode me-2"></i>Boleto
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Conteúdo das abas -->
+                <div class="tab-content" id="paymentTabsContent">
+                    <!-- Aba PIX -->
+                    <div class="tab-pane fade show active" id="pix" role="tabpanel">
+                        <div class="text-center">
+                            <h5 class="text-success mb-4">
+                                <i class="fas fa-qrcode me-2"></i>
+                                Doação via PIX
+                            </h5>
+                            
+                            {% if qr_code %}
+                            <!-- QR Code -->
+                            <div class="qr-code-container mb-4">
+                                <img src="data:image/png;base64,{{ qr_code }}" 
+                                     alt="QR Code PIX" 
+                                     class="img-fluid border rounded shadow-sm"
+                                     style="max-width: 300px;"
+                                     onclick="copiarChavePix()"
+                                     title="Clique para copiar a chave PIX">
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Informações PIX -->
+                            {% if paroquia.PAR_pix_chave %}
+                            <div class="pix-info mb-4">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong>Chave PIX:</strong>
+                                            <p class="text-primary">{{ paroquia.PAR_pix_chave }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong>Tipo:</strong>
+                                            <p class="text-info">{{ paroquia.get_pix_tipo_display|default:"Não informado" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {% if paroquia.PAR_pix_beneficiario %}
+                                <div class="info-item mt-3">
+                                    <strong>Beneficiário:</strong>
+                                    <p class="text-success">{{ paroquia.PAR_pix_beneficiario }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Instruções PIX -->
+                            <div class="instructions mb-4">
+                                <h6 class="text-dark mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Como fazer a doação via PIX:
+                                </h6>
+                                <ol class="text-start">
+                                    <li>Abra o app do seu banco</li>
+                                    <li>Escolha a opção "PIX"</li>
+                                    <li>Escaneie o QR Code acima ou digite a chave PIX</li>
+                                    <li>Digite o valor da sua doação</li>
+                                    <li>Confirme a transação</li>
+                                </ol>
+                            </div>
+                            
+                            <button class="btn btn-success btn-lg mt-3" onclick="copiarChavePix()">
+                                <i class="fas fa-copy me-2"></i>
+                                Copiar Chave PIX
+                            </button>
+                            {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Atenção:</strong> Chave PIX não cadastrada. Entre em contato com a paróquia.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Aba Cartão de Crédito -->
+                    <div class="tab-pane fade" id="credit" role="tabpanel">
+                        <div class="text-center">
+                            <h5 class="text-primary mb-4">
+                                <i class="fas fa-credit-card me-2"></i>
+                                Doação via Cartão de Crédito
+                            </h5>
+                            
+                            <div class="payment-info mb-4">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Informação:</strong> Para doações via cartão de crédito, entre em contato conosco.
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong>Telefone:</strong>
+                                            <p class="text-primary">{{ paroquia.PAR_telefone|default:"Não informado" }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong>E-mail:</strong>
+                                            <p class="text-primary">{{ paroquia.PAR_email|default:"Não informado" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="instructions mb-4">
+                                <h6 class="text-dark mb-3">
+                                    <i class="fas fa-phone me-2"></i>
+                                    Como fazer a doação via cartão de crédito:
+                                </h6>
+                                <ol class="text-start">
+                                    <li>Entre em contato conosco pelo telefone ou e-mail</li>
+                                    <li>Informe o valor que deseja doar</li>
+                                    <li>Forneça os dados do seu cartão de crédito</li>
+                                    <li>Receba a confirmação da doação</li>
+                                </ol>
+                            </div>
+                            
+                            {% if paroquia.PAR_telefone %}
+                            <a href="tel:{{ paroquia.PAR_telefone }}" class="btn btn-primary btn-lg mt-3 me-2">
+                                <i class="fas fa-phone me-2"></i>
+                                Ligar Agora
+                            </a>
+                            {% endif %}
+                            {% if paroquia.PAR_email %}
+                            <a href="mailto:{{ paroquia.PAR_email }}" class="btn btn-outline-primary btn-lg mt-3">
+                                <i class="fas fa-envelope me-2"></i>
+                                Enviar E-mail
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Aba Cartão de Débito -->
+                    <div class="tab-pane fade" id="debit" role="tabpanel">
+                        <div class="text-center">
+                            <h5 class="text-info mb-4">
+                                <i class="fas fa-credit-card me-2"></i>
+                                Doação via Cartão de Débito
+                            </h5>
+                            
+                            <div class="payment-info mb-4">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Informação:</strong> Para doações via cartão de débito, entre em contato conosco.
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong>Telefone:</strong>
+                                            <p class="text-primary">{{ paroquia.PAR_telefone|default:"Não informado" }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong>E-mail:</strong>
+                                            <p class="text-primary">{{ paroquia.PAR_email|default:"Não informado" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="instructions mb-4">
+                                <h6 class="text-dark mb-3">
+                                    <i class="fas fa-phone me-2"></i>
+                                    Como fazer a doação via cartão de débito:
+                                </h6>
+                                <ol class="text-start">
+                                    <li>Entre em contato conosco pelo telefone ou e-mail</li>
+                                    <li>Informe o valor que deseja doar</li>
+                                    <li>Forneça os dados do seu cartão de débito</li>
+                                    <li>Receba a confirmação da doação</li>
+                                </ol>
+                            </div>
+                            
+                            {% if paroquia.PAR_telefone %}
+                            <a href="tel:{{ paroquia.PAR_telefone }}" class="btn btn-info btn-lg mt-3 me-2">
+                                <i class="fas fa-phone me-2"></i>
+                                Ligar Agora
+                            </a>
+                            {% endif %}
+                            {% if paroquia.PAR_email %}
+                            <a href="mailto:{{ paroquia.PAR_email }}" class="btn btn-outline-info btn-lg mt-3">
+                                <i class="fas fa-envelope me-2"></i>
+                                Enviar E-mail
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Aba Boleto -->
+                    <div class="tab-pane fade" id="boleto" role="tabpanel">
+                        <div class="text-center">
+                            <h5 class="text-warning mb-4">
+                                <i class="fas fa-barcode me-2"></i>
+                                Doação via Boleto Bancário
+                            </h5>
+                            
+                            <div class="payment-info mb-4">
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Informação:</strong> Para gerar um boleto bancário, entre em contato conosco.
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong>Telefone:</strong>
+                                            <p class="text-primary">{{ paroquia.PAR_telefone|default:"Não informado" }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong>E-mail:</strong>
+                                            <p class="text-primary">{{ paroquia.PAR_email|default:"Não informado" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong>Banco:</strong>
+                                            <p class="text-success">{{ paroquia.PAR_banco|default:"Não informado" }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong>CNPJ:</strong>
+                                            <p class="text-success">{{ paroquia.PAR_cnpj|default:"Não informado" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="instructions mb-4">
+                                <h6 class="text-dark mb-3">
+                                    <i class="fas fa-phone me-2"></i>
+                                    Como fazer a doação via boleto:
+                                </h6>
+                                <ol class="text-start">
+                                    <li>Entre em contato conosco pelo telefone ou e-mail</li>
+                                    <li>Informe o valor que deseja doar</li>
+                                    <li>Receba o boleto bancário por e-mail</li>
+                                    <li>Pague o boleto em qualquer banco ou lotérica</li>
+                                </ol>
+                            </div>
+                            
+                            {% if paroquia.PAR_telefone %}
+                            <a href="tel:{{ paroquia.PAR_telefone }}" class="btn btn-warning btn-lg mt-3 me-2">
+                                <i class="fas fa-phone me-2"></i>
+                                Ligar Agora
+                            </a>
+                            {% endif %}
+                            {% if paroquia.PAR_email %}
+                            <a href="mailto:{{ paroquia.PAR_email }}" class="btn btn-outline-warning btn-lg mt-3">
+                                <i class="fas fa-envelope me-2"></i>
+                                Enviar E-mail
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- Botão Flutuante HOME -->
+<a href="{% url 'home' %}" class="fly-float-btn fly-float-btn-left d-flex align-items-center justify-content-center text-decoration-none" title="Voltar para Home">
+    <i class="fas fa-home"></i>
+</a>
+
+<!-- Modal de confirmação -->
+<div class="modal fade" id="copiarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-check me-2"></i>
+                    Chave PIX Copiada!
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>A chave PIX foi copiada para a área de transferência.</p>
+                <p class="text-muted small">Cole no app do seu banco para fazer a doação.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copiarChavePix() {
+    const chavePix = "{{ paroquia.PAR_pix_chave }}";
+    
+    if (!chavePix) {
+        alert('Chave PIX não disponível.');
+        return;
+    }
+    
+    // Copiar para área de transferência
+    navigator.clipboard.writeText(chavePix).then(function() {
+        // Mostrar modal de confirmação
+        const modal = new bootstrap.Modal(document.getElementById('copiarModal'));
+        modal.show();
+    }).catch(function(err) {
+        console.error('Erro ao copiar: ', err);
+        alert('Erro ao copiar a chave PIX. Tente copiar manualmente: ' + chavePix);
+    });
+}
+
+// Inicializar sistema de abas
+document.addEventListener('DOMContentLoaded', function() {
+    // Garantir que as abas funcionem corretamente
+    const tabElements = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    
+    tabElements.forEach(function(tabElement) {
+        tabElement.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remover classe active de todas as abas
+            tabElements.forEach(function(tab) {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+            
+            // Adicionar classe active na aba clicada
+            this.classList.add('active');
+            this.setAttribute('aria-selected', 'true');
+            
+            // Esconder todos os painéis de conteúdo
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            tabPanes.forEach(function(pane) {
+                pane.classList.remove('show', 'active');
+            });
+            
+            // Mostrar o painel correspondente
+            const targetId = this.getAttribute('data-bs-target');
+            const targetPane = document.querySelector(targetId);
+            if (targetPane) {
+                targetPane.classList.add('show', 'active');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+

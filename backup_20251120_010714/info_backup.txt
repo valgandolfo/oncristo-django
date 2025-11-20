@@ -1,0 +1,26 @@
+BACKUP DO PROJETO ONCRISTO
+==========================
+
+Data/Hora: 20/11/2025 01:07:14
+Sistema: Linux Note 6.14.0-35-generic #35~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Oct 14 13:55:17 UTC 2 x86_64 x86_64 x86_64 GNU/Linux
+Python: Python 3.12.3
+Django: 5.0.3
+
+CONTEÚDO DO BACKUP:
+- Código fonte completo (app_igreja, pro_igreja, templates, static)
+- Banco de dados SQLite (se existir)
+- Arquivos de configuração (.env, gunicorn, nginx)
+- Arquivos de mídia (se existirem localmente)
+
+OBSERVAÇÕES:
+- Arquivos sensíveis (.env_production) tiveram senhas removidas
+- Ambiente virtual (venv) não foi incluído
+- Arquivos de cache e logs não foram incluídos
+- Banco de dados MySQL deve ser feito separadamente no servidor
+
+RESTAURAÇÃO:
+1. Extrair código_fonte.tar.gz
+2. Restaurar db.sqlite3 (se aplicável)
+3. Configurar .env_production com senhas reais
+4. Instalar dependências: pip install -r requirements.txt
+5. Aplicar migrações: python manage.py migrate

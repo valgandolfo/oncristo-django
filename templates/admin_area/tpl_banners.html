@@ -1,0 +1,342 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
+<style>
+/* CSS específico do módulo Banners */
+.panel-container_estatistica {
+    display: none !important;
+}
+
+.preview-banner-container {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.preview-banner-container img {
+    max-width: 100%;
+    max-height: 300px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 5px;
+}
+</style>
+{% endblock %}
+
+{% block title %}
+    {% if modo_criacao %}
+        Criar Banner
+    {% elif modo_edicao_crud %}
+        Editar Banner
+    {% elif modo_visualizacao_crud %}
+        Visualizar Banner
+    {% else %}
+        Banners de Patrocinadores
+    {% endif %}
+{% endblock %}
+
+<!-- === BLOCO DASHBOARD === -->
+{% block icone_dashboard %}fas fa-ad{% endblock %}
+{% block nome_modulo_dashboard %}Banners de Patrocinadores{% endblock %}
+{% block url_retornar_dashboard %}{% url 'app_igreja:admin_area' %}{% endblock %}
+{% block url_criar_novo_dashboard %}{% url 'app_igreja:criar_banner' %}{% endblock %}
+{% block nome_modulo_lista_dashboard %}Banners de Patrocinadores{% endblock %}
+
+<!-- === BLOCO ESTATÍSTICAS DASHBOARD === -->
+{% block estatisticas_dashboard %}
+<!-- PAINEL DE ESTATÍSTICAS OCULTO PARA BANNERS -->
+{% endblock %}
+
+<!-- === BLOCO BUSCA DASHBOARD === -->
+{% block busca_dashboard %}
+<form method="get" class="busca-campos">
+    <div class="campo-busca">
+        <label for="busca_nome">Nome do Patrocinador</label>
+        <input type="text" id="busca_nome" name="q" value="{{ query }}" placeholder="Digite o nome..." autocomplete="off">
+    </div>
+    <div class="campo-busca">
+        <label for="filtro_status">Status</label>
+        <select id="filtro_status" name="status">
+            <option value="">Todos</option>
+            <option value="ativo" {% if status_filter == 'ativo' %}selected{% endif %}>Ativo</option>
+            <option value="inativo" {% if status_filter == 'inativo' %}selected{% endif %}>Inativo</option>
+        </select>
+    </div>
+    <button type="submit" class="cont_busca_btnbusca"><i class="fas fa-search"></i></button>
+</form>
+{% endblock %}
+
+<!-- === BLOCO COLUNAS CABEÇALHO DASHBOARD === -->
+{% block colunas_cabecalho_dashboard %}
+<th width="10%">Imagem</th>
+<th width="25%">Patrocinador</th>
+<th width="15%">Ordem</th>
+<th width="10%">Status</th>
+<th width="15%">Telefone</th>
+<th width="25%">Ações</th>
+{% endblock %}
+
+<!-- === BLOCO LINHAS TABELA DASHBOARD === -->
+{% block linhas_tabela_dashboard %}
+{% for banner in page_obj %}
+<tr>
+    {% block linha_completa_dashboard %}
+    <td><i class="fas fa-ellipsis-v" onclick="selecionarRegistroDashboard({{ banner.id }})" style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;" onmouseover="this.style.backgroundColor='#e9ecef'" onmouseout="this.style.backgroundColor='transparent'"></i></td>
+    <td>{% if banner.BAN_IMAGE %}<img src="{{ banner.BAN_IMAGE.url }}" alt="Banner" class="img-thumbnail" style="width: 60px; height: 40px; object-fit: cover;">{% else %}<div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 60px; height: 40px;"><i class="fas fa-image text-muted"></i></div>{% endif %}</td>
+    <td>{{ banner.BAN_NOME_PATROCINADOR }}</td>
+    <td>{{ banner.BAN_ORDEM }}</td>
+    <td>{% if banner.is_ativo %}<span class="badge bg-success">Ativo</span>{% else %}<span class="badge bg-secondary">Inativo</span>{% endif %}</td>
+    <td>{{ banner.BAN_TELEFONE|default:"-" }}</td>
+    <td>
+        <div class="botoes-acao" id="acoes_{{ banner.id }}" style="display: none;">
+            <div class="d-flex gap-2 justify-content-start align-items-center">
+                <a href="{% url 'app_igreja:detalhar_banner' banner.id %}" class="btn btn-info btn-sm d-flex align-items-center"><i class="fas fa-eye me-1"></i>Consultar</a>
+                <a href="{% url 'app_igreja:editar_banner' banner.id %}" class="btn btn-warning btn-sm d-flex align-items-center"><i class="fas fa-edit me-1"></i>Editar</a>
+                <a href="{% url 'app_igreja:excluir_banner' banner.id %}" class="btn btn-danger btn-sm d-flex align-items-center"><i class="fas fa-trash me-1"></i>Excluir</a>
+            </div>
+        </div>
+    </td>
+    {% endblock %}
+</tr>
+{% empty %}
+<tr>
+    <td colspan="7" class="text-center text-muted">
+        <i class="fas fa-ad fa-2x mb-2"></i>
+        <br>
+        Nenhum banner encontrado.
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
+
+<!-- === BLOCO MENSAGEM VAZIO DASHBOARD === -->
+{% block mensagem_vazio_dashboard %}Não há banners cadastrados ou que correspondam aos filtros aplicados.{% endblock %}
+
+{% block conteudo_detalhe %}
+<!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES -->
+{% if acao == 'incluir' or acao == 'editar' %}
+<form id="detail-form" method="post" enctype="multipart/form-data" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_banner' banner.id %}{% else %}{% url 'app_igreja:criar_banner' %}{% endif %}">
+{% elif acao == 'excluir' %}
+<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_banner' banner.id %}">
+{% endif %}
+
+{% if acao == 'incluir' or acao == 'editar' %}
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            <h6>Erro ao {% if acao == 'editar' %}editar{% else %}cadastrar{% endif %} banner:</h6>
+            {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+        </div>
+    {% endif %}
+{% elif acao == 'excluir' %}
+    {% csrf_token %}
+{% endif %}
+
+<!-- ESTRUTURA ÚNICA DE CAMPOS PARA TODAS AS AÇÕES -->
+<div class="row detalhe-banner">
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Nome do Patrocinador *</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.BAN_NOME_PATROCINADOR }}
+                {% if form.BAN_NOME_PATROCINADOR.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.BAN_NOME_PATROCINADOR.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{{ banner.BAN_NOME_PATROCINADOR|default:'Não informado' }}" readonly>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">Descrição Comercial</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.BAN_DESCRICAO_COMERCIAL }}
+                {% if form.BAN_DESCRICAO_COMERCIAL.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.BAN_DESCRICAO_COMERCIAL.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <textarea class="form-control" readonly rows="3">{{ banner.BAN_DESCRICAO_COMERCIAL|default:'Não informado' }}</textarea>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">Imagem do Banner *</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.BAN_IMAGE }}
+                {% if form.BAN_IMAGE.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.BAN_IMAGE.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+                <small class="form-text text-muted">{{ form.BAN_IMAGE.help_text }}</small>
+                <div class="preview-banner-container" id="preview-banner">
+                    {% if banner and banner.BAN_IMAGE %}
+                        <img src="{{ banner.BAN_IMAGE.url }}" alt="Preview do Banner" id="preview-img">
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="form-control" readonly>
+                    {% if banner.BAN_IMAGE %}
+                        <img src="{{ banner.BAN_IMAGE.url }}" alt="Banner" class="img-thumbnail" style="max-width: 100%; max-height: 300px;">
+                    {% else %}
+                        <span class="text-muted">Não informada</span>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">Link (URL)</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.BAN_LINK }}
+                {% if form.BAN_LINK.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.BAN_LINK.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{{ banner.BAN_LINK|default:'Não informado' }}" readonly>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Telefone</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.BAN_TELEFONE }}
+                {% if form.BAN_TELEFONE.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.BAN_TELEFONE.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{{ banner.BAN_TELEFONE|default:'Não informado' }}" readonly>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">Endereço</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.BAN_ENDERECO }}
+                {% if form.BAN_ENDERECO.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.BAN_ENDERECO.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <input type="text" class="form-control" value="{{ banner.BAN_ENDERECO|default:'Não informado' }}" readonly>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">Ordem de Exibição</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                {{ form.BAN_ORDEM }}
+                {% if form.BAN_ORDEM.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.BAN_ORDEM.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+                <small class="form-text text-muted">Ordem de exibição. Use 0 (zero) para inativar o banner.</small>
+            {% else %}
+                <input type="text" class="form-control" value="{{ banner.BAN_ORDEM|default:'0' }}" readonly>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">Status</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                <div class="form-control" readonly>
+                    <span id="status-display" class="badge bg-secondary">Inativo (Ordem: 0)</span>
+                </div>
+                <small class="form-text text-muted">O status é determinado pela ordem. Se ordem > 0, o banner está ativo.</small>
+            {% else %}
+                <div class="form-control" readonly>
+                    {% if banner.is_ativo %}
+                        <span class="badge bg-success">Ativo (Ordem: {{ banner.BAN_ORDEM }})</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inativo (Ordem: {{ banner.BAN_ORDEM }})</span>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if acao == 'consultar' %}
+        <div class="mb-3">
+            <label class="form-label fw-bold">Data de Cadastro</label>
+            <input type="text" class="form-control" value="{{ banner.BAN_data_cadastro|date:'d/m/Y H:i'|default:'-' }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Data de Atualização</label>
+            <input type="text" class="form-control" value="{{ banner.BAN_data_atualizacao|date:'d/m/Y H:i'|default:'-' }}" readonly>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if acao == 'incluir' or acao == 'editar' or acao == 'excluir' %}
+</form>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewBannerImage(input) {
+    const previewContainer = document.getElementById('preview-banner');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            previewContainer.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.alt = 'Preview do Banner';
+            img.id = 'preview-img';
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '300px';
+            img.style.border = '2px solid #dee2e6';
+            img.style.borderRadius = '8px';
+            img.style.padding = '5px';
+            previewContainer.appendChild(img);
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        // Se não houver arquivo selecionado, manter a imagem existente se houver
+        if (!previewContainer.querySelector('img[src*="s3"]') && !previewContainer.querySelector('img[src*="media"]')) {
+            previewContainer.innerHTML = '';
+        }
+    }
+}
+
+// Atualizar status baseado na ordem
+document.addEventListener('DOMContentLoaded', function() {
+    const ordemInput = document.getElementById('id_BAN_ORDEM');
+    const statusDisplay = document.getElementById('status-display');
+    
+    if (ordemInput && statusDisplay) {
+        function updateStatus() {
+            const ordem = parseInt(ordemInput.value) || 0;
+            if (ordem > 0) {
+                statusDisplay.textContent = `Ativo (Ordem: ${ordem})`;
+                statusDisplay.className = 'badge bg-success';
+            } else {
+                statusDisplay.textContent = 'Inativo (Ordem: 0)';
+                statusDisplay.className = 'badge bg-secondary';
+            }
+        }
+        
+        ordemInput.addEventListener('input', updateStatus);
+        updateStatus(); // Atualizar ao carregar
+    }
+});
+</script>
+{% endblock %}
+
