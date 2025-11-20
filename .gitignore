@@ -67,11 +67,11 @@ db.sqlite3-journal
 # Arquivos de configuração do servidor (não versionar)
 gunicorn.service
 nginx_oncristo.conf
-deploy.sh
 deploy_producao.sh
 setup_production.sh
 setup_banco_mysql.sh
 iniciar_servidor.sh
+# deploy.sh pode ser versionado (script principal de deploy)
 
 # Documentação de deploy (manter apenas localmente)
 # DEPLOY_GIT.md pode ser versionado
