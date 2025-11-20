@@ -71,6 +71,8 @@ deploy_producao.sh
 setup_production.sh
 setup_banco_mysql.sh
 iniciar_servidor.sh
+# Scripts antigos de Flask (não usar mais)
+deploy_digitalocean.sh
 # deploy.sh pode ser versionado (script principal de deploy)
 
 # Documentação de deploy (manter apenas localmente)
