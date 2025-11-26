@@ -197,8 +197,14 @@ def get_imagem_capa_url(optimized=True):
         # Tentar buscar foto da capa do banco
         visual = TBVISUAL.objects.first()
         if visual and visual.VIS_FOTO_CAPA:
-            # URL direta da foto da capa (pode criar endpoint otimizado depois se necessário)
-            image_url = f"{base_url}{visual.VIS_FOTO_CAPA.url}"
+            # Verificar se a URL já é completa (S3) ou relativa
+            foto_url = visual.VIS_FOTO_CAPA.url
+            if foto_url.startswith('http://') or foto_url.startswith('https://'):
+                # URL completa (S3), usar diretamente
+                image_url = foto_url
+            else:
+                # URL relativa, concatenar com base_url
+                image_url = f"{base_url}{foto_url}"
             logger.info(f"✅ Foto da capa encontrada: {image_url}")
             return image_url
         elif visual and visual.VIS_FOTO_PRINCIPAL:
@@ -206,7 +212,12 @@ def get_imagem_capa_url(optimized=True):
             if optimized:
                 image_url = f"{base_url}/app_igreja/api/whatsapp/imagem-principal/"
             else:
-                image_url = f"{base_url}{visual.VIS_FOTO_PRINCIPAL.url}"
+                # Verificar se a URL já é completa (S3) ou relativa
+                foto_url = visual.VIS_FOTO_PRINCIPAL.url
+                if foto_url.startswith('http://') or foto_url.startswith('https://'):
+                    image_url = foto_url
+                else:
+                    image_url = f"{base_url}{foto_url}"
             logger.info(f"ℹ️  Usando imagem principal como fallback: {image_url}")
             return image_url
         else:
