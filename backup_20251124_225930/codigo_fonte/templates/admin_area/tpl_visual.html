@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
+<style>
+    .imagem-preview {
+        max-width: 300px;
+        max-height: 300px;
+        margin-top: 10px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        padding: 5px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .imagem-container {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .preview-container {
+        margin-top: 10px;
+        min-height: 50px;
+    }
+    .preview-container img {
+        max-width: 100%;
+        max-height: 300px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        padding: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block title %}
+    {% if modo_edicao %}
+        Editar Configurações Visuais
+    {% else %}
+        Configurações Visuais
+    {% endif %}
+{% endblock %}
+
+{% block icone_formulario %}fas fa-palette{% endblock %}
+
+{% block titulo_formulario %}Configurações Visuais{% endblock %}
+
+{% block url_retornar %}{% url 'app_igreja:admin_area' %}{% endblock %}
+
+{% block url_editar_formulario %}{% url 'app_igreja:visual_generic' %}?edit=1{% endblock %}
+
+{% block url_cancelar_edicao %}{% url 'app_igreja:visual_generic' %}{% endblock %}
+
+{% block conteudo_edicao %}
+    {% if form %}
+        <!-- CONTAINER IMAGENS -->
+            <div class="card mb-3">
+                <div class="card-header bg-info-basicas">
+                    <h5 class="mb-0">Imagens do Site</h5>
+                </div>
+                <div class="card-body info-basicas-bg">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="imagem-container">
+                                <div class="mb-3">
+                                    <label class="form-label">Foto de Capa:</label>
+                                    {{ form.VIS_FOTO_CAPA }}
+                                    {% if form.VIS_FOTO_CAPA.errors %}
+                                        <div class="text-danger">{{ form.VIS_FOTO_CAPA.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.VIS_FOTO_CAPA.help_text }}</small>
+                                    <div class="preview-container" id="preview-capa">
+                                        {% if visual.VIS_FOTO_CAPA %}
+                                            <img src="{{ visual.VIS_FOTO_CAPA.url }}" alt="Foto de Capa" class="imagem-preview">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="imagem-container">
+                                <div class="mb-3">
+                                    <label class="form-label">Foto do Brasão:</label>
+                                    {{ form.VIS_FOTO_BRASAO }}
+                                    {% if form.VIS_FOTO_BRASAO.errors %}
+                                        <div class="text-danger">{{ form.VIS_FOTO_BRASAO.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.VIS_FOTO_BRASAO.help_text }}</small>
+                                    <div class="preview-container" id="preview-brasao">
+                                        {% if visual.VIS_FOTO_BRASAO %}
+                                            <img src="{{ visual.VIS_FOTO_BRASAO.url }}" alt="Foto do Brasão" class="imagem-preview">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="imagem-container">
+                                <div class="mb-3">
+                                    <label class="form-label">Foto do Padroeiro:</label>
+                                    {{ form.VIS_FOTO_PADROEIRO }}
+                                    {% if form.VIS_FOTO_PADROEIRO.errors %}
+                                        <div class="text-danger">{{ form.VIS_FOTO_PADROEIRO.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.VIS_FOTO_PADROEIRO.help_text }}</small>
+                                    <div class="preview-container" id="preview-padroeiro">
+                                        {% if visual.VIS_FOTO_PADROEIRO %}
+                                            <img src="{{ visual.VIS_FOTO_PADROEIRO.url }}" alt="Foto do Padroeiro" class="imagem-preview">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="imagem-container">
+                                <div class="mb-3">
+                                    <label class="form-label">Foto Principal:</label>
+                                    {{ form.VIS_FOTO_PRINCIPAL }}
+                                    {% if form.VIS_FOTO_PRINCIPAL.errors %}
+                                        <div class="text-danger">{{ form.VIS_FOTO_PRINCIPAL.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.VIS_FOTO_PRINCIPAL.help_text }}</small>
+                                    <div class="preview-container" id="preview-principal">
+                                        {% if visual.VIS_FOTO_PRINCIPAL %}
+                                            <img src="{{ visual.VIS_FOTO_PRINCIPAL.url }}" alt="Foto Principal" class="imagem-preview">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+        <!-- Modal de Loading para Upload S3 -->
+        <div class="modal fade" id="modal-upload-s3" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center py-4">
+                        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <h5>Salvando Imagens...</h5>
+                        <p class="text-muted mb-0">Aguarde enquanto estamos salvando suas imagens no AWS S3. Isso pode levar alguns instantes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block conteudo_visualizacao %}
+    <!-- CONTAINER IMAGENS -->
+    <div class="card mb-3">
+        <div class="card-header bg-info-basicas">
+            <h5 class="mb-0">Imagens do Site</h5>
+        </div>
+        <div class="card-body info-basicas-bg">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="imagem-container">
+                        <p><strong>Foto de Capa:</strong></p>
+                        {% if visual.VIS_FOTO_CAPA %}
+                            <img src="{{ visual.VIS_FOTO_CAPA.url }}" alt="Foto de Capa" class="imagem-preview">
+                        {% else %}
+                            <span class="text-muted">Não informado</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="imagem-container">
+                        <p><strong>Foto do Brasão:</strong></p>
+                        {% if visual.VIS_FOTO_BRASAO %}
+                            <img src="{{ visual.VIS_FOTO_BRASAO.url }}" alt="Foto do Brasão" class="imagem-preview">
+                        {% else %}
+                            <span class="text-muted">Não informado</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="imagem-container">
+                        <p><strong>Foto do Padroeiro:</strong></p>
+                        {% if visual.VIS_FOTO_PADROEIRO %}
+                            <img src="{{ visual.VIS_FOTO_PADROEIRO.url }}" alt="Foto do Padroeiro" class="imagem-preview">
+                        {% else %}
+                            <span class="text-muted">Não informado</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="imagem-container">
+                        <p><strong>Foto Principal:</strong></p>
+                        {% if visual.VIS_FOTO_PRINCIPAL %}
+                            <img src="{{ visual.VIS_FOTO_PRINCIPAL.url }}" alt="Foto Principal" class="imagem-preview">
+                        {% else %}
+                            <span class="text-muted">Não informado</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewImage(input, previewId) {
+    const previewContainer = document.getElementById(previewId);
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            // Limpar conteúdo anterior
+            previewContainer.innerHTML = '';
+            
+            // Criar elemento de imagem
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.alt = 'Preview';
+            img.className = 'imagem-preview';
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '300px';
+            img.style.border = '2px solid #dee2e6';
+            img.style.borderRadius = '8px';
+            img.style.padding = '5px';
+            img.style.display = 'block';
+            img.style.marginLeft = 'auto';
+            img.style.marginRight = 'auto';
+            
+            previewContainer.appendChild(img);
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        // Se não houver arquivo selecionado, manter a imagem existente se houver
+        // ou limpar o preview
+        if (!previewContainer.querySelector('img[src*="s3"]')) {
+            previewContainer.innerHTML = '';
+        }
+    }
+}
+
+// Interceptar submit do formulário para mostrar loading
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form[method="post"][enctype="multipart/form-data"]');
+    const modalUpload = document.getElementById('modal-upload-s3');
+    
+    if (form && modalUpload) {
+        const modalUploadInstance = new bootstrap.Modal(modalUpload);
+        
+        form.addEventListener('submit', function(e) {
+            // Verificar se há arquivos selecionados
+            const fileInputs = form.querySelectorAll('input[type="file"]');
+            let hasFiles = false;
+            
+            fileInputs.forEach(input => {
+                if (input.files && input.files.length > 0) {
+                    hasFiles = true;
+                }
+            });
+            
+            // Se houver arquivos selecionados, mostrar loading
+            if (hasFiles) {
+                // Mostrar modal de loading
+                modalUploadInstance.show();
+                
+                // O formulário continuará com o submit normal
+                // O modal será fechado automaticamente quando a página recarregar após o sucesso
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
+{% endblock %}
+
+{% block title %}
+    {% if modo_edicao %}
+        Editar Diocese
+    {% else %}
+        Dados da Diocese
+    {% endif %}
+{% endblock %}
+
+{% block icone_formulario %}fas fa-crown{% endblock %}
+
+{% block titulo_formulario %}Informações da Diocese{% endblock %}
+
+{% block url_retornar %}{% url 'app_igreja:admin_area' %}{% endblock %}
+
+{% block url_editar_formulario %}{% url 'app_igreja:diocese_detail' %}?edit=1{% endblock %}
+
+{% block url_cancelar_edicao %}{% url 'app_igreja:diocese_detail' %}{% endblock %}
+
+{% block url_cancelar_horarios %}{% url 'app_igreja:diocese_detail' %}{% endblock %}
+
+{% block conteudo_edicao %}
+                    <!-- CONTAINER INFORMAÇÕES BÁSICAS -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-info-basicas">
+                            <h5 class="mb-0">Informações Básicas</h5>
+                        </div>
+                        <div class="card-body info-basicas-bg">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Nome da Diocese:</label>
+                                        {{ form.DIO_nome_diocese }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Nome do Bispo:</label>
+                                        {{ form.DIO_nome_bispo }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Foto do Bispo:</label>
+                                        {{ form.DIO_foto_bispo }}
+                                        <small class="form-text text-muted">{{ form.DIO_foto_bispo.help_text }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">CEP:</label>
+                                        {{ form.DIO_cep }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label class="form-label">Endereço:</label>
+                                        {{ form.DIO_endereco }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Número:</label>
+                                        {{ form.DIO_numero }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Complemento:</label>
+                                        {{ form.DIO_complemento }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Bairro:</label>
+                                        {{ form.DIO_bairro }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Cidade:</label>
+                                        {{ form.DIO_cidade }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">UF:</label>
+                                        {{ form.DIO_uf }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Telefone:</label>
+                                        {{ form.DIO_telefone }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">E-mail:</label>
+                                        {{ form.DIO_email }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">Site:</label>
+                                        {{ form.DIO_site }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+{% endblock %}
+
+{% block conteudo_visualizacao %}
+                    <!-- CONTAINER INFORMAÇÕES BÁSICAS -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-info-basicas">
+                            <h5 class="mb-0">Informações Básicas</h5>
+                        </div>
+                        <div class="card-body info-basicas-bg">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Nome da Diocese:</strong> {{ diocese.DIO_nome_diocese|default:"Não informado" }}</p>
+                                    <p><strong>Nome do Bispo:</strong> {{ diocese.DIO_nome_bispo|default:"Não informado" }}</p>
+                                    <p><strong>Foto do Bispo:</strong> 
+                                        {% if diocese.DIO_foto_bispo %}
+                                            <img src="{{ diocese.DIO_foto_bispo.url }}" alt="Foto do Bispo" class="img-thumbnail" style="max-width: 60px; max-height: 60px;">
+                                        {% else %}
+                                            <span class="text-muted">Não informado</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-12">
+                                    <p><strong>CEP:</strong> {{ diocese.DIO_cep|default:"Não informado" }}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <p><strong>Endereço:</strong> {{ diocese.DIO_endereco|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Número:</strong> {{ diocese.DIO_numero|default:"Não informado" }}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p><strong>Complemento:</strong> {{ diocese.DIO_complemento|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Bairro:</strong> {{ diocese.DIO_bairro|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Cidade:</strong> {{ diocese.DIO_cidade|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>UF:</strong> {{ diocese.DIO_uf|default:"Não informado" }}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p><strong>Telefone:</strong> {{ diocese.DIO_telefone|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>E-mail:</strong> {{ diocese.DIO_email|default:"Não informado" }}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <p><strong>Site:</strong> 
+                                        {% if diocese.DIO_site %}
+                                            <a href="{{ diocese.DIO_site }}" target="_blank" class="text-decoration-none">
+                                                {{ diocese.DIO_site }}
+                                                <i class="fas fa-external-link-alt ms-1"></i>
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">Não informado</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar máscaras usando a função centralizada
+    inicializarMascaras({
+        campos: {
+            telefone: 'DIO_telefone',
+            cep: 'DIO_cep'
+        },
+        cepCampos: {
+            endereco: 'DIO_endereco',
+            bairro: 'DIO_bairro',
+            cidade: 'DIO_cidade',
+            uf: 'DIO_uf'
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Aniversariantes do Mês{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* === ESTILOS GERAIS === */
+    .hero-section {
+        padding: 0;  /* Remove padding padrão da seção hero */
+    }
+    
+    /* === HERO CONTENT (Cabeçalho) === */
+    .hero-content {
+        border: 1px solid #ef55b2;  
+        border-radius: 15px;
+        padding: 16px 32px;           /* Espaçamento interno: 16px vertical, 32px horizontal */
+        background: #ecee81;          /* Cor de fundo amarelo claro */
+        display: block;
+        text-align: center;
+        margin: 10px auto 0 auto;     /* Margem superior 10px, centralizado horizontalmente */
+        max-width: 920px;             /* Largura máxima 920px */
+    }
+    
+    /* === CONTAINER DE BUSCA === 
+       Container onde o usuário busca aniversariantes por data e tipo
+       Cor: azul claro (rgb 105, 233, 242) */
+    .container-busca {
+        border: 1px solid #ef55b2;  
+        background: rgb(105, 233, 242);    /* Cor de fundo azul claro */
+        padding: 40px;                      /* Espaçamento interno 40px todos os lados */
+        border-radius: 15px;                /* Bordas arredondadas 15px */
+        box-shadow: 0 4px 6px rgba(20, 214, 235, 0.1);  /* Sombra do container */
+        margin: 10px;                       /* Margem 10px */
+    }
+    
+    /* === CONTAINER DE LISTA ===*/   
+    .container-lista {
+        border: 1px solid #ef55b2;  
+        background: rgb(168, 239, 139);    /* Cor de fundo verde claro */
+        padding: 20px;                      /* Espaçamento interno 20px */
+        border-radius: 15px;                /* Bordas arredondadas 15px */
+        box-shadow: 0 4px 6px #ef55b2;      /* Sombra com cor rosa */
+        margin-top: 20px;                   /* Margem superior 20px */
+    }
+    
+    /* === TABELA DE ANIVERSARIANTES === */
+    .aniversario-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .aniversario-table thead {
+        background: #09788e;
+        color: white;
+    }
+    
+    .aniversario-table th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        border: 1px solid #fff;
+    }
+    
+    .aniversario-table tbody tr {
+        border-bottom: 1px solid #c8c8dc;
+    }
+    
+    .aniversario-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .aniversario-table td {
+        padding: 12px;
+        border: 1px solid #c8c8dc;
+        word-wrap: break-word;
+        word-break: break-word;
+    }
+    
+    .aniversario-nome-cell {
+        font-weight: 600;
+        color: #212529;
+    }
+    
+    .aniversario-data-cell {
+        color: #6c757d;
+        white-space: nowrap;
+    }
+    
+    .aniversario-tipo-cell {
+        color: #495057;
+    }
+    
+    /* === BADGE DE TIPO === */
+    .badge-tipo {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.85em;
+        font-weight: 500;
+    }
+    
+    .badge-dizimista {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .badge-colaborador {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    /* === BOTÃO DE BUSCA === */
+    .btn-buscar {
+        background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .btn-buscar:hover {
+        background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
+    }
+    
+    /* === BOTÃO FLUTUANTE === */
+    .fly-float-btn {
+        position: fixed;
+        bottom: 30px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #16ab2a 0%, #ace9b8 100%);
+        border-radius: 50%;
+        color: white;
+        font-size: 24px;
+        box-shadow: 0 4px 15px rgba(10, 202, 138, 0.4);
+        z-index: 1000;
+        transition: all 0.3s;
+    }
+    
+    /* Botão do lado esquerdo */
+    .fly-float-btn-left {
+        left: 30px;
+    }
+    
+    .fly-float-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(10, 202, 138, 0.6);
+    }
+    
+    /* === RESPONSIVO === */
+    @media (max-width: 768px) {
+        .hero-content {
+            margin: 10px;
+            padding: 12px 16px;
+        }
+        
+        .container-busca {
+            padding: 20px;
+        }
+        
+        .container-lista {
+            padding: 15px;
+        }
+        
+        .fly-float-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            bottom: 20px;
+        }
+        
+        .fly-float-btn-left {
+            left: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="mb-3 text-center">
+                <i class="fas fa-birthday-cake me-3"></i>
+                Aniversariantes do Mês
+            </h1>
+            <p class="lead mb-0 text-center">
+                Celebre conosco os aniversários da nossa comunidade
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Container Principal -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <!-- Container de Busca por Data e Tipo -->
+            <div class="container-busca">
+                <h5 class="mb-4">
+                    <i class="fas fa-search me-2"></i>
+                    Filtrar Aniversariantes
+                </h5>
+                
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="data" class="form-label fw-bold">Filtrar até:</label>
+                        <input type="month" 
+                               name="data" 
+                               id="data"
+                               class="form-control" 
+                               value="{{ data_filtro }}">
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="tipo" class="form-label fw-bold">Tipo:</label>
+                        <select name="tipo" 
+                                id="tipo"
+                                class="form-select">
+                            <option value="TODOS" {% if tipo_filtro == 'TODOS' %}selected{% endif %}>Todos</option>
+                            <option value="DIZIMISTA" {% if tipo_filtro == 'DIZIMISTA' %}selected{% endif %}>Dizimista</option>
+                            <option value="COLABORADOR" {% if tipo_filtro == 'COLABORADOR' %}selected{% endif %}>Colaborador</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-buscar w-100">
+                            <i class="fas fa-search me-2"></i>
+                            Buscar
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Container de Lista de Aniversariantes -->
+            <div class="container-lista">
+                <h5 class="mb-4">
+                    <i class="fas fa-list me-2"></i>
+                    {% if total_encontrado > 0 %}
+                        {{ total_encontrado }} Aniversariante{{ total_encontrado|pluralize }} Encontrado{{ total_encontrado|pluralize }}
+                    {% else %}
+                        Nenhum Aniversariante Encontrado
+                    {% endif %}
+                </h5>
+                
+                {% if aniversariantes %}
+                    <table class="aniversario-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50%;">Nome</th>
+                                <th style="width: 25%;">Data Aniversário</th>
+                                <th style="width: 25%;">Tipo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pessoa in aniversariantes %}
+                            <tr>
+                                <td class="aniversario-nome-cell">
+                                    <i class="fas fa-user me-2"></i>
+                                    {{ pessoa.nome }}
+                                </td>
+                                <td class="aniversario-data-cell">
+                                    <i class="fas fa-calendar me-2"></i>
+                                    {{ pessoa.data_aniversario|date:"d/m/Y" }}
+                                </td>
+                                <td class="aniversario-tipo-cell">
+                                    {% if pessoa.tipo == 'Dizimista' %}
+                                        <span class="badge-tipo badge-dizimista">
+                                            {{ pessoa.tipo }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge-tipo badge-colaborador">
+                                            {{ pessoa.tipo }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="text-center p-4">
+                        <i class="fas fa-birthday-cake fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Nenhum aniversariante encontrado para os filtros selecionados.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- Botão Flutuante HOME -->
+<a href="{% url 'home' %}" class="fly-float-btn fly-float-btn-left d-flex align-items-center justify-content-center text-decoration-none" title="Voltar para Home">
+    <i class="fas fa-home"></i>
+</a>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Definir mês atual como padrão se não houver filtro
+    const dataInput = document.getElementById('data');
+    if (dataInput && !dataInput.value) {
+        const hoje = new Date();
+        const mesAno = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
+        dataInput.value = mesAno;
+    }
+});
+</script>
+{% endblock %}
+

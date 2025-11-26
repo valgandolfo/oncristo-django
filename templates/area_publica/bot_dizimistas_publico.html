@@ -1,5 +1,6 @@
 {% extends 'area_publica/base_form_publico.html' %}
 {% load static %}
+{% load widget_tweaks %}
 
 {% block title %}{{ paroquia.PAR_nome_paroquia|default:"Paróquia" }} - Quero ser Dizimista{% endblock %}
 
@@ -29,7 +30,28 @@
         <div class="col-md-6">
             <div class="mb-3">
                 <label class="form-label fw-bold">Telefone *</label>
-                {{ form.DIS_telefone }}
+                {% if telefone_readonly %}
+                    {% if form.DIS_telefone.value %}
+                        <input type="text" 
+                               name="DIS_telefone" 
+                               value="{{ form.DIS_telefone.value }}" 
+                               class="form-control form-control" 
+                               id="id_DIS_telefone" 
+                               readonly 
+                               style="background-color: #e9ecef;">
+                    {% else %}
+                        <input type="text" 
+                               name="DIS_telefone" 
+                               value="{{ telefone_url }}" 
+                               class="form-control form-control" 
+                               id="id_DIS_telefone" 
+                               readonly 
+                               style="background-color: #e9ecef;">
+                    {% endif %}
+                    <small class="text-muted">Telefone identificado automaticamente via WhatsApp</small>
+                {% else %}
+                    {{ form.DIS_telefone }}
+                {% endif %}
                 {% if form.DIS_telefone.errors %}
                     <div class="text-danger small">
                         {% for error in form.DIS_telefone.errors %}
@@ -97,6 +119,19 @@
                         {% endfor %}
                     </div>
                 {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold">Dia do Pagamento</label>
+                {{ form.DIS_dia_pagamento }}
+                {% if form.DIS_dia_pagamento.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.DIS_dia_pagamento.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <small class="form-text text-muted">Dia do mês em que prefere fazer o pagamento (1-31)</small>
             </div>
         </div>
         
@@ -267,10 +302,10 @@ window.buscarCep = function(conteudo) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Página carregada - iniciando configuração');
     
-    // Configurar tabindex na ordem correta: Telefone, Nome, E-mail, Data Nascimento, Sexo, CPF, CEP, Endereço, Número, Complemento, Bairro, Cidade, Estado, Valor, Foto
+    // Configurar tabindex na ordem correta: Telefone, Nome, E-mail, Data Nascimento, Sexo, CPF, Dia Pagamento, CEP, Endereço, Número, Complemento, Bairro, Cidade, Estado, Valor, Foto
     var campos = [
         'DIS_telefone', 'DIS_nome', 'DIS_email', 'DIS_data_nascimento', 
-        'DIS_sexo', 'DIS_cpf', 'DIS_cep', 'DIS_endereco', 
+        'DIS_sexo', 'DIS_cpf', 'DIS_dia_pagamento', 'DIS_cep', 'DIS_endereco', 
         'DIS_numero', 'DIS_complemento', 'DIS_bairro', 'DIS_cidade', 
         'DIS_estado', 'DIS_valor', 'DIS_foto'
     ];

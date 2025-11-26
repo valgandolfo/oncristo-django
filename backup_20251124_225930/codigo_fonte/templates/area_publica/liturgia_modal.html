@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liturgias - Paróquia</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .sair-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .sair-btn:hover {
+            background: #e74c3c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .date-selector {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .date-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .date-input {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .liturgia-content {
+            padding: 30px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .liturgia-item {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+        }
+
+        .liturgia-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .liturgia-text {
+            line-height: 1.8;
+            color: #34495e;
+            text-align: justify;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+        }
+
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        /* Estilo para scrollbar personalizada */
+        .liturgia-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .liturgia-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .liturgia-content::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        .liturgia-content::-webkit-scrollbar-thumb:hover {
+            background: #5a6fd8;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .sair-btn {
+                position: static;
+                margin: 10px auto;
+                display: block;
+                width: fit-content;
+            }
+
+            .date-form {
+                flex-direction: column;
+            }
+
+            .date-input {
+                min-width: 100%;
+            }
+
+            .liturgia-content {
+                padding: 20px;
+                max-height: 50vh;
+            }
+        }
+
+        /* Animação de entrada */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            animation: fadeInUp 0.6s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="sair-btn" onclick="fecharJanela()">❌ Sair</button>
+            <h1>📖 Liturgias</h1>
+            <p>Palavra de Deus para cada dia</p>
+        </div>
+
+        <div class="date-selector">
+            <form class="date-form" id="dateForm">
+                <input type="date" class="date-input" id="dataLiturgia" name="data" value="{{ data_hoje }}" autocomplete="off" required>
+                <button type="submit" class="btn">Buscar Liturgia</button>
+            </form>
+        </div>
+
+        <div class="liturgia-content" id="liturgiaContent">
+            {% if liturgia_hoje %}
+                {% for tipo, texto in liturgia_hoje.leituras.items %}
+                    <div class="liturgia-item">
+                        <div class="liturgia-title">
+                            {% if tipo == 'Primeira Leitura' %}
+                                📖 Primeira Leitura
+                            {% elif tipo == 'Segunda Leitura' %}
+                                📖 Segunda Leitura
+                            {% elif tipo == 'Salmo' %}
+                                🎵 Salmo Responsorial
+                            {% elif tipo == 'Evangelho' %}
+                                ✝️ Evangelho
+                            {% else %}
+                                📖 {{ tipo }}
+                            {% endif %}
+                        </div>
+                        <div class="liturgia-text">{{ texto|safe }}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-data">
+                    <h3>📅 {{ data_hoje }}</h3>
+                    <p>Nenhuma liturgia encontrada para esta data.</p>
+                    <p>Tente selecionar outra data ou verifique se há liturgia disponível.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Função para fechar a janela
+        function fecharJanela() {
+            // Tenta fechar como popup primeiro
+            if (window.opener) {
+                window.close();
+            } else {
+                // Se não for popup, redireciona para o site principal
+                window.location.href = '/';
+            }
+        }
+
+        // Adiciona listener para tecla ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                fecharJanela();
+            }
+        });
+
+        // Previne que o usuário saia acidentalmente
+        window.addEventListener('beforeunload', function(e) {
+            // Remove o aviso padrão para não incomodar o usuário
+            // e.preventDefault();
+            // e.returnValue = '';
+        });
+
+        document.getElementById('dateForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const data = document.getElementById('dataLiturgia').value;
+            const content = document.getElementById('liturgiaContent');
+
+            // Mostra loading
+            content.innerHTML = '<div class="loading">Carregando liturgia...</div>';
+
+            // Faz requisição AJAX
+            fetch(`/app_igreja/api/liturgia/${data}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        content.innerHTML = `<div class="error">${data.error}</div>`;
+                        return;
+                    }
+
+                    if (!data.leituras || Object.keys(data.leituras).length === 0) {
+                        content.innerHTML = `
+                            <div class="no-data">
+                                <h3>📅 ${data.data}</h3>
+                                <p>Nenhuma liturgia encontrada para esta data.</p>
+                                <p>Tente selecionar outra data ou verifique se há liturgia disponível.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    // Renderiza as liturgias
+                    let html = '';
+                    for (const [tipo, texto] of Object.entries(data.leituras)) {
+                        let icon = '📖';
+                        let title = tipo;
+
+                        if (tipo === 'Primeira Leitura') {
+                            icon = '📖';
+                            title = 'Primeira Leitura';
+                        } else if (tipo === 'Segunda Leitura') {
+                            icon = '📖';
+                            title = 'Segunda Leitura';
+                        } else if (tipo === 'Salmo') {
+                            icon = '🎵';
+                            title = 'Salmo Responsorial';
+                        } else if (tipo === 'Evangelho') {
+                            icon = '✝️';
+                            title = 'Evangelho';
+                        }
+
+                        html += `
+                            <div class="liturgia-item">
+                                <div class="liturgia-title">
+                                    ${icon} ${title}
+                                </div>
+                                <div class="liturgia-text">${texto}</div>
+                            </div>
+                        `;
+                    }
+
+                    content.innerHTML = html;
+                })
+                .catch(error => {
+                    content.innerHTML = `<div class="error">Erro ao carregar liturgia: ${error.message}</div>`;
+                });
+        });
+
+        // Auto-focus no campo de data
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('dataLiturgia').focus();
+        });
+    </script>
+</body>
+</html>

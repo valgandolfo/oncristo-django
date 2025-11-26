@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
+<style>
+/* CSS específico do módulo Liturgias */
+.panel-container_estatistica {
+    display: none !important; /* COR: Oculta o painel de estatísticas */
+}
+</style>
+{% endblock %}
+
+{% block title %}
+    {% if modo_criacao %}
+        Criar Liturgia
+    {% elif modo_edicao_crud %}
+        Editar Liturgia
+    {% elif modo_visualizacao_crud %}
+        Visualizar Liturgia
+    {% else %}
+        Cadastro de Liturgias
+    {% endif %}
+{% endblock %}
+
+<!-- === BLOCO DASHBOARD === -->
+{% block icone_dashboard %}fas fa-book{% endblock %}
+{% block nome_modulo_dashboard %}Liturgias{% endblock %}
+{% block url_retornar_dashboard %}{% url 'app_igreja:admin_area' %}{% endblock %}
+{% block url_criar_novo_dashboard %}{% url 'app_igreja:criar_liturgia' %}{% endblock %}
+{% block nome_modulo_lista_dashboard %}Liturgias{% endblock %}
+
+<!-- === BLOCO ESTATÍSTICAS DASHBOARD === -->
+{% block estatisticas_dashboard %}
+<!-- PAINEL DE ESTATÍSTICAS OCULTO PARA LITURGIAS -->
+{% endblock %}
+
+<!-- === BLOCO BUSCA DASHBOARD === -->
+{% block busca_dashboard %}
+<form method="get" class="busca-campos">
+    <div class="campo-busca">
+        <label for="busca_data">Data</label>
+        <input type="date" id="busca_data" name="busca_data" 
+               value="{{ request.GET.busca_data }}" 
+               placeholder="Digite a data...">
+    </div>
+    <div class="campo-busca">
+        <label for="busca_tipo">Tipo</label>
+        <input type="text" id="busca_tipo" name="busca_tipo" 
+               value="{{ request.GET.busca_tipo }}" 
+               placeholder="Digite o tipo...">
+    </div>
+    <button type="submit" class="cont_busca_btnbusca">
+        <i class="fas fa-search"></i>
+    </button>
+</form>
+{% endblock %}
+
+<!-- === BLOCO COLUNAS CABEÇALHO DASHBOARD === -->
+{% block colunas_cabecalho_dashboard %}
+<th width="10%">ID</th>
+<th width="15%">Data</th>
+<th width="20%">Tipo</th>
+<th width="35%">Texto</th>
+<th width="10%">Status</th>
+<th width="10%">Ações</th>
+{% endblock %}
+
+<!-- === BLOCO LINHAS TABELA DASHBOARD === -->
+{% block linhas_tabela_dashboard %}
+{% for liturgia in page_obj %}
+<tr>
+    {% block linha_completa_dashboard %}
+    <td>
+        <i class="fas fa-ellipsis-v" 
+           onclick="selecionarRegistroDashboard({{ liturgia.LIT_id }})"
+           style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;"
+           onmouseover="this.style.backgroundColor='#e9ecef'" 
+           onmouseout="this.style.backgroundColor='transparent'"></i>
+    </td>
+    <td>{{ liturgia.LIT_id }}</td>
+    <td>{{ liturgia.LIT_DATALIT|date:"d/m/Y" }}</td>
+    <td>{{ liturgia.LIT_TIPOLIT }}</td>
+    <td>{{ liturgia.LIT_TEXTO|truncatewords:15 }}</td>
+    <td>
+        {% if liturgia.LIT_STATUSLIT %}
+            <span class="badge bg-success">Ativo</span>
+        {% else %}
+            <span class="badge bg-secondary">Inativo</span>
+        {% endif %}
+    </td>
+    <td>
+        <div class="botoes-acao" id="acoes_{{ liturgia.LIT_id }}" style="display: none;">
+            <div class="d-flex gap-2 justify-content-start align-items-center">
+                <a href="{% url 'app_igreja:detalhar_liturgia' liturgia.LIT_id %}" class="btn btn-info btn-sm d-flex align-items-center">
+                    <i class="fas fa-eye me-1"></i>Consultar
+                </a>
+                <a href="{% url 'app_igreja:editar_liturgia' liturgia.LIT_id %}" class="btn btn-warning btn-sm d-flex align-items-center">
+                    <i class="fas fa-edit me-1"></i>Editar
+                </a>
+                <a href="{% url 'app_igreja:excluir_liturgia' liturgia.LIT_id %}" class="btn btn-danger btn-sm d-flex align-items-center">
+                    <i class="fas fa-trash me-1"></i>Excluir
+                </a>
+            </div>
+        </div>
+    </td>
+    {% endblock %}
+</tr>
+{% empty %}
+<tr>
+    <td colspan="7" class="text-center text-muted">
+        <i class="fas fa-book fa-2x mb-2"></i>
+        <br>
+        Nenhuma liturgia encontrada.
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
+
+<!-- === BLOCO MENSAGEM VAZIO DASHBOARD === -->
+{% block mensagem_vazio_dashboard %}Não há liturgias cadastradas ou que correspondam aos filtros aplicados.{% endblock %}
+
+{% block crud_pai %}
+{{ block.super }}
+{% endblock %}
+
+{% block conteudo_detalhe %}
+<!-- CONTEÚDO PARA AÇÕES DE DETALHE (consultar, editar, excluir, incluir) -->
+
+<!-- FORMULÁRIO ÚNICO PARA INCLUSÃO E EDIÇÃO -->
+{% if acao == 'editar' or acao == 'incluir' %}
+<form id="detail-form" method="post" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_liturgia' liturgia.LIT_id %}{% else %}{% url 'app_igreja:criar_liturgia' %}{% endif %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    
+    <!-- Mensagens de erro gerais -->
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            <h6>Erro ao {% if acao == 'editar' %}editar{% else %}cadastrar{% endif %} liturgia:</h6>
+            {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <!-- Data da Liturgia -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="mb-3">
+                <label class="form-label">Data da Liturgia</label>
+                {{ form.LIT_DATALIT }}
+                {% if form.LIT_DATALIT.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.LIT_DATALIT.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tipo de Liturgia -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="mb-3">
+                <label class="form-label">Tipo de Liturgia</label>
+                {{ form.LIT_TIPOLIT }}
+                {% if form.LIT_TIPOLIT.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.LIT_TIPOLIT.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Texto da Liturgia -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="mb-3">
+                <label class="form-label">Texto da Liturgia</label>
+                {{ form.LIT_TEXTO }}
+                {% if form.LIT_TEXTO.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.LIT_TEXTO.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status da Liturgia -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="mb-3">
+                <div class="form-check">
+                    {{ form.LIT_STATUSLIT }}
+                    <label class="form-check-label" for="{{ form.LIT_STATUSLIT.id_for_label }}">
+                        Status Ativo
+                    </label>
+                </div>
+                {% if form.LIT_STATUSLIT.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.LIT_STATUSLIT.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</form>
+{% elif acao == 'excluir' %}
+<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_liturgia' liturgia.LIT_id %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <div class="row">
+        <div class="col-md-6">
+            <p><strong>ID:</strong> {{ liturgia.LIT_id }}</p>
+            <p><strong>Data:</strong> {{ liturgia.LIT_DATALIT|date:"d/m/Y"|default:"Não informado" }}</p>
+            <p><strong>Tipo:</strong> {{ liturgia.LIT_TIPOLIT|default:"Não informado" }}</p>
+        </div>
+        <div class="col-md-6">
+            <p><strong>Status:</strong> 
+                {% if liturgia.LIT_STATUSLIT %}
+                    <span class="badge bg-success">Ativo</span>
+                {% else %}
+                    <span class="badge bg-secondary">Inativo</span>
+                {% endif %}
+            </p>
+            <p><strong>Data Cadastro:</strong> {{ liturgia.LIT_DATA_CADASTRO|date:"d/m/Y H:i"|default:"Não informado" }}</p>
+            <p><strong>Data Atualização:</strong> {{ liturgia.LIT_DATA_ATUALIZACAO|date:"d/m/Y H:i"|default:"Não informado" }}</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <p><strong>Texto:</strong></p>
+            <div class="border p-3 bg-light">
+                {{ liturgia.LIT_TEXTO|default:"Não informado"|linebreaks }}
+            </div>
+        </div>
+    </div>
+</form>
+{% else %} {# acao == 'consultar' #}
+<div class="row">
+    <div class="col-md-6">
+        <p><strong>ID:</strong> {{ liturgia.LIT_id }}</p>
+        <p><strong>Data:</strong> {{ liturgia.LIT_DATALIT|date:"d/m/Y"|default:"Não informado" }}</p>
+        <p><strong>Tipo:</strong> {{ liturgia.LIT_TIPOLIT|default:"Não informado" }}</p>
+    </div>
+    <div class="col-md-6">
+        <p><strong>Status:</strong> 
+            {% if liturgia.LIT_STATUSLIT %}
+                <span class="badge bg-success">Ativo</span>
+            {% else %}
+                <span class="badge bg-secondary">Inativo</span>
+            {% endif %}
+        </p>
+        <p><strong>Data Cadastro:</strong> {{ liturgia.LIT_DATA_CADASTRO|date:"d/m/Y H:i"|default:"Não informado" }}</p>
+        <p><strong>Data Atualização:</strong> {{ liturgia.LIT_DATA_ATUALIZACAO|date:"d/m/Y H:i"|default:"Não informado" }}</p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <p><strong>Texto:</strong></p>
+        <div class="border p-3 bg-light">
+            {{ liturgia.LIT_TEXTO|default:"Não informado"|linebreaks }}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

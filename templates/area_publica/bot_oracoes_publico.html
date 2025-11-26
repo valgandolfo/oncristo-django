@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load widget_tweaks %}
 
 {% block title %}
     {% if acao == 'criar' %}
@@ -92,16 +93,25 @@
         background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%);
         border: none;
         color: white;
-        padding: 12px 30px;
+        padding: 6px 12px;
         border-radius: 8px;
         font-weight: 500;
+        font-size: 0.875rem;
         transition: all 0.3s;
+        white-space: nowrap;
     }
     
     .btn-buscar:hover {
         background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
+    }
+    
+    @media (max-width: 576px) {
+        .btn-buscar {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+        }
     }
     
     .status-badge {
@@ -353,8 +363,8 @@
                 
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Telefone *</label>
-                        {{ form.ORA_telefone_pedinte }}
+                        <label class="form-label fw-bold" for="id_ORA_telefone_pedinte">Telefone *</label>
+                        {% render_field form.ORA_telefone_pedinte class="form-control telefone-mask" placeholder="(00) 00000-0000" maxlength="15" data-mask="telefone" %}
                         {% if form.ORA_telefone_pedinte.errors %}
                             <div class="text-danger small">
                                 {% for error in form.ORA_telefone_pedinte.errors %}
@@ -481,9 +491,9 @@
                         value="{{ telefone }}"
                         required
                     >
-                    <button type="submit" class="btn btn-buscar">
-                        <i class="fas fa-search me-2"></i>
-                        BUSCAR
+                    <button type="submit" class="btn btn-buscar" style="padding: 6px 12px; font-size: 0.875rem;">
+                        <i class="fas fa-search"></i>
+                        <span class="d-none d-sm-inline ms-1">BUSCAR</span>
                     </button>
                 </div>
                 <div class="form-text mt-2">
@@ -612,7 +622,83 @@
 
 {% block extra_js %}
 <script>
+// Função global para formatar telefone
+function formatarTelefone(input) {
+    if (!input) {
+        console.warn('formatarTelefone: input não fornecido');
+        return;
+    }
+    
+    try {
+        // Salvar posição do cursor
+        var cursorPos = input.selectionStart || 0;
+        var originalLength = input.value.length;
+        
+        // Remover todos os caracteres não numéricos
+        var value = input.value.replace(/\D/g, '');
+        var formattedValue = '';
+        
+        // Limitar a 11 dígitos (DDD + 9 dígitos para celular)
+        if (value.length > 11) {
+            value = value.substring(0, 11);
+        }
+        
+        if (value.length > 0) {
+            if (value.length <= 2) {
+                // Apenas DDD: (XX
+                formattedValue = '(' + value;
+            } else if (value.length <= 6) {
+                // DDD + início do número: (XX) XXXX
+                formattedValue = '(' + value.substring(0, 2) + ') ' + value.substring(2);
+            } else if (value.length <= 10) {
+                // Telefone fixo: (XX) XXXX-XXXX
+                formattedValue = '(' + value.substring(0, 2) + ') ' + value.substring(2, 6) + '-' + value.substring(6);
+            } else {
+                // Celular: (XX) XXXXX-XXXX
+                formattedValue = '(' + value.substring(0, 2) + ') ' + value.substring(2, 7) + '-' + value.substring(7, 11);
+            }
+        }
+        
+        // Atualizar valor do campo
+        input.value = formattedValue;
+        
+        // Ajustar posição do cursor
+        var newCursorPos = cursorPos;
+        
+        // Se estamos digitando no final, manter no final
+        if (cursorPos >= originalLength - 1) {
+            newCursorPos = formattedValue.length;
+        } else {
+            // Calcular nova posição baseado na diferença de tamanho
+            var lengthDiff = formattedValue.length - originalLength;
+            newCursorPos = Math.min(cursorPos + lengthDiff, formattedValue.length);
+        }
+        
+        // Garantir que o cursor não ultrapasse o tamanho do campo
+        if (newCursorPos > formattedValue.length) {
+            newCursorPos = formattedValue.length;
+        }
+        if (newCursorPos < 0) {
+            newCursorPos = 0;
+        }
+        
+        // Restaurar posição do cursor
+        setTimeout(function() {
+            try {
+                input.setSelectionRange(newCursorPos, newCursorPos);
+            } catch(e) {
+                // Ignorar erro se não conseguir definir cursor
+            }
+        }, 0);
+        
+    } catch (error) {
+        console.error('❌ Erro ao formatar telefone:', error);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Script de máscara de telefone carregado');
+    
     // Máscara de telefone (apenas para busca)
     var telefoneInput = document.getElementById('telefone');
     
@@ -630,22 +716,104 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Máscara de telefone para criação
-    var telefoneFormInput = document.getElementById('id_ORA_telefone_pedinte');
-    
-    if (telefoneFormInput) {
-        telefoneFormInput.addEventListener('input', function(e) {
-            var value = e.target.value.replace(/\D/g, '');
-            if (value.length <= 11) {
-                if (value.length <= 10) {
-                    value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-                } else {
-                    value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-                }
+    // Função para aplicar máscara em um campo de telefone
+    function aplicarMascaraEmCampo(input) {
+        if (!input || input.dataset.maskApplied === 'true') {
+            return;
+        }
+        
+        console.log('✅ Aplicando máscara no campo:', input.id || input.name);
+        
+        // Marcar como processado
+        input.dataset.maskApplied = 'true';
+        
+        // Aplicar máscara ao carregar se já tiver valor
+        if (input.value) {
+            formatarTelefone(input);
+        }
+        
+        // Aplicar máscara ao digitar (evento principal)
+        input.addEventListener('input', function(e) {
+            formatarTelefone(e.target);
+        }, false);
+        
+        // Aplicar máscara ao colar
+        input.addEventListener('paste', function(e) {
+            setTimeout(function() {
+                formatarTelefone(e.target);
+            }, 10);
+        }, false);
+        
+        // Aplicar máscara ao pressionar teclas
+        input.addEventListener('keydown', function(e) {
+            // Permitir teclas de controle (backspace, delete, tab, etc)
+            if ([8, 9, 27, 13, 46, 35, 36, 37, 38, 39, 40].indexOf(e.keyCode) !== -1 ||
+                (e.keyCode === 65 && e.ctrlKey === true) ||
+                (e.keyCode >= 35 && e.keyCode <= 40)) {
+                return;
             }
-            e.target.value = value.substring(0, 15);
-        });
+            // Não permitir caracteres não numéricos
+            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                e.preventDefault();
+            }
+        }, false);
+        
+        // Limpar formatação antes de enviar o formulário
+        var form = input.closest('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                var telefoneValue = input.value.replace(/\D/g, '');
+                input.value = telefoneValue;
+                console.log('📤 Telefone enviado (sem formatação):', telefoneValue);
+            }, false);
+        }
     }
+    
+    // Função para aplicar máscara no campo de telefone do formulário
+    function aplicarMascaraTelefoneForm() {
+        // Buscar por múltiplos métodos
+        var inputs = [
+            document.getElementById('id_ORA_telefone_pedinte'),
+            document.getElementById('ORA_telefone_pedinte'),
+            document.querySelector('input[name="ORA_telefone_pedinte"]'),
+            document.querySelector('input.telefone-mask'),
+            document.querySelector('input[data-mask="telefone"]')
+        ].filter(function(el) { return el !== null; });
+        
+        if (inputs.length > 0) {
+            inputs.forEach(function(input) {
+                aplicarMascaraEmCampo(input);
+            });
+            return true;
+        }
+        return false;
+    }
+    
+    // Aplicar máscara imediatamente
+    aplicarMascaraTelefoneForm();
+    
+    // Tentar novamente após delays (caso o campo seja renderizado dinamicamente)
+    setTimeout(function() {
+        aplicarMascaraTelefoneForm();
+    }, 100);
+    
+    setTimeout(function() {
+        aplicarMascaraTelefoneForm();
+    }, 500);
+    
+    setTimeout(function() {
+        aplicarMascaraTelefoneForm();
+    }, 1000);
+    
+    // Usar MutationObserver para detectar quando novos elementos são adicionados
+    var observer = new MutationObserver(function(mutations) {
+        aplicarMascaraTelefoneForm();
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
     
     // Configurar campo de data
     var dataInput = document.getElementById('id_ORA_data_pedido');

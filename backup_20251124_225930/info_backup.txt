@@ -1,0 +1,36 @@
+═══════════════════════════════════════════════════════════
+    INFORMAÇÕES DO BACKUP - PROJETO ONCRISTO
+═══════════════════════════════════════════════════════════
+
+Data/Hora do Backup: 2025-11-24 22:59:30
+Diretório do Backup: backup_20251124_225930
+
+CONTEÚDO DO BACKUP:
+-------------------
+✓ Código fonte completo (excluindo venv, cache, etc.)
+✓ Banco de dados SQLite (db.sqlite3)
+✓ Pasta media (compactada em media.tar.gz)
+✓ Arquivos de configuração (gunicorn, nginx, requirements, etc.)
+
+ESTATÍSTICAS:
+------------
+Tamanho do código fonte: 3,9M
+Tamanho do banco de dados: 396K
+Tamanho da pasta media: 
+
+ESTRUTURA DO BACKUP:
+-------------------
+backup_20251124_225930/
+├── codigo_fonte/          # Todo o código do projeto
+├── config/                 # Arquivos de configuração
+├── media.tar.gz           # Pasta media compactada
+├── db.sqlite3             # Banco de dados
+└── info_backup.txt        # Este arquivo
+
+NOTAS:
+------
+- O backup foi criado excluindo arquivos temporários e cache
+- Para restaurar, descompacte o código e restaure o banco de dados
+- Verifique as configurações antes de fazer deploy em produção
+
+═══════════════════════════════════════════════════════════

@@ -1,0 +1,236 @@
+{% extends 'area_publica/base_form_publico.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}{{ paroquia.PAR_nome_paroquia|default:"Paróquia" }} - Agendar Celebração{% endblock %}
+
+{% block hero_icon %}<i class="fas fa-calendar-check me-3"></i>{% endblock %}
+{% block hero_title %}Agendar Celebração{% endblock %}
+{% block hero_subtitle %}Agende sua celebração conosco e faça parte desta família de fé{% endblock %}
+
+{% block form_id %}celebracaoForm{% endblock %}
+{% block btn_submit_text %}Agendar Celebração{% endblock %}
+
+{% block form_content %}
+<!-- Mensagens (para cadastro público, mostrar mesmo sem login) -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="display: none;" id="message-{{ forloop.counter }}">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-triangle{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Formulário de Celebração -->
+<form method="post" id="celebracaoForm">
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            <h6>Erro ao agendar celebração:</h6>
+            {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Tipo de Celebração *</label>
+                {{ form.CEL_tipo_celebracao|add_class:"form-control" }}
+                {% if form.CEL_tipo_celebracao.errors %}
+                    <div class="text-danger small">{{ form.CEL_tipo_celebracao.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Data da Celebração *</label>
+                {{ form.CEL_data_celebracao|add_class:"form-control" }}
+                {% if form.CEL_data_celebracao.errors %}
+                    <div class="text-danger small">{{ form.CEL_data_celebracao.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Horário *</label>
+                {{ form.CEL_horario|add_class:"form-control" }}
+                {% if form.CEL_horario.errors %}
+                    <div class="text-danger small">{{ form.CEL_horario.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Local *</label>
+                {{ form.CEL_local|add_class:"form-control" }}
+                {% if form.CEL_local.errors %}
+                    <div class="text-danger small">{{ form.CEL_local.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Nome do Solicitante *</label>
+                {{ form.CEL_nome_solicitante|add_class:"form-control" }}
+                {% if form.CEL_nome_solicitante.errors %}
+                    <div class="text-danger small">{{ form.CEL_nome_solicitante.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Telefone *</label>
+                {% if telefone_readonly %}
+                    {% if form.CEL_telefone.value %}
+                        <input type="text" 
+                               name="CEL_telefone" 
+                               value="{{ form.CEL_telefone.value }}" 
+                               class="form-control" 
+                               id="id_CEL_telefone" 
+                               readonly 
+                               style="background-color: #e9ecef;">
+                    {% else %}
+                        <input type="text" 
+                               name="CEL_telefone" 
+                               value="{{ telefone_url }}" 
+                               class="form-control" 
+                               id="id_CEL_telefone" 
+                               readonly 
+                               style="background-color: #e9ecef;">
+                    {% endif %}
+                    <small class="text-muted">Telefone identificado automaticamente via WhatsApp</small>
+                {% else %}
+                    {{ form.CEL_telefone|add_class:"form-control" }}
+                {% endif %}
+                {% if form.CEL_telefone.errors %}
+                    <div class="text-danger small">{{ form.CEL_telefone.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">E-mail (opcional)</label>
+                {{ form.CEL_email|add_class:"form-control" }}
+                {% if form.CEL_email.errors %}
+                    <div class="text-danger small">{{ form.CEL_email.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Número de Participantes *</label>
+                {{ form.CEL_participantes|add_class:"form-control" }}
+                {% if form.CEL_participantes.errors %}
+                    <div class="text-danger small">{{ form.CEL_participantes.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Observações (opcional)</label>
+                {{ form.CEL_observacoes|add_class:"form-control" }}
+                {% if form.CEL_observacoes.errors %}
+                    <div class="text-danger small">{{ form.CEL_observacoes.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Histórico de Celebrações Agendadas -->
+{% if celebracaoes_agendadas %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-history me-2"></i>Suas Celebrações Agendadas</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Data</th>
+                                <th>Horário</th>
+                                <th>Local</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for celeb in celebracaoes_agendadas %}
+                            <tr>
+                                <td>{{ celeb.get_CEL_tipo_celebracao_display }}</td>
+                                <td>{{ celeb.CEL_data_celebracao|date:"d/m/Y" }}</td>
+                                <td>{{ celeb.CEL_horario|time:"H:i" }}</td>
+                                <td>{{ celeb.CEL_local }}</td>
+                                <td>
+                                    <span class="badge {{ celeb.status_badge_class }}">
+                                        {{ celeb.status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js_module %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscara de telefone (se não estiver readonly)
+    var telefoneInput = document.getElementById('id_CEL_telefone');
+    if (telefoneInput && !telefoneInput.readOnly) {
+        telefoneInput.addEventListener('input', function(e) {
+            var value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                if (value.length <= 10) {
+                    value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+                } else {
+                    value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+                }
+            }
+            e.target.value = value.substring(0, 15);
+        });
+    }
+    
+    // Verificar se há mensagem de sucesso (do Django messages)
+    var successMessages = document.querySelectorAll('.alert-success');
+    if (successMessages.length > 0) {
+        // Mostrar mensagens de sucesso
+        successMessages.forEach(function(msg) {
+            msg.style.display = 'block';
+        });
+        
+        // Scroll para a mensagem
+        successMessages[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Limpar formulário após sucesso para permitir novo agendamento
+        var form = document.getElementById('celebracaoForm');
+        if (form) {
+            // Limpar todos os campos exceto o telefone (se estiver readonly)
+            var telefoneInput = document.getElementById('id_CEL_telefone');
+            var telefoneValue = telefoneInput ? telefoneInput.value : '';
+            var telefoneReadonly = telefoneInput ? telefoneInput.readOnly : false;
+            
+            form.reset();
+            
+            // Restaurar telefone se estava readonly
+            if (telefoneReadonly && telefoneValue) {
+                telefoneInput.value = telefoneValue;
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
+

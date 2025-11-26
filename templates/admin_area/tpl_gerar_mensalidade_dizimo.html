@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
+<style>
+/* CSS específico do módulo Gerar Mensalidades Dizimistas */
+
+/* === ESTILOS DO HEADER === */
+
+
+.form-header {
+    text-align: center;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, #18c3f7 0%, #0d8fb8 100%);
+    color: #9dd7f8;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(24, 195, 247, 0.3);
+}
+
+
+
+
+.form-title {
+    color: #000000;
+    font-weight: 600;
+    margin-bottom: 10px;
+    font-size: 1.8em;
+}
+
+.form-subtitle {
+    color: #000000;
+    font-size: 1.1em;
+}
+
+/* === ESTILOS DO CONTAINER (CARD) === */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(24, 195, 247, 0.15);
+    background: #f08842;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #18c3f7 0%, #0d8fb8 100%);
+    color: #ffffff;
+    border-radius: 12px 12px 0 0;
+    padding: 15px 20px;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 30px;
+}
+
+.btn-gerar {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    font-weight: 600;
+}
+
+.btn-gerar:hover {
+    background-color: #218838;
+    color: white;
+}
+
+.btn-cancelar {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    font-weight: 600;
+}
+
+.btn-cancelar:hover {
+    background-color: #5a6268;
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block title %}
+    {% if modo == 'form_gerar' %}
+        Gerar Mensalidades Dizimistas
+    {% elif modo == 'sucesso_geracao' %}
+        Mensalidades Geradas
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- FORMULÁRIO DE GERAR MENSALIDADES -->
+{% if modo == 'form_gerar' %}
+<div class="container mt-4">
+    <div class="form-header">
+        <h1 class="form-title">GERAR MENSALIDADES DIZIMISTAS</h1>
+        <p class="form-subtitle">Selecione o mês, ano e dizimista para gerar as mensalidades</p>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Gerar Mensalidades</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="form-section" id="form-gerar-mensalidade">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold" for="{{ form.mes.id_for_label }}">Mês</label>
+                                {{ form.mes }}
+                                {% if form.mes.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.mes.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold" for="{{ form.ano.id_for_label }}">Ano</label>
+                                {{ form.ano }}
+                                {% if form.ano.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.ano.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold" for="{{ form.dizimista.id_for_label }}">Dizimista</label>
+                            {{ form.dizimista }}
+                            {% if form.dizimista.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.dizimista.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Selecione "Todos os Dizimistas Ativos" para gerar para todos</small>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6 text-center">
+                                <button type="submit" class="btn btn-gerar">
+                                    <i class="fas fa-check me-2"></i>Gerar
+                                </button>
+                            </div>
+                            <div class="col-md-6 text-center">
+                                <a href="{% url 'app_igreja:admin_area' %}" class="btn btn-cancelar">
+                                    <i class="fas fa-arrow-left me-2"></i>Retornar
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MENSAGEM DE SUCESSO -->
+{% elif modo == 'sucesso_geracao' %}
+<div class="container mt-4">
+    <div class="form-header">
+        <h1 class="form-title">Mensalidades Geradas com Sucesso!</h1>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    <h4 class="mb-4">{{ mensagem }}</h4>
+                    <a href="{% url 'app_igreja:admin_area' %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-check me-2"></i>OK
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

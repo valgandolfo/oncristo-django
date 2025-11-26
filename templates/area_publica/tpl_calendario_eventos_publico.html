@@ -1,0 +1,428 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Calendário de Eventos{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* === ESTILOS GERAIS === */
+    .hero-section {
+        padding: 0;
+    }
+    
+    /* === HERO CONTENT (Cabeçalho) === */
+    .hero-content {
+        border: 1px solid #ef55b2;
+        border-radius: 15px;
+        padding: 16px 32px;
+        background: #ecee81;
+        display: block;
+        text-align: center;
+        margin: 10px auto 0 auto;
+        max-width: 920px;
+    }
+    
+    /* === CONTAINER DE BUSCA === */
+    .container-busca {
+        border: 1px solid #ef55b2;
+        background: rgb(105, 233, 242);
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(20, 214, 235, 0.1);
+        margin: 10px;
+    }
+    
+    /* === CONTAINER DE LISTA === */
+    .container-lista {
+        border: 1px solid #ef55b2;
+        background: rgb(168, 239, 139);
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px #ef55b2;
+        margin-top: 20px;
+    }
+    
+    /* === TABELA DE EVENTOS === */
+    .evento-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .evento-table thead {
+        background: #09788e;
+        color: white;
+    }
+    
+    .evento-table th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        border: 1px solid #fff;
+    }
+    
+    .evento-table tbody tr {
+        border-bottom: 1px solid #c8c8dc;
+    }
+    
+    .evento-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .evento-table td {
+        padding: 12px;
+        border: 1px solid #c8c8dc;
+        word-wrap: break-word;
+        word-break: break-word;
+    }
+    
+    /* === TABELA DE ATIVIDADES === */
+    .atividade-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    
+    .atividade-table thead {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .atividade-table th {
+        padding: 10px;
+        text-align: left;
+        font-weight: 600;
+        border: 1px solid #fff;
+        font-size: 0.9em;
+    }
+    
+    .atividade-table td {
+        padding: 10px;
+        border: 1px solid #c8c8dc;
+        font-size: 0.9em;
+    }
+    
+    /* === BOTÃO DE BUSCA === */
+    .btn-buscar {
+        background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%);
+        border: none;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: all 0.3s;
+        white-space: nowrap;
+    }
+    
+    .btn-buscar:hover {
+        background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
+    }
+    
+    .btn-ver-programacao {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: all 0.3s;
+    }
+    
+    .btn-ver-programacao:hover {
+        background: linear-gradient(135deg, #0056b3 0%, #007bff 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    }
+    
+    /* === BOTÃO FLUTUANTE === */
+    .fly-float-btn {
+        position: fixed;
+        bottom: 30px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #16ab2a 0%, #ace9b8 100%);
+        border-radius: 50%;
+        color: white;
+        font-size: 24px;
+        box-shadow: 0 4px 15px rgba(10, 202, 138, 0.4);
+        z-index: 1000;
+        transition: all 0.3s;
+    }
+    
+    .fly-float-btn-left {
+        left: 30px;
+    }
+    
+    .fly-float-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(10, 202, 138, 0.6);
+    }
+    
+    /* === MODAL === */
+    .modal-atividades {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+    
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .close:hover,
+    .close:focus {
+        color: black;
+    }
+    
+    /* === RESPONSIVO === */
+    @media (max-width: 768px) {
+        .hero-content {
+            margin: 10px;
+            padding: 12px 16px;
+        }
+        
+        .container-busca {
+            padding: 20px;
+        }
+        
+        .container-lista {
+            padding: 15px;
+        }
+        
+        .fly-float-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            bottom: 20px;
+        }
+        
+        .fly-float-btn-left {
+            left: 20px;
+        }
+        
+        .evento-table {
+            font-size: 0.85em;
+        }
+        
+        .btn-ver-programacao {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="mb-3 text-center">
+                <i class="fas fa-calendar-alt me-3"></i>
+                CALENDÁRIO DE EVENTOS
+            </h1>
+            <p class="lead mb-0 text-center">
+                Programação de eventos da paróquia
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Container Principal -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <!-- Container de Busca por Período -->
+            <div class="container-busca">
+                <h5 class="mb-4">
+                    <i class="fas fa-filter me-2"></i>
+                    Filtrar Eventos
+                </h5>
+                
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="data_inicial" class="form-label fw-bold">Dt.Inicial:</label>
+                        <input type="date" 
+                               name="data_inicial" 
+                               id="data_inicial"
+                               class="form-control" 
+                               value="{{ data_inicial }}">
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="data_final" class="form-label fw-bold">Dt.Final:</label>
+                        <input type="date" 
+                               name="data_final" 
+                               id="data_final"
+                               class="form-control" 
+                               value="{{ data_final }}">
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-buscar w-100">
+                            <i class="fas fa-search me-2"></i>
+                            Buscar
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Container de Lista de Eventos -->
+            {% if data_inicial or data_final %}
+            <div class="container-lista">
+                <h5 class="mb-4">
+                    <i class="fas fa-list me-2"></i>
+                    Eventos do Período
+                </h5>
+                
+                {% if eventos %}
+                    <table class="evento-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 120px;">Data</th>
+                                <th>Título</th>
+                                <th style="width: 150px;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for evento in eventos %}
+                            <tr>
+                                <td>
+                                    {{ evento.EVE_DT_INICIAL|date:"d/m/Y" }}
+                                </td>
+                                <td>
+                                    {{ evento.EVE_TITULO }}
+                                </td>
+                                <td>
+                                    <button type="button" 
+                                            class="btn btn-ver-programacao" 
+                                            onclick="verProgramacao({{ evento.EVE_ID }})">
+                                        Ver Programação
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="text-center p-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Nenhum evento encontrado para este período.</p>
+                    </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Atividades -->
+<div id="modalAtividades" class="modal-atividades">
+    <div class="modal-content">
+        <span class="close" onclick="fecharModal()">&times;</span>
+        <h4 id="modalTitulo" class="mb-3" style="text-align: center; border-bottom: 2px solid #09788e; padding-bottom: 10px;">LISTA DE ATIVIDADES</h4>
+        <div id="modalConteudo">
+            <p class="text-muted">Carregando atividades...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Botão Flutuante HOME -->
+<a href="{% url 'home' %}" class="fly-float-btn fly-float-btn-left d-flex align-items-center justify-content-center text-decoration-none" title="Voltar para Home">
+    <i class="fas fa-home"></i>
+</a>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function verProgramacao(eventoId) {
+    // Mostrar modal
+    document.getElementById('modalAtividades').style.display = 'block';
+    document.getElementById('modalConteudo').innerHTML = '<p class="text-muted">Carregando atividades...</p>';
+    
+    // Buscar atividades via AJAX
+    fetch(`/app_igreja/calendario-eventos/${eventoId}/programacao/`)
+        .then(response => response.json())
+        .then(data => {
+            let html = '<table class="atividade-table">';
+            html += '<thead><tr><th>DATA</th><th>HORA</th><th>ATIVIDADE</th></tr></thead>';
+            html += '<tbody>';
+            
+            if (data.atividades && data.atividades.length > 0) {
+                data.atividades.forEach(function(atividade) {
+                    html += '<tr>';
+                    html += '<td>' + atividade.data + '</td>';
+                    html += '<td>' + (atividade.hora || '-') + '</td>';
+                    html += '<td>' + atividade.atividade + '</td>';
+                    html += '</tr>';
+                });
+            } else {
+                html += '<tr><td colspan="3" class="text-center text-muted">Nenhuma atividade cadastrada para este evento.</td></tr>';
+            }
+            
+            html += '</tbody></table>';
+            document.getElementById('modalTitulo').textContent = 'LISTA DE ATIVIDADES - ' + data.evento_titulo;
+            document.getElementById('modalConteudo').innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Erro ao carregar atividades:', error);
+            document.getElementById('modalConteudo').innerHTML = '<p class="text-danger">Erro ao carregar atividades. Tente novamente.</p>';
+        });
+}
+
+function fecharModal() {
+    document.getElementById('modalAtividades').style.display = 'none';
+}
+
+// Fechar modal ao clicar fora
+window.onclick = function(event) {
+    const modal = document.getElementById('modalAtividades');
+    if (event.target == modal) {
+        fecharModal();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Definir datas padrão se não houver filtro
+    const hoje = new Date().toISOString().split('T')[0];
+    if (!document.getElementById('data_inicial').value) {
+        document.getElementById('data_inicial').value = hoje;
+    }
+    if (!document.getElementById('data_final').value) {
+        // Data final = hoje + 30 dias
+        const dataFinal = new Date();
+        dataFinal.setDate(dataFinal.getDate() + 30);
+        document.getElementById('data_final').value = dataFinal.toISOString().split('T')[0];
+    }
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Extrator de Liturgias{% endblock %}
+
+{% block content %}
+<style>
+    .btn-retornar-flutuante {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+        border-radius: 50px;
+        padding: 12px 24px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+    }
+    .btn-retornar-flutuante:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    }
+    @media (max-width: 768px) {
+        .btn-retornar-flutuante {
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+    }
+</style>
+
+<a href="{% url 'app_igreja:admin_area' %}" class="btn btn-secondary btn-retornar-flutuante">
+    <i class="fas fa-arrow-left me-2"></i>Retornar
+</a>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-book-open me-2"></i>Extrator de Liturgias
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Extraia liturgias do site da <strong>Arquidiocese de Joinville</strong> e salve no banco de dados.
+                    </p>
+
+                    <!-- Formulário para extrair data específica -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">📅 Extrair Liturgia de uma Data</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" id="form-data">
+                                {% csrf_token %}
+                                <input type="hidden" name="acao" value="extrair_data">
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="data" class="form-label">Data da Liturgia:</label>
+                                            <input type="date" class="form-control" id="data" name="data" 
+                                                   value="{{ hoje|date:'Y-m-d' }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">OU</label>
+                                            <input type="text" class="form-control" name="url" 
+                                                   placeholder="Cole a URL completa aqui (ex: https://www.arquidiocesejoinville.com.br/liturgia-diaria/2025-11-20)">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-download me-2"></i>Extrair Liturgia
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Formulário para extrair período -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">📆 Extrair Liturgias de um Período</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" id="form-periodo">
+                                {% csrf_token %}
+                                <input type="hidden" name="acao" value="extrair_periodo">
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="data_inicio" class="form-label">Data Inicial:</label>
+                                            <input type="date" class="form-control" id="data_inicio" 
+                                                   name="data_inicio" value="{{ hoje|date:'Y-m-d' }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="data_fim" class="form-label">Data Final:</label>
+                                            <input type="date" class="form-control" id="data_fim" 
+                                                   name="data_fim" value="{{ hoje|date:'Y-m-d' }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Atenção:</strong> O período máximo é de 30 dias.
+                                </div>
+                                
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-calendar-alt me-2"></i>Extrair Período
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Últimas liturgias extraídas -->
+                    {% if ultimas_liturgias %}
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">📚 Últimas Liturgias Extraídas</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Data</th>
+                                            <th>Tipo</th>
+                                            <th>Status</th>
+                                            <th>Cadastrado em</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for liturgia in ultimas_liturgias %}
+                                        <tr>
+                                            <td>{{ liturgia.LIT_DATALIT|date:"d/m/Y" }}</td>
+                                            <td>{{ liturgia.LIT_TIPOLIT }}</td>
+                                            <td>
+                                                {% if liturgia.LIT_STATUSLIT %}
+                                                    <span class="badge bg-success">Ativo</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Inativo</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ liturgia.LIT_DATA_CADASTRO|date:"d/m/Y H:i" }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Validação de período
+document.getElementById('form-periodo').addEventListener('submit', function(e) {
+    const dataInicio = new Date(document.getElementById('data_inicio').value);
+    const dataFim = new Date(document.getElementById('data_fim').value);
+    const dias = Math.ceil((dataFim - dataInicio) / (1000 * 60 * 60 * 24)) + 1;
+    
+    if (dataFim < dataInicio) {
+        e.preventDefault();
+        alert('Data final deve ser maior que data inicial!');
+        return false;
+    }
+    
+    if (dias > 30) {
+        e.preventDefault();
+        alert('Período máximo é de 30 dias!');
+        return false;
+    }
+    
+    if (!confirm(`Deseja extrair liturgias de ${dias} dia(s)?`)) {
+        e.preventDefault();
+        return false;
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,558 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Escala de Missas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .escala-container {
+        max-width: 100%;
+        margin: 10px auto;
+        padding: 10px;
+    }
+    
+    @media (max-width: 768px) {
+        .escala-container {
+            padding: 5px;
+        }
+    }
+    
+    .escala-header {
+        background: linear-gradient(135deg, #2c5530 0%, #3ea548 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .escala-header h1 {
+        margin: 0;
+        font-size: 2rem;
+    }
+    
+    .filtros-container {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .filtros-form {
+        display: flex;
+        gap: 15px;
+        align-items: end;
+        flex-wrap: wrap;
+    }
+    
+    .filtro-group {
+        flex: 1;
+        min-width: 150px;
+    }
+    
+    .filtro-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #2c5530;
+    }
+    
+    .filtro-group select,
+    .filtro-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+        font-size: 1rem;
+    }
+    
+    .btn-buscar {
+        background-color: #2c5530;
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s;
+    }
+    
+    .btn-buscar:hover {
+        background-color: #1e3a21;
+    }
+    
+    .tabela-escala {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 10px;
+        overflow-x: auto;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        font-size: 0.9rem;
+    }
+    
+    .tabela-escala thead {
+        background: #2c5530;
+        color: white;
+    }
+    
+    .tabela-escala th {
+        padding: 10px 8px;
+        text-align: left;
+        font-weight: bold;
+        border-bottom: 2px solid #1e3a21;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+    
+    .tabela-escala td {
+        padding: 10px 8px;
+        border-bottom: 1px solid #dee2e6;
+        font-size: 0.85rem;
+    }
+    
+    .tabela-escala tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    @media (max-width: 768px) {
+        .tabela-escala {
+            font-size: 0.75rem;
+        }
+        
+        .tabela-escala th,
+        .tabela-escala td {
+            padding: 8px 5px;
+            font-size: 0.75rem;
+        }
+    }
+    
+    .icone-pessoa {
+        color: #28a745;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .icone-pessoa:hover {
+        transform: scale(1.2);
+        color: #1e7e34;
+    }
+    
+    .icone-x {
+        color: #dc3545;
+        font-size: 1.5rem;
+    }
+    
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        max-width: 500px;
+        width: 90%;
+        text-align: center;
+    }
+    
+    .modal-content h3 {
+        color: #2c5530;
+        margin-bottom: 20px;
+    }
+    
+    .modal-info {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 15px 0;
+        text-align: left;
+    }
+    
+    .modal-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    
+    .btn-modal {
+        padding: 10px 30px;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    
+    .btn-sim {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .btn-sim:hover {
+        background-color: #1e7e34;
+    }
+    
+    .btn-nao {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    .btn-nao:hover {
+        background-color: #5a6268;
+    }
+    
+    .mensagem-sucesso {
+        display: none;
+        background: #d4edda;
+        color: #155724;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 20px 0;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .btn-home-flutuante {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #2c5530;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        z-index: 9999;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .btn-home-flutuante:hover {
+        background-color: #1e3a21;
+        transform: scale(1.1);
+    }
+    
+    .modal-overlay {
+        display: flex;
+    }
+    
+    @media (max-width: 768px) {
+        .modal-content {
+            padding: 20px;
+            max-width: 95%;
+        }
+        
+        .btn-home-flutuante {
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            bottom: 15px;
+            right: 15px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="escala-container">
+    <div class="escala-header">
+        <h1><i class="fas fa-calendar-alt me-2"></i>ATRIBUIÇÃO DE COLABORADORES</h1>
+    </div>
+    
+    <div class="filtros-container">
+        <form method="get" class="filtros-form">
+            <div class="filtro-group">
+                <label for="mes">MÊS:</label>
+                <select id="mes" name="mes" required>
+                    <option value="">Selecione...</option>
+                    <option value="1" {% if mes == 1 %}selected{% endif %}>Janeiro</option>
+                    <option value="2" {% if mes == 2 %}selected{% endif %}>Fevereiro</option>
+                    <option value="3" {% if mes == 3 %}selected{% endif %}>Março</option>
+                    <option value="4" {% if mes == 4 %}selected{% endif %}>Abril</option>
+                    <option value="5" {% if mes == 5 %}selected{% endif %}>Maio</option>
+                    <option value="6" {% if mes == 6 %}selected{% endif %}>Junho</option>
+                    <option value="7" {% if mes == 7 %}selected{% endif %}>Julho</option>
+                    <option value="8" {% if mes == 8 %}selected{% endif %}>Agosto</option>
+                    <option value="9" {% if mes == 9 %}selected{% endif %}>Setembro</option>
+                    <option value="10" {% if mes == 10 %}selected{% endif %}>Outubro</option>
+                    <option value="11" {% if mes == 11 %}selected{% endif %}>Novembro</option>
+                    <option value="12" {% if mes == 12 %}selected{% endif %}>Dezembro</option>
+                </select>
+            </div>
+            <div class="filtro-group">
+                <label for="ano">ANO:</label>
+                <input type="number" id="ano" name="ano" value="{{ ano|default:'' }}" placeholder="Ex: 2025" min="2000" max="2100" required>
+            </div>
+            {% if telefone_url %}
+                <input type="hidden" name="telefone" value="{{ telefone_url }}">
+            {% endif %}
+            <button type="submit" class="btn-buscar">
+                <i class="fas fa-search me-2"></i>Buscar
+            </button>
+        </form>
+    </div>
+    
+    <div class="mensagem-sucesso" id="mensagemSucesso">
+        <i class="fas fa-check-circle me-2"></i>
+        <span id="textoMensagem"></span>
+    </div>
+    
+    {% if itens %}
+    <div style="overflow-x: auto;">
+        <table class="tabela-escala">
+            <thead>
+                <tr>
+                    <th>ATR</th>
+                    <th>DIA</th>
+                    <th>DIA</th>
+                    <th>HORA</th>
+                    <th>ENCARGO</th>
+                    <th>COLABORADOR (APELIDO)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in itens %}
+                <tr>
+                    <td>
+                        {% if item.colaborador_id %}
+                            <i class="fas fa-times icone-x" title="Já atribuído"></i>
+                        {% else %}
+                            <i class="fas fa-user-plus icone-pessoa" 
+                               onclick="abrirModalAtribuicao({{ item.ITE_ESC_ID }}, '{{ item.ITE_ESC_DATA|date:"d/M" }}', '{{ item.dia_semana_nome }}', '{{ item.ITE_ESC_HORARIO|time:"H:i" }}', '{{ item.ITE_ESC_ENCARGO|default:"-"|escapejs }}')"
+                               title="Atribuir colaborador"></i>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.ITE_ESC_DATA|date:"d/M" }}</td>
+                    <td>{{ item.dia_semana_abrev|default:"-" }}</td>
+                    <td>{{ item.ITE_ESC_HORARIO|time:"H:i" }}</td>
+                    <td>{{ item.ITE_ESC_ENCARGO|default:"-" }}</td>
+                    <td>{{ item.colaborador_apelido|default:"-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% elif mes and ano %}
+    <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px;">
+        <i class="fas fa-calendar-times fa-3x mb-3" style="color: #6c757d;"></i>
+        <p style="font-size: 1.2rem; color: #6c757d;">Nenhuma escala encontrada para {{ mes_nome }}/{{ ano }}.</p>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px;">
+        <i class="fas fa-calendar-alt fa-3x mb-3" style="color: #6c757d;"></i>
+        <p style="font-size: 1.2rem; color: #6c757d;">Informe o Mês e Ano para carregar a escala.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal de Confirmação -->
+<div class="modal-overlay" id="modalAtribuicao" style="display: none;">
+    <div class="modal-content">
+        <h3>ALERTA</h3>
+        <div class="modal-info">
+            <p><strong>Dia:</strong> <span id="modalDia"></span></p>
+            <p id="modalColaborador" style="font-weight: bold; font-size: 1.1em;"></p>
+            <p>Se compromete a executar o encargo:</p>
+            <p><strong id="modalEncargo"></strong></p>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-modal btn-sim" onclick="confirmarAtribuicao()">
+                <i class="fas fa-check me-2"></i>Sim
+            </button>
+            <button class="btn-modal btn-nao" onclick="cancelarAtribuicao()">
+                <i class="fas fa-times me-2"></i>Não
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Botão Flutuante Home -->
+<button class="btn-home-flutuante" onclick="window.location.href='/'" title="Voltar para Home">
+    <i class="fas fa-home"></i>
+</button>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    var itemIdAtual = null;
+    var telefoneUsuario = '{{ telefone_url|default:"" }}';
+    // Buscar nome do colaborador - garantir que está sendo passado
+    var nomeColaborador = '';
+    {% if colaborador_nome %}
+        nomeColaborador = '{{ colaborador_nome|escapejs }}';
+    {% elif colaborador_logado and colaborador_logado.COL_nome_completo %}
+        nomeColaborador = '{{ colaborador_logado.COL_nome_completo|escapejs }}';
+    {% else %}
+        nomeColaborador = 'Colaborador';
+    {% endif %}
+    
+    // Debug: verificar se o nome foi carregado
+    console.log('Nome do colaborador:', nomeColaborador);
+    console.log('Telefone:', telefoneUsuario);
+    
+    var primeiroItemDisponivel = null;
+    var jaFezBusca = {% if mes and ano %}true{% else %}false{% endif %};
+    
+    // Dados do primeiro item disponível para abrir modal automaticamente
+    // Só abre se já fez a busca (tem mês e ano) e tem colaborador logado
+    {% if itens and colaborador_logado and mes and ano %}
+        {% for item in itens %}
+            {% if not item.colaborador_id and not primeiroItemDisponivel %}
+                primeiroItemDisponivel = {
+                    id: {{ item.ITE_ESC_ID }},
+                    dia: '{{ item.ITE_ESC_DATA|date:"d/M" }}',
+                    diaSemana: '{{ item.dia_semana_nome }}',
+                    hora: '{{ item.ITE_ESC_HORARIO|time:"H:i" }}',
+                    encargo: '{{ item.ITE_ESC_ENCARGO|default:"-"|escapejs }}'
+                };
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    
+    function abrirModalAtribuicao(itemId, dia, diaSemana, hora, encargo) {
+        itemIdAtual = itemId;
+        
+        var diaCompleto = dia + ' ' + diaSemana + ' às ' + hora + ' hrs';
+        
+        // Debug - verificar o nome antes de usar
+        console.log('=== DEBUG MODAL ===');
+        console.log('nomeColaborador variável:', nomeColaborador);
+        console.log('Tipo:', typeof nomeColaborador);
+        console.log('Tamanho:', nomeColaborador ? nomeColaborador.length : 0);
+        
+        // Usar o nome completo do colaborador - garantir que não está vazio
+        var nomeCompleto = nomeColaborador && nomeColaborador.trim() !== '' ? nomeColaborador : 'Colaborador não identificado';
+        
+        console.log('Nome a exibir:', nomeCompleto);
+        
+        // Preencher o modal
+        var modalDiaEl = document.getElementById('modalDia');
+        var modalColaboradorEl = document.getElementById('modalColaborador');
+        var modalEncargoEl = document.getElementById('modalEncargo');
+        
+        if (modalDiaEl) {
+            modalDiaEl.textContent = diaCompleto;
+        }
+        
+        if (modalColaboradorEl) {
+            modalColaboradorEl.textContent = nomeCompleto;
+            console.log('Nome definido no elemento HTML:', modalColaboradorEl.textContent);
+            console.log('Elemento encontrado:', modalColaboradorEl);
+        } else {
+            console.error('ERRO: Elemento modalColaborador não encontrado!');
+        }
+        
+        if (modalEncargoEl) {
+            modalEncargoEl.textContent = encargo;
+        }
+        
+        document.getElementById('modalAtribuicao').style.display = 'flex';
+    }
+    
+    function fecharModal() {
+        document.getElementById('modalAtribuicao').style.display = 'none';
+        itemIdAtual = null;
+    }
+    
+    function cancelarAtribuicao() {
+        // Redirecionar para home ao clicar em Não
+        window.location.href = '/';
+    }
+    
+    function confirmarAtribuicao() {
+        if (!itemIdAtual || !telefoneUsuario) {
+            alert('Erro: Dados insuficientes para atribuição.');
+            return;
+        }
+        
+        // Desabilitar botões
+        var btnSim = document.querySelector('.btn-sim');
+        var btnNao = document.querySelector('.btn-nao');
+        btnSim.disabled = true;
+        btnNao.disabled = true;
+        btnSim.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processando...';
+        
+        // Limpar telefone antes de enviar (remover 55 se existir)
+        var telefoneParaEnviar = telefoneUsuario;
+        if (telefoneParaEnviar && telefoneParaEnviar.startsWith('55')) {
+            telefoneParaEnviar = telefoneParaEnviar.substring(2);
+        }
+        // Remover caracteres não numéricos
+        telefoneParaEnviar = telefoneParaEnviar.replace(/\D/g, '');
+        
+        console.log('Telefone original:', telefoneUsuario);
+        console.log('Telefone limpo para enviar:', telefoneParaEnviar);
+        
+        // Fazer requisição
+        var formData = new FormData();
+        formData.append('item_id', itemIdAtual);
+        formData.append('telefone', telefoneParaEnviar);
+        
+        fetch('{% url "app_igreja:atribuir_colaborador_escala" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.sucesso) {
+                // Fechar modal
+                fecharModal();
+                
+                // Mostrar mensagem de sucesso
+                document.getElementById('textoMensagem').textContent = data.mensagem;
+                document.getElementById('mensagemSucesso').style.display = 'block';
+                
+                // Redirecionar para home após 2 segundos
+                setTimeout(function() {
+                    window.location.href = '/';
+                }, 2000);
+            } else {
+                alert('Erro: ' + data.mensagem);
+                btnSim.disabled = false;
+                btnNao.disabled = false;
+                btnSim.innerHTML = '<i class="fas fa-check me-2"></i>Sim';
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao processar solicitação. Tente novamente.');
+            btnSim.disabled = false;
+            btnNao.disabled = false;
+            btnSim.innerHTML = '<i class="fas fa-check me-2"></i>Sim';
+        });
+    }
+    
+    // Fechar modal ao clicar fora
+    document.getElementById('modalAtribuicao').addEventListener('click', function(e) {
+        if (e.target === this) {
+            cancelarAtribuicao();
+        }
+    });
+    
+    // Modal não abre mais automaticamente - usuário deve clicar no ícone de pessoa
+    // Removida a abertura automática para permitir que o usuário escolha o encargo
+</script>
+{% endblock %}
+
