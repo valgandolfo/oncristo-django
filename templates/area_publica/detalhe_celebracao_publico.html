@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalhes da Celebração - {{ paroquia.PAR_nome_paroquia|default:"Paróquia" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        padding: 0;
+    }
+    
+    .hero-content {
+        border: 1px solid #ef55b2;
+        border-radius: 15px;
+        padding: 16px 32px;
+        background: #ecee81;
+        display: block;
+        text-align: center;
+        margin: 10px auto 0 auto;
+        max-width: 920px;
+    }
+    
+    .detail-card {
+        border: 1px solid #ef55b2;
+        background: rgb(168, 239, 139);
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px #ef55b2;
+        margin: 20px auto;
+        max-width: 800px;
+    }
+    
+    .detail-item {
+        padding: 15px;
+        margin-bottom: 15px;
+        background: white;
+        border-radius: 10px;
+        border-left: 4px solid #09788e;
+    }
+    
+    .detail-label {
+        font-weight: bold;
+        color: #09788e;
+        margin-bottom: 5px;
+    }
+    
+    .detail-value {
+        color: #333;
+        font-size: 1.1rem;
+    }
+    
+    .fly-float-btn {
+        position: fixed;
+        bottom: 30px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #16ab2a 0%, #ace9b8 100%);
+        border-radius: 50%;
+        color: white;
+        font-size: 24px;
+        box-shadow: 0 4px 15px rgba(10, 202, 138, 0.4);
+        z-index: 1000;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    
+    .fly-float-btn-left {
+        left: 30px;
+    }
+    
+    .fly-float-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(10, 202, 138, 0.6);
+        color: white;
+        text-decoration: none;
+    }
+    
+    @media (max-width: 768px) {
+        .detail-card {
+            padding: 20px;
+            margin: 10px;
+        }
+        
+        .fly-float-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            bottom: 20px;
+        }
+        
+        .fly-float-btn-left {
+            left: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="mb-3 text-center">
+                <i class="fas fa-calendar-check me-3"></i>
+                Detalhes da Celebração
+            </h1>
+        </div>
+    </div>
+</div>
+
+<!-- Container Principal -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="detail-card">
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-tag me-2"></i>Tipo de Celebração
+                    </div>
+                    <div class="detail-value">
+                        {{ celebracao.get_CEL_tipo_celebracao_display }}
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-calendar me-2"></i>Data da Celebração
+                    </div>
+                    <div class="detail-value">
+                        {{ celebracao.CEL_data_celebracao|date:"d/m/Y" }}
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-clock me-2"></i>Horário
+                    </div>
+                    <div class="detail-value">
+                        {{ celebracao.CEL_horario|time:"H:i" }}
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-map-marker-alt me-2"></i>Local
+                    </div>
+                    <div class="detail-value">
+                        {{ celebracao.CEL_local }}
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-user me-2"></i>Nome do Solicitante
+                    </div>
+                    <div class="detail-value">
+                        {{ celebracao.CEL_nome_solicitante }}
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-phone me-2"></i>Telefone
+                    </div>
+                    <div class="detail-value">
+                        {{ celebracao.CEL_telefone }}
+                    </div>
+                </div>
+                
+                {% if celebracao.CEL_email %}
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-envelope me-2"></i>E-mail
+                    </div>
+                    <div class="detail-value">
+                        {{ celebracao.CEL_email }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-users me-2"></i>Número de Participantes
+                    </div>
+                    <div class="detail-value">
+                        {{ celebracao.CEL_participantes }}
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-info-circle me-2"></i>Status
+                    </div>
+                    <div class="detail-value">
+                        <span class="badge {{ celebracao.status_badge_class }}" style="font-size: 1rem; padding: 8px 15px;">
+                            {{ celebracao.status_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                {% if celebracao.CEL_observacoes %}
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-sticky-note me-2"></i>Observações
+                    </div>
+                    <div class="detail-value">
+                        {{ celebracao.CEL_observacoes|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-calendar-plus me-2"></i>Data de Cadastro
+                    </div>
+                    <div class="detail-value">
+                        {{ celebracao.CEL_data_cadastro|date:"d/m/Y H:i" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Botão Flutuante Home -->
+<a href="{% url 'app_igreja:minhas_celebracaoes_publico' %}?telefone={{ celebracao.CEL_telefone }}" class="fly-float-btn fly-float-btn-left" title="Voltar para Lista">
+    <i class="fas fa-arrow-left"></i>
+</a>
+{% endblock %}
+

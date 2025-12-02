@@ -2,10 +2,36 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
+import re
 
-from ...models.area_admin.models_oracoes import TBORACOES
+from ...models.area_admin.models_oracoes import TBORACOES, limpar_telefone_para_display
 from ...models.area_admin.models_paroquias import TBPAROQUIA
 from ...forms.area_admin.forms_oracoes import OracaoPublicoForm
+
+
+def formatar_telefone_para_salvar(telefone):
+    """
+    Formata telefone para salvar no banco no formato (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+    Remove código do país (55) se existir
+    """
+    if not telefone:
+        return telefone
+    
+    # Remove caracteres não numéricos
+    numeros = ''.join(filter(str.isdigit, str(telefone)))
+    
+    # Remove código do país (55) se existir
+    if numeros.startswith('55') and len(numeros) > 11:
+        numeros = numeros[2:]
+    
+    # Formata conforme o tamanho
+    if len(numeros) == 11:
+        return f"({numeros[:2]}) {numeros[2:7]}-{numeros[7:]}"
+    elif len(numeros) == 10:
+        return f"({numeros[:2]}) {numeros[2:6]}-{numeros[6:]}"
+    else:
+        # Se não tiver tamanho válido, retorna apenas números
+        return numeros
 
 
 def meus_pedidos_oracoes(request):
@@ -60,12 +86,22 @@ def meus_pedidos_oracoes(request):
 def criar_pedido_oracao_publico(request):
     """
     Criar novo pedido de oração (área pública - não requer login)
+    Aceita parâmetro 'telefone' via query string para pré-preencher (do chatbot)
     """
+    # Verificar se veio telefone via URL (do WhatsApp/chatbot)
+    telefone_url = request.GET.get('telefone', '').strip()
+    telefone_readonly = bool(telefone_url)
+    
     if request.method == 'POST':
         form = OracaoPublicoForm(request.POST)
         
         if form.is_valid():
             oracao = form.save(commit=False)
+            
+            # Formatar telefone antes de salvar (especialmente se veio do chatbot)
+            if oracao.ORA_telefone_pedinte:
+                oracao.ORA_telefone_pedinte = formatar_telefone_para_salvar(oracao.ORA_telefone_pedinte)
+            
             # Se o usuário estiver logado, associar ao usuário, senão deixar None
             if request.user.is_authenticated:
                 oracao.ORA_usuario_id = request.user
@@ -75,6 +111,11 @@ def criar_pedido_oracao_publico(request):
             oracao.ORA_ativo = True  # Sempre ativo quando criado
             oracao.save()
             messages.success(request, 'Pedido de oração criado com sucesso!')
+            
+            # Se veio do chatbot (com telefone na URL), redirecionar para home
+            if telefone_url:
+                return redirect('home')
+            
             # Redirecionar para home se não estiver logado, senão para lista
             if request.user.is_authenticated:
                 return redirect('app_igreja:meus_pedidos_oracoes')
@@ -83,7 +124,13 @@ def criar_pedido_oracao_publico(request):
         else:
             messages.error(request, 'Erro ao criar pedido de oração. Verifique os dados.')
     else:
-        form = OracaoPublicoForm()
+        # Pré-preencher telefone se vier da URL (do chatbot)
+        initial_data = {}
+        if telefone_url:
+            telefone_formatado = formatar_telefone_para_salvar(telefone_url)
+            initial_data['ORA_telefone_pedinte'] = telefone_formatado
+        
+        form = OracaoPublicoForm(initial=initial_data)
     
     paroquia = TBPAROQUIA.objects.first()
     
@@ -91,6 +138,8 @@ def criar_pedido_oracao_publico(request):
         'form': form,
         'paroquia': paroquia,
         'acao': 'criar',  # Define a ação
+        'telefone_readonly': telefone_readonly,
+        'telefone_url': telefone_url,
     }
     
     return render(request, 'area_publica/bot_oracoes_publico.html', context)

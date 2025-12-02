@@ -271,6 +271,25 @@ Clique em "Nova Celebração" para agendar uma celebração via WhatsApp.
 
 {% block extra_js %}
 <script>
+// Garantir que o campo de data esteja formatado corretamente ao carregar a página
+document.addEventListener('DOMContentLoaded', function() {
+    const dataInput = document.querySelector('input[name="CEL_data_celebracao"]');
+    if (dataInput && dataInput.type === 'date') {
+        // Se o campo estiver vazio mas tiver um valor inicial do Django
+        if (!dataInput.value && dataInput.getAttribute('value')) {
+            dataInput.value = dataInput.getAttribute('value');
+        }
+        // Se o campo tiver um valor mas não estiver no formato correto
+        if (dataInput.value && !/^\d{4}-\d{2}-\d{2}$/.test(dataInput.value)) {
+            // Tentar converter de formato brasileiro (DD/MM/YYYY) para ISO (YYYY-MM-DD)
+            const partes = dataInput.value.split('/');
+            if (partes.length === 3) {
+                dataInput.value = `${partes[2]}-${partes[1]}-${partes[0]}`;
+            }
+        }
+    }
+});
+
 // Funções específicas do módulo Celebrações
 function selecionarRegistroDashboard(id) {
     const botoesAcao = document.getElementById('acoes_' + id);

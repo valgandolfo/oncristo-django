@@ -32,6 +32,7 @@ from .views.admin_area.views_eventos_master_detail import (
 from .views.admin_area.views_escala_mensal_missa import escala_mensal_form, escala_mensal_gerar, escala_mensal_visualizar, escala_mensal_editar_descricao
 from .views.admin_area.views_gerenciar_dizimo import gerar_mensalidade_dizimo_form, gerar_mensalidade_dizimo, listar_mensalidades_dizimo, gerenciar_coleta_dizimo, baixar_dizimo, cancelar_baixa
 from .views.admin_area.views_gerenciar_escala import listar_itens_escala, criar_item_escala, detalhar_item_escala, editar_item_escala, excluir_item_escala
+from .views.admin_area.views_apontamentos_missas import apontamentos_escala_missa, atribuir_apontamento
 from .views.admin_area.views_whatsapp import whatsapp_enviar_mensagem, whatsapp_list, whatsapp_detail, whatsapp_excluir, whatsapp_debug
 from .views.admin_area.views_mural import listar_murais, criar_mural, editar_mural, excluir_mural, detalhar_mural
 from .views.admin_area.views_modelos_master_detail import (
@@ -51,7 +52,7 @@ from .views.area_publica.views_oracoes import meus_pedidos_oracoes, detalhar_ora
 from .views.area_publica.views_avisos import avisos_paroquia
 from .views.area_publica.views_calendario_eventos import calendario_eventos_publico, ver_programacao_evento
 from .views.area_publica.views_aniversariantes import aniversariantes_mes
-from .views.area_publica.views_celebracoes_publico import minhas_celebracaoes_publico, agendar_celebracao_publico
+from .views.area_publica.views_celebracoes_publico import minhas_celebracaoes_publico, agendar_celebracao_publico, detalhar_celebracao_publico
 from .views.area_publica.views_doacoes import doacoes_publico
 from .views.area_publica.views_whatsapp_api import whatsapp_webhook, whatsapp_test_webhook, whatsapp_cadastro_dizimista, whatsapp_imagem_principal
 from .views.area_publica.views_mural import mural_publico
@@ -210,6 +211,10 @@ urlpatterns = [
     # URLs para Gerenciar Escala de Missas
     path('admin-area/gerenciar-escala/', listar_itens_escala, name='listar_itens_escala'),
     
+    # URLs para Apontamentos Escala Missa
+    path('admin-area/apontamentos-escala-missa/', apontamentos_escala_missa, name='apontamentos_escala_missa'),
+    path('admin-area/apontamentos-escala-missa/<int:item_id>/atribuir/', atribuir_apontamento, name='atribuir_apontamento'),
+    
     # URLs para Gerenciar Mensalidades de Dizimistas
     path('admin-area/gerar-mensalidade-dizimo/', gerar_mensalidade_dizimo_form, name='gerar_mensalidade_dizimo_form'),
     path('admin-area/gerar-mensalidade-dizimo/<int:mes>/<int:ano>/<int:dizimista_id>/', gerar_mensalidade_dizimo, name='gerar_mensalidade_dizimo'),
@@ -287,6 +292,7 @@ urlpatterns = [
     # URLs para Agendar Celebrações
     path('agendar-celebracao/', agendar_celebracao_publico, name='agendar_celebracao_publico'),
     path('agendar-celebracaoes/', minhas_celebracaoes_publico, name='minhas_celebracaoes_publico'),
+    path('celebracao/<int:celebracao_id>/detalhe/', detalhar_celebracao_publico, name='detalhar_celebracao_publico'),
     
     # URLs para Doações
     path('doacoes/', doacoes_publico, name='doacoes_publico'),

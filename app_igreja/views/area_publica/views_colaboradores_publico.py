@@ -32,6 +32,31 @@ def formatar_telefone(telefone):
     return telefone
 
 
+def formatar_telefone_para_salvar(telefone):
+    """
+    Formata telefone para salvar no banco no formato (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+    Remove código do país (55) se existir
+    """
+    if not telefone:
+        return telefone
+    
+    # Remove caracteres não numéricos
+    numeros = ''.join(filter(str.isdigit, str(telefone)))
+    
+    # Remove código do país (55) se existir
+    if numeros.startswith('55') and len(numeros) > 11:
+        numeros = numeros[2:]
+    
+    # Formata conforme o tamanho
+    if len(numeros) == 11:
+        return f"({numeros[:2]}) {numeros[2:7]}-{numeros[7:]}"
+    elif len(numeros) == 10:
+        return f"({numeros[:2]}) {numeros[2:6]}-{numeros[6:]}"
+    else:
+        # Se não tiver tamanho válido, retorna apenas números
+        return numeros
+
+
 def quero_ser_colaborador(request):
     """
     View pública para cadastro de colaborador via WhatsApp
@@ -54,13 +79,11 @@ def quero_ser_colaborador(request):
         if form.is_valid():
             try:
                 colaborador = form.save(commit=False)
-                # Garantir que o telefone está correto (sem código do país, apenas DDD em diante)
-                if telefone_url:
-                    telefone_limpo = limpar_telefone(telefone_url)
-                    # Remover código do país se existir
-                    if telefone_limpo.startswith('55'):
-                        telefone_limpo = telefone_limpo[2:]  # Remove os primeiros 2 dígitos (55)
-                    colaborador.COL_telefone = telefone_limpo
+                
+                # Formatar telefone antes de salvar (especialmente se veio do chatbot)
+                if colaborador.COL_telefone:
+                    colaborador.COL_telefone = formatar_telefone_para_salvar(colaborador.COL_telefone)
+                
                 # Definir status como PENDENTE
                 colaborador.COL_status = 'PENDENTE'
                 colaborador.COL_membro_ativo = False
@@ -84,17 +107,7 @@ def quero_ser_colaborador(request):
         # Pré-preencher telefone se vier da URL
         initial_data = {}
         if telefone_url:
-            # O telefone vem da URL já limpo (sem código do país, apenas números)
-            # Remover qualquer caractere não numérico
-            telefone_limpo = ''.join(filter(str.isdigit, telefone_url))
-            
-            # O telefone deve vir do DDD em diante (sem código do país)
-            # Remover código do país se existir
-            if telefone_limpo.startswith('55'):
-                telefone_formatado = telefone_limpo[2:]  # Remove os primeiros 2 dígitos (55)
-            else:
-                telefone_formatado = telefone_limpo
-            
+            telefone_formatado = formatar_telefone_para_salvar(telefone_url)
             initial_data['COL_telefone'] = telefone_formatado
             
             # Debug: logar o telefone formatado

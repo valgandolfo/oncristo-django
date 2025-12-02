@@ -48,10 +48,19 @@ numbers_with_menu = set()
 
 
 def limpar_telefone(telefone):
-    """Remove o código do país (55) do número do telefone"""
-    if telefone and str(telefone).startswith('55'):
-        return str(telefone)[2:]  # Remove os primeiros 2 dígitos (55)
-    return telefone
+    """Remove caracteres não numéricos e o código do país (55) do número do telefone"""
+    if not telefone:
+        return telefone
+    
+    # Remove caracteres não numéricos
+    import re
+    telefone_limpo = re.sub(r'[^\d]', '', str(telefone))
+    
+    # Remove código do país (55) se existir
+    if telefone_limpo and telefone_limpo.startswith('55'):
+        telefone_limpo = telefone_limpo[2:]  # Remove os primeiros 2 dígitos (55)
+    
+    return telefone_limpo
 
 
 def get_ngrok_url():
@@ -83,47 +92,50 @@ def get_ngrok_url():
 
 def get_site_url():
     """
-    Obtém a URL do site, priorizando URL local em desenvolvimento
-    Ordem de prioridade:
-    1. SITE_URL_LOCAL do .env (ex: http://0.0.0.0:8000) - PRIORIDADE MÁXIMA
-    2. URL do ngrok detectada automaticamente (se ngrok estiver rodando)
-    3. NGROK_URL do .env (ex: https://xxxx.ngrok-free.app)
-    4. SITE_URL do .env (ex: https://oncristo.com.br)
+    Obtém a URL do site para uso na API do WhatsApp
+    Ordem de prioridade (para API externa, ngrok tem prioridade):
+    1. URL do ngrok detectada automaticamente (se ngrok estiver rodando) - PRIORIDADE MÁXIMA
+    2. NGROK_URL do .env (ex: https://xxxx.ngrok-free.app)
+    3. SITE_URL do .env (ex: https://oncristo.com.br)
+    4. SITE_URL_LOCAL do .env (ex: http://0.0.0.0:8000) - apenas se ngrok não estiver disponível
     5. URL padrão de produção
     """
-    # 1. PRIORIDADE: SITE_URL_LOCAL do .env (para desenvolvimento local)
-    site_url = os.getenv('SITE_URL_LOCAL')
-    logger.info(f"🔍 Verificando SITE_URL_LOCAL: {site_url}")
-    if site_url:
-        site_url = site_url.rstrip('/')
-        if not site_url.startswith('http://') and not site_url.startswith('https://'):
-            site_url = f'http://{site_url}'
-        logger.info(f"✅ URL do site configurada (SITE_URL_LOCAL): {site_url}")
-        return site_url
-    else:
-        logger.warning("⚠️ SITE_URL_LOCAL não encontrado, tentando outras opções...")
-    
-    # 2. Tentar obter URL do ngrok automaticamente
+    # 1. PRIORIDADE MÁXIMA: Tentar obter URL do ngrok automaticamente
     ngrok_url = get_ngrok_url()
     if ngrok_url:
+        logger.info(f"✅ URL do ngrok detectada automaticamente: {ngrok_url}")
         return ngrok_url
     
-    # 3. Tentar NGROK_URL do .env
+    # 2. Tentar NGROK_URL do .env
     site_url = os.getenv('NGROK_URL')
     if site_url:
         site_url = site_url.rstrip('/')
         if not site_url.startswith('http://') and not site_url.startswith('https://'):
             site_url = f'https://{site_url}'
-        logger.debug(f"🌐 URL do site (NGROK_URL): {site_url}")
+        logger.info(f"✅ URL do site configurada (NGROK_URL do .env): {site_url}")
         return site_url
     
-    # 4. Tentar SITE_URL do .env ou usar padrão
-    site_url = os.getenv('SITE_URL', 'https://oncristo.com.br')
-    site_url = site_url.rstrip('/')
-    if not site_url.startswith('http://') and not site_url.startswith('https://'):
-        site_url = f'https://{site_url}'
+    # 3. Tentar SITE_URL do .env (produção)
+    site_url = os.getenv('SITE_URL')
+    if site_url:
+        site_url = site_url.rstrip('/')
+        if not site_url.startswith('http://') and not site_url.startswith('https://'):
+            site_url = f'https://{site_url}'
+        logger.info(f"✅ URL do site configurada (SITE_URL do .env): {site_url}")
+        return site_url
     
-    logger.debug(f"🌐 URL do site (SITE_URL/padrão): {site_url}")
+    # 4. SITE_URL_LOCAL do .env (apenas se ngrok não estiver disponível)
+    site_url = os.getenv('SITE_URL_LOCAL')
+    if site_url:
+        site_url = site_url.rstrip('/')
+        if not site_url.startswith('http://') and not site_url.startswith('https://'):
+            site_url = f'http://{site_url}'
+        logger.warning(f"⚠️ Usando SITE_URL_LOCAL (ngrok não detectado): {site_url}")
+        return site_url
+    
+    # 5. URL padrão de produção
+    site_url = 'https://oncristo.com.br'
+    logger.warning(f"⚠️ Usando URL padrão: {site_url}")
     return site_url
 
 
@@ -153,21 +165,32 @@ def send_whatsapp_message(phone, message):
             "body": message
         }
         
-        logger.info(f"Enviando mensagem para {phone}")
+        logger.info(f"📱 Enviando mensagem para {phone}")
+        logger.debug(f"Payload: {json.dumps(message_data, indent=2, ensure_ascii=False)}")
         
         response = requests.post(url, headers=headers, json=message_data, timeout=30)
         
+        logger.debug(f"Response status: {response.status_code}")
+        logger.debug(f"Response text: {response.text}")
+        
         if response.status_code == 200:
             result = response.json()
-            if result.get("sent", False):
-                logger.info(f"Mensagem enviada com sucesso. ID: {result.get('message', {}).get('id')}")
+            if result.get("sent", False) or result.get("success", False):
+                message_id = result.get('message', {}).get('id', 'N/A')
+                logger.info(f"✅ Mensagem enviada com sucesso para {phone}. ID: {message_id}")
+                logger.debug(f"Resposta completa: {json.dumps(result, indent=2, ensure_ascii=False)}")
                 return result
             else:
-                logger.error(f"Erro ao enviar mensagem: {result}")
-                return {"error": f"Erro ao enviar: {result}"}
+                error_msg = f"Erro ao enviar: {result}"
+                logger.error(f"❌ {error_msg}")
+                logger.error(f"   Telefone: {phone}")
+                logger.error(f"   Resposta completa: {json.dumps(result, indent=2, ensure_ascii=False)}")
+                return {"error": error_msg}
         else:
-            logger.error(f"Erro ao enviar mensagem: {response.status_code} - {response.text}")
-            return {"error": f"Erro {response.status_code}: {response.text}"}
+            error_msg = f"Erro {response.status_code}: {response.text}"
+            logger.error(f"❌ {error_msg}")
+            logger.error(f"   Telefone: {phone}")
+            return {"error": error_msg}
             
     except Exception as e:
         logger.error(f"Erro de conexão ao enviar mensagem: {str(e)}")
@@ -314,7 +337,7 @@ def send_whatsapp_image(phone, image_url, caption=None):
             message_data["caption"] = caption
         
         logger.info(f"📸 Enviando imagem para {phone}: {image_url}")
-        logger.debug(f"Payload: {json.dumps(message_data, indent=2)}")
+        logger.debug(f"Payload: {json.dumps(message_data, indent=2, ensure_ascii=False)}")
         
         response = requests.post(url, headers=headers, json=message_data, timeout=30)
         
@@ -324,14 +347,21 @@ def send_whatsapp_image(phone, image_url, caption=None):
         if response.status_code == 200:
             result = response.json()
             if result.get("sent", False) or result.get("success", False):
-                logger.info(f"✅ Imagem enviada com sucesso. ID: {result.get('message', {}).get('id', 'N/A')}")
+                message_id = result.get('message', {}).get('id', 'N/A')
+                logger.info(f"✅ Imagem enviada com sucesso para {phone}. ID: {message_id}")
+                logger.debug(f"Resposta completa: {json.dumps(result, indent=2, ensure_ascii=False)}")
                 return result
             else:
-                logger.error(f"❌ Erro ao enviar imagem: {result}")
-                return {"error": f"Erro ao enviar: {result}"}
+                error_msg = f"Erro ao enviar imagem: {result}"
+                logger.error(f"❌ {error_msg}")
+                logger.error(f"   Telefone: {phone}")
+                logger.error(f"   Resposta completa: {json.dumps(result, indent=2, ensure_ascii=False)}")
+                return {"error": error_msg}
         else:
-            logger.error(f"❌ Erro ao enviar imagem: {response.status_code} - {response.text}")
-            return {"error": f"Erro {response.status_code}: {response.text}"}
+            error_msg = f"Erro {response.status_code}: {response.text}"
+            logger.error(f"❌ {error_msg}")
+            logger.error(f"   Telefone: {phone}")
+            return {"error": error_msg}
             
     except Exception as e:
         logger.error(f"❌ Erro de conexão ao enviar imagem: {str(e)}", exc_info=True)
@@ -657,10 +687,12 @@ def send_whatsapp_menu_dizimista(phone):
         # Obter URL do site (prioriza local/ngrok)
         site_url = get_site_url()
         
-        # Formatar telefone para URL (remover código do país se necessário)
+        # Limpar telefone para URL (remover código do país se existir)
         telefone_limpo = limpar_telefone(phone)
-        telefone_url = telefone_limpo.replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
-        dizimista_url = f"{site_url}/app_igreja/quero-ser-dizimista/?telefone={telefone_url}"
+        if telefone_limpo and telefone_limpo.startswith('55'):
+            telefone_limpo = telefone_limpo[2:]
+        
+        dizimista_url = f"{site_url}/app_igreja/quero-ser-dizimista/?telefone={telefone_limpo}"
         
         logger.info(f"🌐 URL do dizimista: {dizimista_url}")
         
@@ -732,10 +764,12 @@ def send_whatsapp_menu_colaborador(phone):
         # Obter URL do site (prioriza local/ngrok)
         site_url = get_site_url()
         
-        # Formatar telefone para URL (remover código do país se necessário)
+        # Limpar telefone para URL (remover código do país se existir)
         telefone_limpo = limpar_telefone(phone)
-        telefone_url = telefone_limpo.replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
-        colaborador_url = f"{site_url}/app_igreja/quero-ser-colaborador/?telefone={telefone_url}"
+        if telefone_limpo and telefone_limpo.startswith('55'):
+            telefone_limpo = telefone_limpo[2:]
+        
+        colaborador_url = f"{site_url}/app_igreja/quero-ser-colaborador/?telefone={telefone_limpo}"
         
         logger.info(f"🌐 URL do colaborador: {colaborador_url}")
         
@@ -877,10 +911,12 @@ def send_whatsapp_menu_agendar_celebracao(phone):
         
         site_url = get_site_url()
         
-        # Formatar telefone para URL (remover código do país se necessário)
+        # Limpar telefone para URL (remover código do país se existir)
         telefone_limpo = limpar_telefone(phone)
-        telefone_url = telefone_limpo.replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
-        agendar_url = f"{site_url}/app_igreja/agendar-celebracao/?telefone={telefone_url}"
+        if telefone_limpo and telefone_limpo.startswith('55'):
+            telefone_limpo = telefone_limpo[2:]
+        
+        agendar_url = f"{site_url}/app_igreja/agendar-celebracao/?telefone={telefone_limpo}"
         
         logger.info(f"🌐 URL de agendamento: {agendar_url}")
         
@@ -949,8 +985,13 @@ def send_whatsapp_menu_oracoes(phone):
         # Obter URL do site (prioriza local/ngrok)
         site_url = get_site_url()
         
-        # URL direta para criar novo pedido de oração
-        oracoes_url = f"{site_url}/app_igreja/meus-pedidos-oracoes/novo/"
+        # Limpar telefone para URL (remover código do país se existir)
+        telefone_limpo = limpar_telefone(phone)
+        if telefone_limpo and telefone_limpo.startswith('55'):
+            telefone_limpo = telefone_limpo[2:]
+        
+        # URL direta para criar novo pedido de oração com telefone
+        oracoes_url = f"{site_url}/app_igreja/meus-pedidos-oracoes/novo/?telefone={telefone_limpo}"
         
         logger.info(f"🙏 URL do pedido de oração: {oracoes_url}")
         

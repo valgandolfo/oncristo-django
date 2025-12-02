@@ -228,7 +228,8 @@ def escala_mensal_gerar(request, mes, ano):
                         ITE_ESC_HORARIO=horario_time,
                         ITE_ESC_DESCRICAO=encargo,
                         ITE_ESC_ENCARGO=encargo,  # Descrição do encargo (do modelo)
-                        ITE_ESC_STATUS='EM_ABERTO'  # Status padrão: Em aberto
+                        ITE_ESC_STATUS='EM_ABERTO',  # Status padrão: Em aberto
+                        ITE_ESC_SITUACAO=False  # Situação padrão: Bloqueado
                     )
                     itens_criados += 1
         

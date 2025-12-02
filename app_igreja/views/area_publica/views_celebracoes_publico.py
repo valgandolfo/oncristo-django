@@ -18,10 +18,43 @@ logger = logging.getLogger(__name__)
 
 
 def limpar_telefone(telefone):
-    """Remove caracteres não numéricos do telefone"""
+    """Remove caracteres não numéricos e o código do país (55) do número do telefone"""
     if not telefone:
-        return None
-    return re.sub(r'[^\d]', '', str(telefone))
+        return telefone
+    
+    # Remove caracteres não numéricos
+    telefone_limpo = re.sub(r'[^\d]', '', str(telefone))
+    
+    # Remove código do país (55) se existir
+    if telefone_limpo and telefone_limpo.startswith('55'):
+        telefone_limpo = telefone_limpo[2:]  # Remove os primeiros 2 dígitos (55)
+    
+    return telefone_limpo
+
+
+def formatar_telefone_para_salvar(telefone):
+    """
+    Formata telefone para salvar no banco no formato (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+    Remove código do país (55) se existir
+    """
+    if not telefone:
+        return telefone
+    
+    # Remove caracteres não numéricos
+    numeros = ''.join(filter(str.isdigit, str(telefone)))
+    
+    # Remove código do país (55) se existir
+    if numeros.startswith('55') and len(numeros) > 11:
+        numeros = numeros[2:]
+    
+    # Formata conforme o tamanho
+    if len(numeros) == 11:
+        return f"({numeros[:2]}) {numeros[2:7]}-{numeros[7:]}"
+    elif len(numeros) == 10:
+        return f"({numeros[:2]}) {numeros[2:6]}-{numeros[6:]}"
+    else:
+        # Se não tiver tamanho válido, retorna apenas números
+        return numeros
 
 
 def agendar_celebracao_publico(request):
@@ -43,7 +76,15 @@ def agendar_celebracao_publico(request):
         
         if form.is_valid():
             try:
-                celebracao = form.save()
+                celebracao = form.save(commit=False)
+                
+                # Formatar telefone antes de salvar (especialmente se veio do chatbot)
+                # IMPORTANTE: Formatar ANTES de salvar para garantir formato consistente
+                if celebracao.CEL_telefone:
+                    # O form pode ter limpo o telefone, então formatamos novamente
+                    celebracao.CEL_telefone = formatar_telefone_para_salvar(celebracao.CEL_telefone)
+                
+                celebracao.save()
                 
                 messages.success(
                     request, 
@@ -53,14 +94,16 @@ def agendar_celebracao_publico(request):
                     f'foi registrado. Em breve entraremos em contato para confirmar.'
                 )
                 
-                # Não redirecionar - permanecer na mesma página para permitir novo agendamento
+                # Se veio do chatbot (com telefone na URL), redirecionar para home
+                if telefone_url:
+                    return redirect('home')
+                
+                # Se não veio do chatbot, permanecer na mesma página para permitir novo agendamento
                 # Criar novo formulário limpo, mantendo o telefone se vier da URL
                 initial_data = {}
                 if telefone_url:
-                    telefone_limpo = limpar_telefone(telefone_url)
-                    if telefone_limpo and telefone_limpo.startswith('55'):
-                        telefone_limpo = telefone_limpo[2:]
-                    initial_data['CEL_telefone'] = telefone_limpo
+                    telefone_formatado = formatar_telefone_para_salvar(telefone_url)
+                    initial_data['CEL_telefone'] = telefone_formatado
                 
                 form = CelebracaoPublicoForm(initial=initial_data, telefone_readonly=telefone_readonly, telefone_initial=initial_data.get('CEL_telefone'))
                 
@@ -73,16 +116,11 @@ def agendar_celebracao_publico(request):
         # Pré-preencher telefone se vier da URL
         initial_data = {}
         if telefone_url:
-            # Limpar telefone
-            telefone_limpo = limpar_telefone(telefone_url)
-            # Remover código do país se existir
-            if telefone_limpo and telefone_limpo.startswith('55'):
-                telefone_limpo = telefone_limpo[2:]
-            
-            initial_data['CEL_telefone'] = telefone_limpo
+            telefone_formatado = formatar_telefone_para_salvar(telefone_url)
+            initial_data['CEL_telefone'] = telefone_formatado
             
             # Debug: logar o telefone formatado
-            logger.info(f"📞 Telefone formatado para o form: {telefone_limpo}")
+            logger.info(f"📞 Telefone formatado para o form: {telefone_formatado}")
         
         form = CelebracaoPublicoForm(initial=initial_data, telefone_readonly=telefone_readonly, telefone_initial=initial_data.get('CEL_telefone'))
     
@@ -132,12 +170,27 @@ def minhas_celebracaoes_publico(request):
             telefone_limpo = telefone_limpo[2:]
         
         if len(telefone_limpo) >= 10:
-            # Buscar por telefone (com e sem formatação)
+            # Formatar telefone para busca (pode estar formatado no banco)
+            telefone_formatado = formatar_telefone_para_salvar(telefone_limpo)
+            
+            # Buscar por telefone de várias formas para garantir que encontre
+            # 1. Busca pelos últimos 9 dígitos (sem DDD) - mais flexível
+            ultimos_9_digitos = telefone_limpo[-9:] if len(telefone_limpo) >= 9 else telefone_limpo
+            # 2. Busca pelos últimos 8 dígitos (sem DDD e sem 9 inicial) - para celular
+            ultimos_8_digitos = telefone_limpo[-8:] if len(telefone_limpo) >= 8 else telefone_limpo
+            
+            # Buscar por telefone (tanto formatado quanto não formatado)
             celebracaoes = TBCELEBRACOES.objects.filter(
-                Q(CEL_telefone__icontains=telefone_limpo)
+                Q(CEL_telefone__icontains=telefone_limpo) |  # Busca pelo telefone limpo completo
+                Q(CEL_telefone__icontains=telefone_formatado) |  # Busca pelo telefone formatado
+                Q(CEL_telefone__icontains=ultimos_9_digitos) |  # Busca pelos últimos 9 dígitos
+                Q(CEL_telefone__icontains=ultimos_8_digitos)  # Busca pelos últimos 8 dígitos
             ).order_by('-CEL_data_celebracao', 'CEL_horario')
             
             resultados_encontrados = celebracaoes.exists()
+            
+            # Log para debug
+            logger.info(f"🔍 Busca de celebrações - Telefone: {telefone}, Limpo: {telefone_limpo}, Formatado: {telefone_formatado}, Encontrados: {celebracaoes.count()}")
             
             if not resultados_encontrados:
                 messages.info(request, f'Nenhuma celebração encontrada para o telefone {telefone}')
@@ -153,4 +206,25 @@ def minhas_celebracaoes_publico(request):
     }
     
     return render(request, 'area_publica/bot_celebracoes_publico.html', context)
+
+
+def detalhar_celebracao_publico(request, celebracao_id):
+    """
+    Visualizar detalhes de uma celebração específica
+    """
+    try:
+        celebracao = TBCELEBRACOES.objects.get(id=celebracao_id)
+    except TBCELEBRACOES.DoesNotExist:
+        messages.error(request, 'Celebração não encontrada.')
+        return redirect('app_igreja:minhas_celebracaoes_publico')
+    
+    # Buscar paróquia
+    paroquia = TBPAROQUIA.objects.first()
+    
+    context = {
+        'celebracao': celebracao,
+        'paroquia': paroquia,
+    }
+    
+    return render(request, 'area_publica/detalhe_celebracao_publico.html', context)
 

@@ -3,6 +3,20 @@ from django.core.exceptions import ValidationError
 from datetime import date, time
 from app_igreja.models.area_admin.models_celebracoes import TBCELEBRACOES
 
+
+class DateInputWidget(forms.DateInput):
+    """Widget customizado para garantir formato correto no input date"""
+    input_type = 'date'
+    
+    def format_value(self, value):
+        """Formata o valor para YYYY-MM-DD"""
+        if value is None:
+            return ''
+        if isinstance(value, str):
+            return value
+        # Se for um objeto date, converter para string no formato YYYY-MM-DD
+        return value.strftime('%Y-%m-%d') if hasattr(value, 'strftime') else str(value)
+
 class CelebracaoForm(forms.ModelForm):
     """
     Formulário para Celebrações Agendadas via WhatsApp
@@ -26,9 +40,8 @@ class CelebracaoForm(forms.ModelForm):
             'CEL_tipo_celebracao': forms.Select(attrs={
                 'class': 'form-control'
             }),
-            'CEL_data_celebracao': forms.DateInput(attrs={
+            'CEL_data_celebracao': DateInputWidget(attrs={
                 'class': 'form-control',
-                'type': 'date',
                 'min': str(date.today())
             }),
             'CEL_horario': forms.TimeInput(attrs={
@@ -80,6 +93,16 @@ class CelebracaoForm(forms.ModelForm):
         self.fields['CEL_participantes'].label = 'Número de Participantes'
         self.fields['CEL_observacoes'].label = 'Observações'
         self.fields['CEL_status'].label = 'Status'
+        
+        # Garantir que a data esteja no formato correto para o input date (YYYY-MM-DD)
+        if self.instance and self.instance.pk and self.instance.CEL_data_celebracao:
+            # Se estiver editando, garantir que o valor inicial esteja no formato correto
+            # O widget DateInputWidget já faz isso automaticamente, mas garantimos aqui também
+            data_value = self.instance.CEL_data_celebracao
+            if hasattr(data_value, 'strftime'):
+                self.fields['CEL_data_celebracao'].initial = data_value.strftime('%Y-%m-%d')
+            else:
+                self.fields['CEL_data_celebracao'].initial = data_value
 
     def clean_CEL_data_celebracao(self):
         """Validação da data da celebração"""

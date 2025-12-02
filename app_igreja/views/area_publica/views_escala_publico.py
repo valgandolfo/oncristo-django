@@ -111,6 +111,9 @@ def escala_publico(request):
             item.dia_semana_nome = dias_semana_pt.get(item.ITE_ESC_DATA.weekday(), '')
             item.dia_semana_abrev = item.dia_semana_nome[:3].upper() if item.dia_semana_nome else ''
             
+            # Adicionar informação de bloqueio (ITE_ESC_SITUACAO = False significa bloqueado)
+            item.bloqueado = not item.ITE_ESC_SITUACAO
+            
             # Buscar nome do colaborador (apelido/primeiro nome)
             if item.ITE_ESC_COLABORADOR:
                 try:
@@ -222,6 +225,13 @@ def atribuir_colaborador_escala(request):
                 'mensagem': 'Item da escala não encontrado.'
             }, status=404)
         
+        # Verificar se o item está bloqueado
+        if not item.ITE_ESC_SITUACAO:
+            return JsonResponse({
+                'sucesso': False,
+                'mensagem': 'Este período está bloqueado e não permite atribuições.'
+            }, status=400)
+        
         # Verificar se já tem colaborador atribuído
         if item.ITE_ESC_COLABORADOR:
             return JsonResponse({
@@ -231,7 +241,7 @@ def atribuir_colaborador_escala(request):
         
         # Atribuir colaborador
         item.ITE_ESC_COLABORADOR = colaborador.COL_id
-        item.ITE_ESC_STATUS = 'DEFINIDO'
+        item.ITE_ESC_STATUS = 'RESERVADO'
         item.save()
         
         logger.info(f"✅ Colaborador {colaborador.COL_nome_completo} atribuído ao item {item_id}")

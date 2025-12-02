@@ -84,8 +84,9 @@ class TBITEM_ESCALA(models.Model):
     ITE_ESC_STATUS = models.CharField(
         max_length=20,
         choices=[
-            ('DEFINIDO', 'Definido'),
             ('EM_ABERTO', 'Em aberto'),
+            ('RESERVADO', 'Reservado'),
+            ('DEFINIDO', 'Definido'),
         ],
         default='EM_ABERTO',
         verbose_name="Status",
@@ -102,6 +103,11 @@ class TBITEM_ESCALA(models.Model):
         null=True,
         verbose_name="Grupo",
         help_text="ID do grupo (será implementado depois)"
+    )
+    ITE_ESC_SITUACAO = models.BooleanField(
+        default=False,
+        verbose_name="Situação",
+        help_text="Situação do item da escala"
     )
     
     class Meta:

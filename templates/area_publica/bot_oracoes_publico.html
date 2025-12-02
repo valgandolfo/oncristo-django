@@ -364,7 +364,28 @@
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label fw-bold" for="id_ORA_telefone_pedinte">Telefone *</label>
-                        {% render_field form.ORA_telefone_pedinte class="form-control telefone-mask" placeholder="(00) 00000-0000" maxlength="15" data-mask="telefone" %}
+                        {% if telefone_readonly %}
+                            {% if form.ORA_telefone_pedinte.value %}
+                                <input type="text" 
+                                       name="ORA_telefone_pedinte" 
+                                       value="{{ form.ORA_telefone_pedinte.value }}" 
+                                       class="form-control" 
+                                       id="id_ORA_telefone_pedinte" 
+                                       readonly 
+                                       style="background-color: #e9ecef;">
+                            {% else %}
+                                <input type="text" 
+                                       name="ORA_telefone_pedinte" 
+                                       value="{{ telefone_url }}" 
+                                       class="form-control" 
+                                       id="id_ORA_telefone_pedinte" 
+                                       readonly 
+                                       style="background-color: #e9ecef;">
+                            {% endif %}
+                            <small class="text-muted">Telefone identificado automaticamente via WhatsApp</small>
+                        {% else %}
+                            {% render_field form.ORA_telefone_pedinte class="form-control telefone-mask" placeholder="(00) 00000-0000" maxlength="15" data-mask="telefone" %}
+                        {% endif %}
                         {% if form.ORA_telefone_pedinte.errors %}
                             <div class="text-danger small">
                                 {% for error in form.ORA_telefone_pedinte.errors %}

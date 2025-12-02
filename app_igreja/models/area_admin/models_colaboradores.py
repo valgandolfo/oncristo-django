@@ -44,6 +44,21 @@ class TBCOLABORADORES(models.Model):
         return f"{self.COL_nome_completo}"
     
     def save(self, *args, **kwargs):
-        """Override save para atualizar COL_data_atualizacao"""
+        """Override save para atualizar COL_data_atualizacao e formatar telefone"""
+        # Formatar telefone antes de salvar se não estiver formatado
+        if self.COL_telefone:
+            # Verificar se já está formatado (tem parênteses ou hífen)
+            if '(' not in str(self.COL_telefone) and '-' not in str(self.COL_telefone):
+                # Não está formatado, então formatar
+                numeros = ''.join(filter(str.isdigit, str(self.COL_telefone)))
+                # Remove código do país (55) se existir
+                if numeros.startswith('55') and len(numeros) > 11:
+                    numeros = numeros[2:]
+                # Formata conforme o tamanho
+                if len(numeros) == 11:
+                    self.COL_telefone = f"({numeros[:2]}) {numeros[2:7]}-{numeros[7:]}"
+                elif len(numeros) == 10:
+                    self.COL_telefone = f"({numeros[:2]}) {numeros[2:6]}-{numeros[6:]}"
+        
         self.COL_data_atualizacao = timezone.now()
         super().save(*args, **kwargs)

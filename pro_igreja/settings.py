@@ -45,6 +45,39 @@ else:
         '.local',
     ]
 
+# CSRF Trusted Origins - Para permitir requisições do ngrok e outros serviços externos
+if DJANGO_ENV == 'production':
+    # Produção: usar variável de ambiente ou lista específica
+    csrf_origins_str = os.getenv('CSRF_TRUSTED_ORIGINS', '')
+    if csrf_origins_str:
+        CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_str.split(',')]
+    else:
+        CSRF_TRUSTED_ORIGINS = []
+else:
+    # Desenvolvimento: permite ngrok e domínios locais
+    CSRF_TRUSTED_ORIGINS = [
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+        'https://localhost:8000',
+        'https://127.0.0.1:8000',
+        # URL atual do ngrok (será atualizada dinamicamente se possível)
+        'https://shera-unculpable-nonresponsively.ngrok-free.dev',
+    ]
+    # Adicionar outras URLs do ngrok se disponíveis (obtidas via API do ngrok)
+    try:
+        import urllib.request
+        import json
+        ngrok_url = 'http://127.0.0.1:4040/api/tunnels'
+        with urllib.request.urlopen(ngrok_url, timeout=1) as response:
+            data = json.loads(response.read().decode())
+            tunnels = data.get('tunnels', [])
+            for tunnel in tunnels:
+                public_url = tunnel.get('public_url', '')
+                if public_url and public_url not in CSRF_TRUSTED_ORIGINS:
+                    CSRF_TRUSTED_ORIGINS.append(public_url)
+    except Exception as e:
+        pass  # Ignora erros ao obter URL do ngrok
+
 
 # Application definition
 
@@ -197,9 +230,10 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/app_igreja/admin-area/'
 LOGOUT_REDIRECT_URL = '/'
 # Email configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)

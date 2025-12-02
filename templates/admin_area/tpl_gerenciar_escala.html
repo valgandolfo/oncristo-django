@@ -241,20 +241,36 @@
                 </div>
             {% endif %}
         </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Situação</label>
+            {% if acao == 'incluir' or acao == 'editar' %}
+                <div class="form-check">
+                    {{ form.ITE_ESC_SITUACAO }}
+                    <label class="form-check-label ms-1">
+                        Desbloquear (permitir marcação para este item)
+                    </label>
+                </div>
+                {% if form.ITE_ESC_SITUACAO.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.ITE_ESC_SITUACAO.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="form-control" readonly>
+                    {% if item.ITE_ESC_SITUACAO %}
+                        <span class="badge bg-success">Desbloqueado</span>
+                    {% else %}
+                        <span class="badge bg-danger">Bloqueado</span>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 
 {% if acao == 'incluir' or acao == 'editar' or acao == 'excluir' %}
 </form>
 {% endif %}
-
-{% block bd_url_retornar %}
-window.location.href = "{% if mes and ano %}{% url 'app_igreja:listar_itens_escala' %}?mes={{ mes }}&ano={{ ano }}{% else %}{% url 'app_igreja:listar_itens_escala' %}{% endif %}";
-{% endblock %}
-
-{% block bd_url_cancelar %}
-window.location.href = "{% if mes and ano %}{% url 'app_igreja:listar_itens_escala' %}?mes={{ mes }}&ano={{ ano }}{% else %}{% url 'app_igreja:listar_itens_escala' %}{% endif %}";
-{% endblock %}
 
 <script>
 // Preencher mês e ano atual se não estiverem preenchidos

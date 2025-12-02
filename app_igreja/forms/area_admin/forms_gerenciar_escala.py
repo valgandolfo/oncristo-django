@@ -41,6 +41,7 @@ class ItemEscalaForm(forms.ModelForm):
             'ITE_ESC_HORARIO',
             'ITE_ESC_ENCARGO',
             'ITE_ESC_STATUS',
+            'ITE_ESC_SITUACAO',
         ]
         # ITE_ESC_COLABORADOR e ITE_ESC_GRUPO são definidos como ModelChoiceField acima
         # e não devem estar em fields para evitar conflito
@@ -63,12 +64,16 @@ class ItemEscalaForm(forms.ModelForm):
                 ('EM_ABERTO', 'Em aberto'),
                 ('DEFINIDO', 'Definido'),
             ]),
+            'ITE_ESC_SITUACAO': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+            }),
         }
         labels = {
             'ITE_ESC_DATA': 'Dia',
             'ITE_ESC_HORARIO': 'Hora',
             'ITE_ESC_ENCARGO': 'Encargo',
             'ITE_ESC_STATUS': 'Status',
+            'ITE_ESC_SITUACAO': 'Desbloquear este item',
         }
     
     def __init__(self, *args, **kwargs):

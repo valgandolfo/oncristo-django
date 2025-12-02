@@ -84,6 +84,18 @@ class TBDIZIMISTAS(models.Model):
             return self.DIS_foto.url
         return "/static/img/default-avatar.png"
     
+    def save(self, *args, **kwargs):
+        """Override do save para formatar telefone antes de salvar"""
+        # Formatar telefone antes de salvar se não estiver formatado
+        if self.DIS_telefone:
+            # Verificar se já está formatado (tem parênteses ou hífen)
+            if '(' not in str(self.DIS_telefone) and '-' not in str(self.DIS_telefone):
+                # Não está formatado, então formatar
+                self.DIS_telefone = limpar_telefone_para_display(self.DIS_telefone)
+        
+        self.clean()
+        super().save(*args, **kwargs)
+    
     def clean(self):
         """Validação personalizada"""
         from django.core.exceptions import ValidationError

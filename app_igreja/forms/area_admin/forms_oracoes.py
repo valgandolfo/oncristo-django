@@ -16,7 +16,7 @@ class OracaoForm(BaseAdminForm):
         model = TBORACOES
         fields = [
             'ORA_nome_solicitante', 'ORA_telefone_pedinte', 'ORA_tipo_oracao', 
-            'ORA_descricao', 'ORA_status', 'ORA_ativo', 'ORA_data_pedido'
+            'ORA_descricao', 'ORA_status', 'ORA_data_pedido'
         ]
         widgets = {
             'ORA_nome_solicitante': forms.TextInput(attrs={
@@ -44,10 +44,6 @@ class OracaoForm(BaseAdminForm):
                 'class': 'form-control',
                 'id': 'ORA_status'
             }),
-            'ORA_ativo': forms.CheckboxInput(attrs={
-                'class': 'form-check-input',
-                'id': 'ORA_ativo'
-            }),
             'ORA_data_pedido': DateInputWidget(attrs={
                 'class': 'form-control',
                 'id': 'ORA_data_pedido'
@@ -59,7 +55,6 @@ class OracaoForm(BaseAdminForm):
             'ORA_tipo_oracao': 'Tipo de Oração',
             'ORA_descricao': 'Descrição da Oração',
             'ORA_status': 'Status',
-            'ORA_ativo': 'Ativo',
             'ORA_data_pedido': 'Data do Pedido',
         }
     
@@ -92,6 +87,15 @@ class OracaoForm(BaseAdminForm):
         if data_pedido and data_pedido < timezone.now().date():
             raise ValidationError("A data do pedido não pode ser no passado.")
         return data_pedido
+    
+    def save(self, commit=True):
+        """Override save para garantir que ORA_ativo seja sempre True ao salvar"""
+        instance = super().save(commit=False)
+        # Sempre manter como ativo quando salvar via formulário admin
+        instance.ORA_ativo = True
+        if commit:
+            instance.save()
+        return instance
 
 
 class OracaoFiltroForm(forms.Form):

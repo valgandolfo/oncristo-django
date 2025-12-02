@@ -145,3 +145,22 @@ class TBCELEBRACOES(models.Model):
             'outras': 'Outras',
         }
         return tipo_display.get(self.CEL_tipo_celebracao, self.CEL_tipo_celebracao)
+    
+    def save(self, *args, **kwargs):
+        """Override do save para formatar telefone antes de salvar"""
+        # Formatar telefone antes de salvar se não estiver formatado
+        if self.CEL_telefone:
+            # Verificar se já está formatado (tem parênteses ou hífen)
+            if '(' not in str(self.CEL_telefone) and '-' not in str(self.CEL_telefone):
+                # Não está formatado, então formatar
+                numeros = ''.join(filter(str.isdigit, str(self.CEL_telefone)))
+                # Remove código do país (55) se existir
+                if numeros.startswith('55') and len(numeros) > 11:
+                    numeros = numeros[2:]
+                # Formata conforme o tamanho
+                if len(numeros) == 11:
+                    self.CEL_telefone = f"({numeros[:2]}) {numeros[2:7]}-{numeros[7:]}"
+                elif len(numeros) == 10:
+                    self.CEL_telefone = f"({numeros[:2]}) {numeros[2:6]}-{numeros[6:]}"
+        
+        super().save(*args, **kwargs)

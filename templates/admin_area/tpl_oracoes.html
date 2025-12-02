@@ -303,10 +303,6 @@ document.addEventListener('DOMContentLoaded', function() {
             {% if acao == 'incluir' or acao == 'editar' %}{{ form.ORA_descricao }}{% if form.ORA_descricao.errors %}<div class="text-danger small">{% for error in form.ORA_descricao.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
             {% else %}<textarea class="form-control" rows="4" readonly>{{ oracao.ORA_descricao|default:'Não informado' }}</textarea>{% endif %}
         </div>
-        <div class="mb-3"><label class="form-label fw-bold">Ativo</label>
-            {% if acao == 'incluir' or acao == 'editar' %}<div class="form-check">{{ form.ORA_ativo }}<label class="form-check-label fw-bold" for="{{ form.ORA_ativo.id_for_label }}">Pedido Ativo</label></div>{% if form.ORA_ativo.errors %}<div class="text-danger small">{% for error in form.ORA_ativo.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
-            {% else %}<div class="form-control" readonly>{% if oracao.ORA_ativo %}<span class="badge bg-success">Ativo</span>{% else %}<span class="badge bg-secondary">Inativo</span>{% endif %}</div>{% endif %}
-        </div>
         {% if acao == 'consultar' %}
         <div class="mb-3"><label class="form-label fw-bold">Cadastro</label><input type="text" class="form-control" value="{{ oracao.ORA_data_cadastro|date:'d/m/Y H:i'|default:'-' }}" readonly></div>
         <div class="mb-3"><label class="form-label fw-bold">Atualização</label><input type="text" class="form-control" value="{{ oracao.ORA_data_atualizacao|date:'d/m/Y H:i'|default:'-' }}" readonly></div>

@@ -117,6 +117,26 @@
         background-color: #f8f9fa;
     }
     
+    /* Estilo para itens bloqueados */
+    .tabela-escala tbody tr.item-bloqueado {
+        background-color: #f8d7da !important;
+        opacity: 0.7;
+    }
+    
+    .tabela-escala tbody tr.item-bloqueado td {
+        color: #721c24;
+    }
+    
+    .tabela-escala tbody tr.item-bloqueado:hover {
+        background-color: #f5c6cb !important;
+    }
+    
+    .icone-bloqueado {
+        color: #dc3545;
+        font-size: 1.5rem;
+        cursor: not-allowed;
+    }
+    
     @media (max-width: 768px) {
         .tabela-escala {
             font-size: 0.75rem;
@@ -331,10 +351,14 @@
             </thead>
             <tbody>
                 {% for item in itens %}
-                <tr>
+                <tr class="{% if item.bloqueado %}item-bloqueado{% endif %}">
                     <td>
-                        {% if item.colaborador_id %}
-                            <i class="fas fa-times icone-x" title="Já atribuído"></i>
+                        {% if item.bloqueado %}
+                            <i class="fas fa-lock icone-bloqueado" title="Período bloqueado - não disponível para atribuição"></i>
+                        {% elif item.ITE_ESC_STATUS == 'DEFINIDO' %}
+                            <i class="fas fa-check-circle" style="color: #28a745; font-size: 1.5rem;" title="Definido"></i>
+                        {% elif item.ITE_ESC_STATUS == 'RESERVADO' or item.colaborador_id %}
+                            <i class="fas fa-clock" style="color: #ffc107; font-size: 1.5rem;" title="Reservado"></i>
                         {% else %}
                             <i class="fas fa-user-plus icone-pessoa" 
                                onclick="abrirModalAtribuicao({{ item.ITE_ESC_ID }}, '{{ item.ITE_ESC_DATA|date:"d/M" }}', '{{ item.dia_semana_nome }}', '{{ item.ITE_ESC_HORARIO|time:"H:i" }}', '{{ item.ITE_ESC_ENCARGO|default:"-"|escapejs }}')"
@@ -414,9 +438,10 @@
     
     // Dados do primeiro item disponível para abrir modal automaticamente
     // Só abre se já fez a busca (tem mês e ano) e tem colaborador logado
+    // Não considerar itens bloqueados
     {% if itens and colaborador_logado and mes and ano %}
         {% for item in itens %}
-            {% if not item.colaborador_id and not primeiroItemDisponivel %}
+            {% if not item.colaborador_id and not item.bloqueado and not primeiroItemDisponivel %}
                 primeiroItemDisponivel = {
                     id: {{ item.ITE_ESC_ID }},
                     dia: '{{ item.ITE_ESC_DATA|date:"d/M" }}',

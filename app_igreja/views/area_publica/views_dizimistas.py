@@ -13,7 +13,33 @@ from django.views import View
 import json
 
 from ...forms.area_publica.forms_dizimistas import DizimistaPublicoForm
-from ...models.area_admin.models_dizimistas import TBDIZIMISTAS
+from ...models.area_admin.models_dizimistas import TBDIZIMISTAS, limpar_telefone_para_display
+import re
+
+
+def formatar_telefone_para_salvar(telefone):
+    """
+    Formata telefone para salvar no banco no formato (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+    Remove código do país (55) se existir
+    """
+    if not telefone:
+        return telefone
+    
+    # Remove caracteres não numéricos
+    numeros = ''.join(filter(str.isdigit, str(telefone)))
+    
+    # Remove código do país (55) se existir
+    if numeros.startswith('55') and len(numeros) > 11:
+        numeros = numeros[2:]
+    
+    # Formata conforme o tamanho
+    if len(numeros) == 11:
+        return f"({numeros[:2]}) {numeros[2:7]}-{numeros[7:]}"
+    elif len(numeros) == 10:
+        return f"({numeros[:2]}) {numeros[2:6]}-{numeros[6:]}"
+    else:
+        # Se não tiver tamanho válido, retorna apenas números
+        return numeros
 
 
 def quero_ser_dizimista(request):
@@ -39,6 +65,11 @@ def quero_ser_dizimista(request):
         if form.is_valid():
             try:
                 dizimista = form.save(commit=False)
+                
+                # Formatar telefone antes de salvar (especialmente se veio do chatbot)
+                if dizimista.DIS_telefone:
+                    dizimista.DIS_telefone = formatar_telefone_para_salvar(dizimista.DIS_telefone)
+                
                 # Definir status como pendente para novos cadastros públicos
                 dizimista.DIS_status = False
                 dizimista.save()
@@ -49,6 +80,11 @@ def quero_ser_dizimista(request):
                     f'seu telefone {dizimista.DIS_telefone} foi registrado. '
                     f'Em breve entraremos em contato para confirmar seus dados.'
                 )
+                
+                # Se veio do chatbot (com telefone na URL), redirecionar para home
+                if telefone_url:
+                    return redirect('home')
+                
                 return redirect('app_igreja:quero_ser_dizimista')
                 
             except Exception as e:
@@ -59,17 +95,7 @@ def quero_ser_dizimista(request):
         # Pré-preencher telefone se vier da URL
         initial_data = {}
         if telefone_url:
-            # O telefone vem da URL já limpo (sem código do país, apenas números)
-            # Remover qualquer caractere não numérico
-            telefone_limpo = ''.join(filter(str.isdigit, telefone_url))
-            
-            # O telefone deve vir do DDD em diante (sem código do país)
-            # Remover código do país se existir
-            if telefone_limpo.startswith('55'):
-                telefone_formatado = telefone_limpo[2:]  # Remove os primeiros 2 dígitos (55)
-            else:
-                telefone_formatado = telefone_limpo
-            
+            telefone_formatado = formatar_telefone_para_salvar(telefone_url)
             initial_data['DIS_telefone'] = telefone_formatado
             
             # Debug: logar o telefone formatado

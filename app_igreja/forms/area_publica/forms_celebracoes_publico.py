@@ -97,11 +97,11 @@ class CelebracaoPublicoForm(forms.ModelForm):
         return data_celebracao
 
     def clean_CEL_telefone(self):
-        """Validação do telefone"""
+        """Validação do telefone - mantém formatação se já estiver formatado"""
         telefone = self.cleaned_data.get('CEL_telefone')
         
         if telefone:
-            # Remove caracteres não numéricos
+            # Remove caracteres não numéricos para validação
             telefone_limpo = ''.join(filter(str.isdigit, telefone))
             
             # Remover código do país (55) se existir
@@ -111,6 +111,13 @@ class CelebracaoPublicoForm(forms.ModelForm):
             # Validação básica de telefone brasileiro
             if len(telefone_limpo) < 10 or len(telefone_limpo) > 11:
                 raise ValidationError('Telefone deve ter entre 10 e 11 dígitos.')
+            
+            # Se o telefone já estiver formatado, mantém a formatação
+            # Caso contrário, retorna como está (será formatado na view)
+            if '(' in telefone or '-' in telefone:
+                return telefone  # Já está formatado, mantém
+            else:
+                return telefone  # Retorna como está, será formatado na view
         
         return telefone
 
@@ -131,12 +138,8 @@ class CelebracaoPublicoForm(forms.ModelForm):
         instance = super().save(commit=False)
         instance.CEL_status = 'pendente'
         
-        # Limpar telefone antes de salvar (remover 55 se existir)
-        if instance.CEL_telefone:
-            telefone_limpo = ''.join(filter(str.isdigit, instance.CEL_telefone))
-            if telefone_limpo.startswith('55'):
-                telefone_limpo = telefone_limpo[2:]
-            instance.CEL_telefone = telefone_limpo
+        # NÃO limpar telefone aqui - deixar a view formatar antes de salvar
+        # O telefone será formatado na view antes de chamar instance.save()
         
         if commit:
             instance.save()

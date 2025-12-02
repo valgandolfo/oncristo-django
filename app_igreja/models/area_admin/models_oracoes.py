@@ -125,6 +125,13 @@ class TBORACOES(models.Model):
             raise ValidationError("A descrição deve ter pelo menos 10 caracteres")
     
     def save(self, *args, **kwargs):
-        """Override do save para aplicar validações"""
+        """Override do save para aplicar validações e formatar telefone"""
+        # Formatar telefone antes de salvar se não estiver formatado
+        if self.ORA_telefone_pedinte:
+            # Verificar se já está formatado (tem parênteses ou hífen)
+            if '(' not in str(self.ORA_telefone_pedinte) and '-' not in str(self.ORA_telefone_pedinte):
+                # Não está formatado, então formatar
+                self.ORA_telefone_pedinte = limpar_telefone_para_display(self.ORA_telefone_pedinte)
+        
         self.clean()
         super().save(*args, **kwargs)
