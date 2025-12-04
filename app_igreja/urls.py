@@ -42,6 +42,7 @@ from .views.admin_area.views_modelos_master_detail import (
     MasterDetailModeloDeleteView,
 )
 from .views.admin_area.views_extrator_liturgias import extrator_liturgias, extrator_liturgias_api
+from .views.admin_area.views_relatorios import relatorio_aniversariantes, relatorio_escala_mensal_missas, relatorio_aniversariantes_pdf, relatorio_escala_mensal_missas_pdf
 # inicio das views da área pública
 from .views.area_publica.views_liturgias import liturgia_modal, api_liturgia, visualizar_liturgia
 from .views.area_publica.views_liturgias_publico import liturgias_publico
@@ -55,6 +56,7 @@ from .views.area_publica.views_aniversariantes import aniversariantes_mes
 from .views.area_publica.views_celebracoes_publico import minhas_celebracaoes_publico, agendar_celebracao_publico, detalhar_celebracao_publico
 from .views.area_publica.views_doacoes import doacoes_publico
 from .views.area_publica.views_whatsapp_api import whatsapp_webhook, whatsapp_test_webhook, whatsapp_cadastro_dizimista, whatsapp_imagem_principal
+from .views.area_publica.views_youtube import verificar_youtube_ao_vivo, obter_url_youtube_canal
 from .views.area_publica.views_mural import mural_publico
 from .views.area_publica.views_colaboradores_publico import cadastro_colaborador_publico, api_buscar_cep, api_excluir_colaborador, quero_ser_colaborador
 from .views.area_publica.views_escala_publico import escala_publico, atribuir_colaborador_escala 
@@ -246,6 +248,12 @@ urlpatterns = [
     path('admin-area/extrator-liturgias/', extrator_liturgias, name='extrator_liturgias'),
     path('admin-area/extrator-liturgias/api/', extrator_liturgias_api, name='extrator_liturgias_api'),
     
+    # URLs para Relatórios - Área Administrativa
+    path('admin-area/relatorios/aniversariantes/', relatorio_aniversariantes, name='relatorio_aniversariantes'),
+    path('admin-area/relatorios/aniversariantes/pdf/', relatorio_aniversariantes_pdf, name='relatorio_aniversariantes_pdf'),
+    path('admin-area/relatorios/escala-mensal-missas/', relatorio_escala_mensal_missas, name='relatorio_escala_mensal_missas'),
+    path('admin-area/relatorios/escala-mensal-missas/pdf/', relatorio_escala_mensal_missas_pdf, name='relatorio_escala_mensal_missas_pdf'),
+    
     # URLs para Modelos - CRUD master-detail
     path('admin-area/modelos-master-detail/', MasterDetailModeloListView.as_view(), name='modelos_master_detail_list'),
     path('admin-area/modelos-master-detail/create/', MasterDetailModeloCreateView.as_view(), name='modelos_master_detail_create'),
@@ -309,4 +317,8 @@ urlpatterns = [
     path('api/whatsapp/test/', whatsapp_test_webhook, name='whatsapp_test_webhook'),
     path('api/whatsapp/cadastro-dizimista/', whatsapp_cadastro_dizimista, name='whatsapp_cadastro_dizimista'),
     path('api/whatsapp/imagem-principal/', whatsapp_imagem_principal, name='whatsapp_imagem_principal'),
+    
+    # URLs para YouTube - Transmissão ao Vivo
+    path('api/youtube/verificar-ao-vivo/', verificar_youtube_ao_vivo, name='verificar_youtube_ao_vivo'),
+    path('api/youtube/canal/', obter_url_youtube_canal, name='obter_url_youtube_canal'),
 ]

@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo_relatorio }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* === ESTILOS GERAIS === */
+    .hero-section {
+        padding: 0;
+    }
+    
+    /* === CONTAINER HEADER === */
+    .container-header-relatorio {
+        border: 1px solid #ef55b2;
+        border-radius: 15px;
+        padding: 16px 32px;
+        background: #e28956;
+        display: block;
+        text-align: center;
+        margin: 10px auto 0 auto;
+        max-width: 100%;
+    }
+    
+    /* === CONTAINER DE FILTROS === */
+    .container-filtros {
+        border: 1px solid #5e0239;
+        background: rgb(228, 117, 163);
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(20, 214, 235, 0.1);
+        margin: 10px 0;
+    }
+    
+    /* === CONTAINER GRID === */
+    .container-grid {
+        border: 1px solid #ef55b2;
+        background: rgb(63, 212, 205);
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px #ef55b2;
+        margin-top: 20px;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    
+    /* === TABELA === */
+    .relatorio-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .relatorio-table thead {
+        background: #09788e;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .relatorio-table th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        border: 1px solid #fff;
+    }
+    
+    .relatorio-table tbody tr {
+        border-bottom: 1px solid #c8c8dc;
+    }
+    
+    .relatorio-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .relatorio-table td {
+        padding: 12px;
+        border: 1px solid #c8c8dc;
+        word-wrap: break-word;
+    }
+    
+    /* === BOTÃO BUSCAR === */
+    .btn-buscar {
+        background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .btn-buscar:hover {
+        background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
+    }
+    
+    /* === BOTÕES DE AÇÃO === */
+    .container-botoes-acao {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+    
+    .btn-imprimir {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .btn-imprimir:hover {
+        background: linear-gradient(135deg, #0056b3 0%, #007bff 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    }
+    
+    .btn-gerar-pdf {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .btn-gerar-pdf:hover {
+        background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+    
+    /* === BOTÃO SUSPENSO ENGrenagem === */
+    .btn-engrenagem-suspenso {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #940347 0%, #ecedee 100%);
+        border-radius: 50%;
+        color: white;
+        font-size: 24px;
+        box-shadow: 0 4px 15px rgba(229, 233, 4, 0.4);
+        z-index: 1000;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    
+    .btn-engrenagem-suspenso:hover {
+        transform: scale(1.1) rotate(90deg);
+        box-shadow: 0 6px 20px rgba(25, 3, 218, 0.6);
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* === RESPONSIVO === */
+    @media (max-width: 768px) {
+        .container-header-relatorio {
+            margin: 10px;
+            padding: 12px 16px;
+        }
+        
+        .container-filtros {
+            padding: 20px;
+        }
+        
+        .container-grid {
+            padding: 15px;
+            max-height: 400px;
+        }
+        
+        .btn-engrenagem-suspenso {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            bottom: 20px;
+            right: 20px;
+        }
+        
+        .container-botoes-acao {
+            flex-direction: column;
+        }
+        
+        .btn-imprimir,
+        .btn-gerar-pdf {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Container Header -->
+<div class="container">
+    <div class="container-header-relatorio">
+        <h1 class="mb-3 text-center">
+            <i class="fas fa-chart-bar me-3"></i>
+            {{ titulo_relatorio }}
+        </h1>
+    </div>
+</div>
+
+<!-- Container Principal -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+            
+            <!-- Container de Filtros -->
+            <div class="container-filtros">
+                <h5 class="mb-4">
+                    <i class="fas fa-filter me-2"></i>
+                    Filtrar {{ titulo_filtro }}
+                </h5>
+                
+                {% block filtros %}
+                <!-- Filtros serão definidos nos templates filhos -->
+                {% endblock %}
+            </div>
+            
+            <!-- Container Grid (só aparece após busca) -->
+            {% if busca_realizada|default:False %}
+            <div class="container-grid">
+                <h5 class="mb-4">
+                    <i class="fas fa-list me-2"></i>
+                    {% if total_encontrado > 0 %}
+                        {{ total_encontrado }} Registro{{ total_encontrado|pluralize }} Encontrado{{ total_encontrado|pluralize }}
+                    {% else %}
+                        Nenhum Registro Encontrado
+                    {% endif %}
+                </h5>
+                
+                {% block grid %}
+                <!-- Grid será definido nos templates filhos -->
+                {% endblock %}
+            </div>
+            
+            <!-- Container Botões de Ação (só aparece após busca) -->
+            <div class="container-botoes-acao">
+                {% block botao_imprimir_pdf %}
+                <!-- Botão Imprimir/PDF será definido nos templates filhos -->
+                {% endblock %}
+            </div>
+            {% else %}
+            <!-- Mensagem inicial -->
+            <div class="container-grid" style="display: flex; align-items: center; justify-content: center; min-height: 200px;">
+                <div class="text-center p-4">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Preencha os filtros e clique em "Buscar" para visualizar os resultados.</p>
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
+
+<!-- Botão Suspenso Engrenagem -->
+<a href="{% url 'app_igreja:admin_area' %}" class="btn-engrenagem-suspenso" title="Voltar para Área Administrativa">
+    <i class="fas fa-cog"></i>
+</a>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Scroll suave no grid
+document.addEventListener('DOMContentLoaded', function() {
+    const grid = document.querySelector('.container-grid');
+    if (grid) {
+        // Adiciona scroll suave
+        grid.style.scrollBehavior = 'smooth';
+    }
+});
+</script>
+{% endblock %}
+

@@ -120,9 +120,13 @@ class ItemEscalaForm(forms.ModelForm):
         
         # Converter ModelChoiceField para IntegerField
         if self.cleaned_data.get('ITE_ESC_COLABORADOR'):
-            instance.ITE_ESC_COLABORADOR = self.cleaned_data['ITE_ESC_COLABORADOR'].COL_id
+            colaborador = self.cleaned_data['ITE_ESC_COLABORADOR']
+            instance.ITE_ESC_COLABORADOR = colaborador.COL_id
+            # Gravar a função do colaborador no momento da atribuição (preserva histórico)
+            instance.ITE_ESC_FUNCAO = colaborador.COL_funcao
         else:
             instance.ITE_ESC_COLABORADOR = None
+            instance.ITE_ESC_FUNCAO = None
         
         if self.cleaned_data.get('ITE_ESC_GRUPO'):
             instance.ITE_ESC_GRUPO = self.cleaned_data['ITE_ESC_GRUPO'].GRU_id

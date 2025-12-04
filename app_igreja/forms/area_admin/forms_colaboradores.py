@@ -6,6 +6,7 @@ Arquivo com formulários específicos para Colaboradores
 from django import forms
 from django.core.exceptions import ValidationError
 from ...models.area_admin.models_colaboradores import TBCOLABORADORES
+from ...models.area_admin.models_funcoes import TBFUNCAO
 from .forms_commons import BaseAdminForm, DateInputWidget, get_estados_brasil
 
 
@@ -23,12 +24,49 @@ class ColaboradorForm(BaseAdminForm):
         })
     )
     
+    # Sobrescrever COL_funcao para ser um ChoiceField em vez de IntegerField
+    COL_funcao = forms.ChoiceField(
+        label='Função',
+        required=False,
+        choices=[('', 'Selecione uma função...')],
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+            'id': 'COL_funcao'
+        })
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Popular choices de funções
+        funcoes = TBFUNCAO.objects.all().order_by('FUN_nome_funcao')
+        choices_funcoes = [('', 'Selecione uma função...')]
+        choices_funcoes.extend([(str(funcao.FUN_id), funcao.FUN_nome_funcao) for funcao in funcoes])
+        self.fields['COL_funcao_id'].choices = choices_funcoes
+        
+        # Popular choices do campo COL_funcao
+        if 'COL_funcao' in self.fields:
+            self.fields['COL_funcao'].choices = choices_funcoes
+            
+        # Se estiver editando, definir o valor inicial do campo COL_funcao
+        if self.instance and self.instance.pk and self.instance.COL_funcao:
+            self.fields['COL_funcao'].initial = str(self.instance.COL_funcao)
+    
     def clean_COL_funcao_id(self):
         """Converte string vazia para None"""
         value = self.cleaned_data.get('COL_funcao_id')
         if value == '':
             return None
         return value
+    
+    def clean_COL_funcao(self):
+        """Converte string vazia para None"""
+        value = self.cleaned_data.get('COL_funcao')
+        if value == '' or value is None:
+            return None
+        try:
+            return int(value)
+        except (ValueError, TypeError):
+            return None
     
     class Meta:
         model = TBCOLABORADORES
@@ -51,6 +89,7 @@ class ColaboradorForm(BaseAdminForm):
             'COL_status',
             'COL_membro_ativo',
             'COL_funcao_id',
+            'COL_funcao',
         ]
         widgets = {
             'COL_telefone': forms.TextInput(attrs={
@@ -110,11 +149,18 @@ class ColaboradorForm(BaseAdminForm):
                 'class': 'form-control',
                 'id': 'COL_sexo'
             }, choices=[('', 'Selecione...'), ('M', 'Masculino'), ('F', 'Feminino')]),
-            'COL_estado_civil': forms.TextInput(attrs={
+            'COL_estado_civil': forms.Select(attrs={
                 'class': 'form-control',
-                'placeholder': 'Estado civil',
                 'id': 'COL_estado_civil'
-            }),
+            }, choices=[
+                ('', 'Selecione...'),
+                ('SOLTEIRO', 'Solteiro(a)'),
+                ('CASADO', 'Casado(a)'),
+                ('DIVORCIADO', 'Divorciado(a)'),
+                ('VIUVO', 'Viúvo(a)'),
+                ('UNIAO_ESTAVEL', 'União Estável'),
+                ('SEPARADO', 'Separado(a)'),
+            ]),
             'COL_funcao_pretendida': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Função pretendida',

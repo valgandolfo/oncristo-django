@@ -41,6 +41,11 @@ class TBPAROQUIA(models.Model):
     PAR_pix_cidade = models.CharField(max_length=100, verbose_name="Cidade do Beneficiário PIX", blank=True, null=True)
     PAR_pix_uf = models.CharField(max_length=2, verbose_name="UF do Beneficiário PIX", blank=True, null=True)
     
+    # URLs Redes Sociais
+    PAR_url_youtube = models.URLField(verbose_name="URL do YouTube", blank=True, null=True, help_text="URL do canal do YouTube da paróquia")
+    PAR_url_facebook = models.URLField(verbose_name="URL do Facebook", blank=True, null=True, help_text="URL da página do Facebook da paróquia")
+    PAR_url_instagram = models.URLField(verbose_name="URL do Instagram", blank=True, null=True, help_text="URL do perfil do Instagram da paróquia")
+    
     # Horários Fixos de Celebração (JSON)
     PAR_horarios_fixos_json = models.TextField(
         verbose_name="Horários Fixos de Celebração", 

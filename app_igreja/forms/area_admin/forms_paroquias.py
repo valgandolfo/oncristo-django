@@ -18,7 +18,8 @@ class ParoquiaForm(BaseAdminForm):
             'PAR_nome_paroquia', 'PAR_diocese', 'PAR_cep', 'PAR_endereco', 'PAR_numero', 'PAR_cidade', 'PAR_uf', 'PAR_bairro',
             'PAR_telefone', 'PAR_email', 'PAR_paroco', 'PAR_foto_paroco', 'PAR_secretario',
             'PAR_cnpj', 'PAR_banco', 'PAR_agencia', 'PAR_conta',
-            'PAR_pix_chave', 'PAR_pix_tipo', 'PAR_pix_beneficiario', 'PAR_pix_cidade', 'PAR_pix_uf'
+            'PAR_pix_chave', 'PAR_pix_tipo', 'PAR_pix_beneficiario', 'PAR_pix_cidade', 'PAR_pix_uf',
+            'PAR_url_youtube', 'PAR_url_facebook', 'PAR_url_instagram'
         ]
         widgets = {
             'PAR_nome_paroquia': forms.TextInput(attrs={
@@ -111,6 +112,18 @@ class ParoquiaForm(BaseAdminForm):
             'PAR_pix_uf': forms.Select(attrs={
                 'class': 'form-control'
             }, choices=[('', 'Selecione UF')] + list(get_estados_brasil())),
+            'PAR_url_youtube': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://www.youtube.com/@canalparoquia'
+            }),
+            'PAR_url_facebook': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://www.facebook.com/paroquia'
+            }),
+            'PAR_url_instagram': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://www.instagram.com/paroquia'
+            }),
         }
 
 

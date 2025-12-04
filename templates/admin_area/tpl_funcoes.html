@@ -53,10 +53,8 @@
 <!-- === BLOCO COLUNAS CABEÇALHO DASHBOARD === -->
 {% block colunas_cabecalho_dashboard %}
 <th width="10%">ID</th>
-<th width="45%">Nome da Função</th>
-<th width="15%">Grupo</th>
-<th width="15%">Status</th>
-<th width="15%">Data Cadastro</th>
+<th width="70%">Nome da Função</th>
+<th width="20%">Status</th>
 {% endblock %}
 
 <!-- === BLOCO LINHAS TABELA DASHBOARD === -->
@@ -93,16 +91,14 @@
             </div>
         </div>
     </td>
-    <td>{{ funcao.FUN_grupo_id|default:"-" }}</td>
     <td>
         <span class="badge bg-success">Ativo</span>
     </td>
-    <td>{{ funcao.FUN_id|date:"d/m/Y"|default:"-" }}</td>
     {% endblock %}
 </tr>
 {% empty %}
 <tr>
-    <td colspan="6" class="text-center text-muted">
+    <td colspan="3" class="text-center text-muted">
         <i class="fas fa-briefcase fa-2x mb-2"></i>
         <br>
         Nenhuma função encontrada.

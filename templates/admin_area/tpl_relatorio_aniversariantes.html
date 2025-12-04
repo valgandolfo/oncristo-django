@@ -1,0 +1,102 @@
+{% extends 'admin_area/tpl_relatorio_base.html' %}
+{% load static %}
+
+{% block title %}Relatório de Aniversariantes{% endblock %}
+
+{% block filtros %}
+<form method="get" class="row g-3 align-items-end">
+    <div class="col-md-4">
+        <label for="data" class="form-label fw-bold">Filtrar até:</label>
+        <input type="month" 
+               name="data" 
+               id="data"
+               class="form-control" 
+               value="{{ data_filtro }}">
+    </div>
+    
+    <div class="col-md-6">
+        <label for="tipo" class="form-label fw-bold">Tipo:</label>
+        <select name="tipo" 
+                id="tipo"
+                class="form-select">
+            <option value="TODOS" {% if tipo_filtro == 'TODOS' %}selected{% endif %}>Todos</option>
+            <option value="DIZIMISTA" {% if tipo_filtro == 'DIZIMISTA' %}selected{% endif %}>Dizimista</option>
+            <option value="COLABORADOR" {% if tipo_filtro == 'COLABORADOR' %}selected{% endif %}>Colaborador</option>
+        </select>
+    </div>
+    
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-buscar w-100">
+            <i class="fas fa-search me-2"></i>
+            Buscar
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block grid %}
+{% if aniversariantes %}
+    <table class="relatorio-table">
+        <thead>
+            <tr>
+                <th style="width: 50%;">Nome</th>
+                <th style="width: 25%;">Data Aniversário</th>
+                <th style="width: 25%;">Tipo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pessoa in aniversariantes %}
+            <tr>
+                <td>
+                    <i class="fas fa-user me-2"></i>
+                    {{ pessoa.nome }}
+                </td>
+                <td>
+                    <i class="fas fa-calendar me-2"></i>
+                    {{ pessoa.data_aniversario|date:"d/m/Y" }}
+                </td>
+                <td>
+                    {% if pessoa.tipo == 'Dizimista' %}
+                        <span class="badge bg-success">
+                            {{ pessoa.tipo }}
+                        </span>
+                    {% else %}
+                        <span class="badge bg-info">
+                            {{ pessoa.tipo }}
+                        </span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <div class="text-center p-4">
+        <i class="fas fa-birthday-cake fa-3x text-muted mb-3"></i>
+        <p class="text-muted">Nenhum aniversariante encontrado para os filtros selecionados.</p>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block botao_imprimir_pdf %}
+<a href="{% url 'app_igreja:relatorio_aniversariantes_pdf' %}?data={{ data_filtro }}&tipo={{ tipo_filtro }}" class="btn btn-imprimir" target="_blank">
+    <i class="fas fa-print me-2"></i>
+    Imprimir
+</a>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Definir mês atual como padrão se não houver filtro
+    const dataInput = document.getElementById('data');
+    if (dataInput && !dataInput.value) {
+        const hoje = new Date();
+        const mesAno = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
+        dataInput.value = mesAno;
+    }
+});
+</script>
+{% endblock %}
+

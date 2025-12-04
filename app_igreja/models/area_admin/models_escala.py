@@ -109,6 +109,12 @@ class TBITEM_ESCALA(models.Model):
         verbose_name="Situação",
         help_text="Situação do item da escala"
     )
+    ITE_ESC_FUNCAO = models.IntegerField(
+        blank=True,
+        null=True,
+        verbose_name="Função",
+        help_text="ID da função do colaborador no momento da atribuição (preserva histórico)"
+    )
     
     class Meta:
         db_table = 'TBITEM_ESCALA'

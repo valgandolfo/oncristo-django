@@ -239,8 +239,9 @@ def atribuir_colaborador_escala(request):
                 'mensagem': 'Este encargo já está atribuído a outro colaborador.'
             }, status=400)
         
-        # Atribuir colaborador
+        # Atribuir colaborador e função (preserva histórico)
         item.ITE_ESC_COLABORADOR = colaborador.COL_id
+        item.ITE_ESC_FUNCAO = colaborador.COL_funcao  # Grava a função no momento da atribuição
         item.ITE_ESC_STATUS = 'RESERVADO'
         item.save()
         

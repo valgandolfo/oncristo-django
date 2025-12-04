@@ -240,7 +240,8 @@
                 </form>
             </div>
             
-            <!-- Container de Lista de Aniversariantes -->
+            <!-- Container de Lista de Aniversariantes (só aparece após busca) -->
+            {% if busca_realizada|default:False %}
             <div class="container-lista">
                 <h5 class="mb-4">
                     <i class="fas fa-list me-2"></i>
@@ -293,6 +294,15 @@
                     </div>
                 {% endif %}
             </div>
+            {% else %}
+            <!-- Mensagem inicial -->
+            <div class="container-lista" style="display: flex; align-items: center; justify-content: center; min-height: 200px;">
+                <div class="text-center p-4">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Preencha os filtros e clique em "Buscar" para visualizar os aniversariantes.</p>
+                </div>
+            </div>
+            {% endif %}
             
         </div>
     </div>

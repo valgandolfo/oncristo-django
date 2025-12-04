@@ -1,0 +1,2205 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Projeto On Cristo{% endblock %}</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Sistema de gestão usaial - Comunicação, eventos e administração">
+    <meta name="theme-color" content="#8B4513">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="On Cristo">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#8B4513">
+    <meta name="msapplication-config" content="none">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" href="{% static 'icons/icon-192x192.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192x192.png' %}">
+    <link rel="apple-touch-icon" sizes="72x72" href="{% static 'icons/icon-72x72.png' %}">
+    <link rel="apple-touch-icon" sizes="96x96" href="{% static 'icons/icon-96x96.png' %}">
+    <link rel="apple-touch-icon" sizes="128x128" href="{% static 'icons/icon-128x128.png' %}">
+    <link rel="apple-touch-icon" sizes="144x144" href="{% static 'icons/icon-144x144.png' %}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{% static 'icons/icon-152x152.png' %}">
+    <link rel="apple-touch-icon" sizes="192x192" href="{% static 'icons/icon-192x192.png' %}">
+    <link rel="apple-touch-icon" sizes="384x384" href="{% static 'icons/icon-384x384.png' %}">
+    <link rel="apple-touch-icon" sizes="512x512" href="{% static 'icons/icon-512x512.png' %}">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.3">
+    {% block extra_css %}{% endblock %}
+    <style>
+        /* =========================================== */
+        /* === ESTILOS BÁSICOS GLOBAIS === */
+        /* =========================================== */
+        body {
+            background-color: #f8f9fa;       /* COR: Fundo cinza claro da página */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .alert {
+            border-radius: 10px;
+        }
+        
+        /* =========================================== */
+        /* === HEADER PRINCIPAL === */
+        /* =========================================== */
+        .header {
+            background: linear-gradient(135deg, #2D0000 0%, #4A0000 25%, #8B0000 50%, #A52A2A 75%, #8B0000 100%); /* COR: Gradiente vinho do header */
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 1001;
+            overflow: hidden;
+        }
+        
+        /* COR: Faixas decorativas do header */
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700); /* COR: Faixa dourada superior */
+            z-index: 1;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #8B0000, #A52A2A, #8B0000); /* COR: Faixa vinho inferior */
+            z-index: 1;
+        }
+        
+        /* Efeito de brilho sutil */
+        .header .container {
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Animação sutil do degradê */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .header {
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+        }
+        
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin: 0;
+        }
+        
+        /* Estilos dos emojis do cabeçalho */
+        .header-emojis {
+            font-size: 2rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            animation: emojiGlow 3s ease-in-out infinite alternate;
+        }
+        
+        .header-emojis:hover {
+            transform: scale(1.1);
+            filter: brightness(1.2);
+        }
+        
+        @keyframes emojiGlow {
+            0% { filter: brightness(1); }
+            100% { filter: brightness(1.1); }
+        }
+        
+        .header .nav-link {
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .header .nav-link:hover {
+            color: #FFD700 !important;
+            transform: translateY(-1px);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .header .nav-link i {
+            transition: all 0.3s ease;
+        }
+        
+        .header .nav-link:hover i {
+            transform: scale(1.1);
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header-emojis {
+                font-size: 1.6rem;
+                margin-top: 5px;
+            }
+            
+            .header .nav-link {
+                font-size: 0.9rem;
+                margin-bottom: 5px;
+            }
+            
+            .header .d-flex.justify-content-end {
+                flex-direction: column;
+                align-items: center !important;
+            }
+            
+            .header .d-flex.align-items-center {
+                justify-content: center;
+                text-align: center;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .header-emojis {
+                font-size: 1.4rem;
+            }
+            
+            .header .d-flex.align-items-center {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+        
+        /* =========================================== */
+        /* === SEÇÃO DE BOAS-VINDAS === */
+        /* =========================================== */
+        .welcome-section {
+            background: linear-gradient(135deg, #E8F5E8 0%, #D4EDDA 25%, #C3E6CB 50%, #B8DFC1 75%, #A8D5B3 100%); /* COR: Gradiente verde claro da seção boas-vindas */
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* COR: Faixas decorativas da seção boas-vindas */
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #28A745, #20C997, #28A745); /* COR: Faixa verde superior */
+            z-index: 1;
+        }
+        
+        .welcome-section::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #28A745, #20C997, #28A745); /* COR: Faixa verde inferior */
+            z-index: 1;
+        }
+        
+        .welcome-section .container {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .paroquia-nome {
+            color: #155724;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .catedral-image {
+            max-width: 350px;
+            height: auto;
+            border: 4px solid #28A745;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .catedral-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+        }
+        
+        /* Responsividade da seção de boas-vindas */
+        @media (max-width: 768px) {
+            .welcome-section {
+                padding: 3rem 0 !important;
+            }
+            
+            .catedral-image {
+                max-width: 280px;
+                margin-top: 2rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .welcome-section {
+                padding: 2rem 0 !important;
+            }
+            
+            .catedral-image {
+                max-width: 250px;
+            }
+            
+            .welcome-section h2 {
+                font-size: 1.5rem;
+            }
+
+            
+            
+            .welcome-section .lead {
+                font-size: 1.1rem;
+            }
+        }
+        
+
+        
+        /* Otimizações do header para mobile */
+        @media (max-width: 768px) {
+            .header {
+                padding: 10px 0;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem !important;
+                margin-bottom: 0.5rem;
+            }
+            
+            .header-emojis {
+                font-size: 1.2rem;
+                margin-top: 0.5rem;
+            }
+            
+            /* Forçar botões horizontalmente em mobile */
+            .header .navigation-menu {
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                justify-content: center !important;
+                align-items: center;
+                gap: 0.5rem;
+                width: 100%;
+            }
+            
+            .header .nav-link {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+                white-space: nowrap;
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.1);
+                margin: 0;
+                transition: all 0.3s ease;
+                flex-shrink: 0;
+                min-width: auto;
+            }
+            
+            .header .nav-link:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateY(-2px);
+            }
+            
+            /* Ajustar espaçamento entre elementos */
+            .header .me-3 {
+                margin-right: 0 !important;
+            }
+            
+            .header .me-md-4 {
+                margin-right: 0 !important;
+            }
+            
+            /* Mensagem de boas-vindas em mobile */
+            .header span {
+                font-size: 0.85rem;
+                padding: 0.5rem 0.75rem;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                margin: 0.25rem;
+                display: inline-block;
+            }
+            
+            /* Garantir que a coluna de navegação ocupe toda a largura em mobile */
+            .header .col-lg-6.col-md-7.col-sm-12 {
+                text-align: center;
+                margin-top: 1rem;
+            }
+        }
+        
+        /* Ajustes para telas muito pequenas */
+        @media (max-width: 576px) {
+            .header h1 {
+                font-size: 1.5rem !important;
+            }
+            
+            .header .nav-link {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.8rem;
+            }
+            
+            .header span {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.6rem;
+            }
+            
+            /* Forçar layout horizontal em telas muito pequenas */
+            .header .navigation-menu {
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                justify-content: center !important;
+                gap: 0.3rem;
+            }
+            
+            .header .nav-link {
+                padding: 0.3rem 0.5rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* =========================================== */
+        /* === FORMULÁRIOS E BOTÕES === */
+        /* =========================================== */
+        .footer-personalizado {
+            background: linear-gradient(135deg, #F2DE57 0%, #e6d14a 100%); /* COR: Gradiente amarelo do footer formulários */
+            border-top: 1px solid #dee2e6;
+        }
+
+        .btn-editar-personalizado {
+            background: linear-gradient(135deg, #E29911 0%, #cc880f 100%); /* COR: Gradiente laranja do botão editar */
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(226, 153, 17, 0.3);
+        }
+
+        .btn-editar-personalizado:hover {
+            background: linear-gradient(135deg, #cc880f 0%, #b3770d 100%); /* COR: Gradiente laranja escuro no hover */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(226, 153, 17, 0.4);
+            color: white;
+        }
+
+       
+        .dia-semana {
+            background: white; /* COR: Fundo branco dos dias da semana */
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid #007bff; /* COR: Borda azul esquerda dos dias */
+        }
+
+        .dia-semana h5 {
+            color: #007bff;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-text {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+
+        /* =========================================== */
+        /* === CORES ESPECÍFICAS POR SEÇÃO === */
+        /* =========================================== */
+        /* COR: Classes para informações básicas */
+        .bg-info-basicas {
+            background: linear-gradient(135deg, #1e84bf 0%, #1a6ba3 100%) !important;
+            color: white !important;
+        }
+
+        /* COR: Classes para dados bancários */
+        .bg-dados-bancarios {
+            background: linear-gradient(135deg, #1e84bf 0%, #1a6ba3 100%) !important;
+            color: white !important;
+        }
+
+        /* COR: Classes para horários fixos */
+        .bg-horarios-fixos {
+            background: linear-gradient(135deg, #1e84bf 0%, #1a6ba3 100%) !important;
+            color: white !important;
+        }
+
+        /* COR: Backgrounds azuis específicos (DUPLICADOS - REMOVER) */
+        .info-basicas-bg {
+            background: #1e84bf !important; /* COR: Azul específico para info básicas */
+            color: #000000 !important;
+        }
+
+   
+        /* =========================================== */
+        /* === PAINÉIS COLAPSÁVEIS DASHBOARD === */
+        /* =========================================== */
+        .panel-container {
+            margin-bottom: 0.5rem;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+        
+        /* === PAINÉIS - ESTILOS BASE === */
+        .panel-header-base {
+            padding: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        /* === PAINEL ESTATÍSTICAS === */
+        .panel-header-estatisticas {
+            background: #00588b; /* COR: Vermelho escuro para estatísticas */
+            color: #FFFFFF; /* COR: Texto branco para estatísticas */
+        }
+        
+        /* === PAINEL BUSCA === */
+        .panel-header-busca {
+            background: #4005c9; /* COR: Azul escuro do cabeçalho do painel busca */
+            color: #0e0e0d; /* COR: Texto preto do painel busca */
+        }
+        
+        .panel-header-base:hover {
+            transform: translateY(-2px);
+        }
+        
+        .panel-header-base h5 {
+            margin: 0;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .panel-header-base h5 i {
+            margin-right: 0.5rem;
+        }
+        
+        .panel-header-base .panel-icon {
+            color: white;
+            transition: transform 0.3s ease;
+        }
+        
+        .panel-content {
+            background: #1885a1; /* COR: Azul médio do corpo do painel busca */
+            padding: 1rem;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .panel-content.collapsed {
+            max-height: 0;
+            padding: 0 1rem;
+        }
+        
+        .panel-content.expanded {
+            max-height: 500px;
+            padding: 1rem;
+        }
+        
+        .panel-icon.rotated {
+            transform: rotate(180deg);
+        }
+        
+        /* =========================================== */
+        /* === CONTADORES DE ESTATÍSTICAS === */
+        /* =========================================== */
+        .cont_estatistica {
+            display: flex;
+            justify-content: center;
+            gap: 0.8rem;
+            padding: 0.2rem 0.8rem 0.8rem 0.8rem;
+            transition: all 0.3s ease;
+            background-color: hsl(184, 78%, 59%); /* COR: Fundo rosa dos contadores de estatísticas */
+            color: #000000;
+            border-radius: 8px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            background: rgba(255,255,255,0.2); /* COR: Fundo branco semi-transparente dos itens */
+            border-radius: 6px;
+            padding: 0.48rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,0,0,0.2);
+            min-width: 80px;
+            color: #000000;
+        }
+        
+        /* COR: Cores específicas dos contadores */
+        .stat-item.ativos {
+            background: rgba(40, 167, 69, 0.8); /* COR: Verde para contador "Ativos" */
+            border-color: rgba(40, 167, 69, 1);
+        }
+        
+        .stat-item.inativos {
+            background: rgba(220, 53, 69, 0.8); /* COR: Vermelho para contador "Inativos" */
+            border-color: rgba(220, 53, 69, 1);
+        }
+        
+        .stat-item.suspensos {
+            background: rgba(255, 193, 7, 0.8); /* COR: Amarelo para contador "Suspensos" */
+            border-color: rgba(255, 193, 7, 1);
+        }
+        
+        .stat-item.demitidos {
+            background: rgba(23, 162, 184, 0.8); /* COR: Azul para contador "Demitidos" */
+            border-color: rgba(23, 162, 184, 1);
+        }
+        
+        .stat-number {
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.64rem;
+            opacity: 0.9;
+        }
+        
+        /* === BUSCA GENÉRICA === */
+        .cont_busca {
+            padding: 0.2rem 0.8rem 0.8rem 0.8rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            background-color: #1885a1; /* COR: Azul médio do corpo do painel busca */
+            color: #0e0e0d; /* COR: Texto preto do painel busca */
+        }
+        
+        .busca-campos {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+        }
+        
+        .campo-busca {
+            flex: 1;
+        }
+        
+        .campo-busca label {
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+        
+        .campo-busca input,
+        .campo-busca select {
+            width: 100%;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .cont_busca_btnbusca {
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .cont_busca_btnbusca:hover {
+            transform: translateY(-1px);
+        }
+        
+        /* === CONTEÚDO PRINCIPAL GENÉRICO === */
+        .cont_principal {
+            padding: 1rem;
+            background-color: #ffffff;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+        
+        .cont_lista {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+            padding-top: 1.2rem;
+        }
+        
+        /* =========================================== */
+        /* === BOTÃO FLUTUANTE DASHBOARD === */
+        /* =========================================== */
+        .cont_lista_btnadd {
+            position: absolute !important;
+            bottom: 20px !important;
+            right: 20px !important;
+            background: linear-gradient(135deg, #05d760 0%, #5a0333 100%) !important; /* COR: Gradiente laranja do botão flutuante */
+            color: #ffffff !important;
+            border: 3px solid #ffffff !important;
+            border-radius: 50% !important;
+            width: 60px !important;
+            height: 60px !important;
+            font-size: 24px !important;
+            font-weight: bold !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            z-index: 9999 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.8) !important; /* COR: Sombra laranja do botão */
+        }
+        
+        .cont_lista_btnadd:hover {
+            background: linear-gradient(135deg, #F7931E 0%, #FF6B35 100%) !important; /* COR: Gradiente laranja invertido no hover */
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(255, 107, 53, 0.9) !important; /* COR: Sombra laranja mais intensa no hover */
+        }
+        
+        .cont_lista_btnadd:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+        
+        /* =========================================== */
+        /* === BOTÕES DE AÇÃO DASHBOARD === */
+        /* =========================================== */
+        /* COR: Botão azul (Consultar) */
+        .cont_lista .btn-info { 
+            background: linear-gradient(135deg, #007bff 0%, #2563eb 100%) !important; /* COR: Gradiente azul do botão consultar */
+            color: white !important; 
+            border: none !important; 
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3) !important;
+            transition: all 0.3s ease !important;
+        }
+        .cont_lista .btn-info:hover { 
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; /* COR: Gradiente azul escuro no hover */
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4) !important;
+        }
+        
+        /* COR: Botão cinza (Editar) */
+        .cont_lista .btn-warning { 
+            background: linear-gradient(135deg, #6c757d 0%, #4b5563 100%) !important; /* COR: Gradiente cinza do botão editar */
+            color: white !important; 
+            border: none !important; 
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3) !important;
+            transition: all 0.3s ease !important;
+        }
+        .cont_lista .btn-warning:hover { 
+            background: linear-gradient(135deg, #4b5563 0%, #374151 100%) !important; /* COR: Gradiente cinza escuro no hover */
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4) !important;
+        }
+        
+        /* COR: Botão vermelho (Excluir) */
+        .cont_lista .btn-danger { 
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; /* COR: Gradiente vermelho do botão excluir */
+            color: white !important; 
+            border: none !important; 
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3) !important;
+            transition: all 0.3s ease !important;
+        }
+        .cont_lista .btn-danger:hover { 
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important; /* COR: Gradiente vermelho escuro no hover */
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
+        }
+        
+        /* COR: Botão verde (Salvar) */
+        .cont_lista .btn-success { 
+            background: linear-gradient(135deg, #28a745 0%, #059669 100%) !important; /* COR: Gradiente verde do botão salvar */
+            color: white !important; 
+            border: none !important; 
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+            transition: all 0.3s ease !important;
+        }
+        .cont_lista .btn-success:hover { 
+            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important; /* COR: Gradiente verde escuro no hover */
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+        }
+        
+        /* COR: Botão cinza secundário */
+        .cont_lista .btn-secondary { 
+            background: linear-gradient(135deg, #6c757d 0%, #4b5563 100%) !important; /* COR: Gradiente cinza do botão secundário */
+            color: white !important; 
+            border: none !important; 
+            box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3) !important;
+            transition: all 0.3s ease !important;
+        }
+        .cont_lista .btn-secondary:hover { 
+            background: linear-gradient(135deg, #4b5563 0%, #374151 100%) !important; /* COR: Gradiente cinza escuro no hover */
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4) !important;
+        }
+        
+        
+        /* =========================================== */
+        /* === BOTÕES DE AÇÃO SUSPENSOS === */
+        /* =========================================== */
+        .botoes-acao {
+            background-color: #f8f9fa; /* COR: Fundo cinza claro dos botões suspensos */
+            border-top: 1px solid #dee2e6;
+            padding: 0.8rem 1rem;
+            margin-top: 0.5rem;
+            border-radius: 0 0 8px 8px;
+        }
+        
+        .cont_lista_btnreservado,
+        .cont_lista_btnconsultar,
+        .cont_lista_btneditar,
+        .cont_lista_btnexcluir {
+            font-size: 0.875rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
+        }
+        
+        /* =========================================== */
+        /* === PAGINAÇÃO DASHBOARD === */
+        /* =========================================== */
+        .pagination-container {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .pagination {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .pagination li {
+            margin: 0 0.25rem;
+        }
+        
+        .pagination a,
+        .pagination span {
+            display: block;
+            padding: 0.5rem 0.75rem;
+            text-decoration: none;
+            border: 1px solid #dee2e6;
+            color: #007bff; /* COR: Texto azul dos links de paginação */
+            border-radius: 0.25rem;
+        }
+        
+        .pagination .current {
+            background-color: #007bff; /* COR: Fundo azul da página atual */
+            color: white;
+            border-color: #007bff;
+        }
+        
+        .pagination a:hover {
+            background-color: #e9ecef; /* COR: Fundo cinza claro no hover da paginação */
+        }
+
+        /* =========================================== */
+        /* === LAYOUT DE 2 COLUNAS PARA DETALHES === */
+        /* =========================================== */
+        /* FORÇA LAYOUT DE 2 COLUNAS PARA TODAS AS AÇÕES */
+        .detalhe-dizimista .row,
+        .detalhe-celebrante .row,
+        .detalhe-grupo .row,
+        .detalhe-aviso .row,
+        .detalhe-colaborador .row {
+            display: flex !important;
+            flex-wrap: wrap !important;
+        }
+
+        .detalhe-dizimista .col-md-6,
+        .detalhe-celebrante .col-md-6,
+        .detalhe-grupo .col-md-6,
+        .detalhe-aviso .col-md-6,
+        .detalhe-colaborador .col-md-6 {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        @media (max-width: 768px) {
+            .detalhe-dizimista .col-md-6,
+            .detalhe-celebrante .col-md-6,
+            .detalhe-grupo .col-md-6,
+            .detalhe-aviso .col-md-6,
+            .detalhe-colaborador .col-md-6 {
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+            }
+        }
+
+        /* COR AZUL PISCINA PARA IDENTIFICAR VISUALMENTE */
+        :root {
+            --cor-detalhe-fundo: #20B2AA !important; /* Azul piscina */
+        }
+
+        .detalhe-dizimista,
+        .detalhe-celebrante,
+        .detalhe-grupo,
+        .detalhe-aviso,
+        .detalhe-colaborador {
+            background-color: #20B2AA !important; /* Azul piscina */
+            padding: 20px !important;
+            border-radius: 10px !important;
+            margin: 10px 0 !important;
+        }
+        
+        /* CSS adicional para garantir layout horizontal em todos os breakpoints mobile */
+        @media (max-width: 991px) {
+            .header .navigation-menu {
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                justify-content: center !important;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            
+            .header .nav-link {
+                flex-shrink: 0;
+                white-space: nowrap;
+            }
+        }
+
+        /* === HEADER FIXO PARA FORMULÁRIOS === */
+        .formulario-sticky-header {
+            position: sticky;
+            top: 80px; /* Abaixo do header principal */
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* === HEADER FIXO PARA CRUD === */
+        .crud-sticky-header {
+            position: sticky;
+            top: 80px; /* Abaixo do header principal */
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        
+        /* =========================================== */
+        /* === ESTILOS COMUNS MASTER-DETAIL === */
+        /* =========================================== */
+        
+        /* Ocultar containers globais em master-detail */
+        .master-detail-mode .cont_estatistica,
+        .master-detail-mode .panel-container_estatistica,
+        .master-detail-mode .cont_busca,
+        .master-detail-mode .panel-container_busca {
+            display: none !important;
+        }
+
+        /* Container principal master-detail */
+        .container-principal {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        /* Cabeçalho master-detail (genérico) */
+        .cabecalho-master-detail {
+            background: linear-gradient(135deg, var(--cor-principal) 0%, var(--cor-secundaria) 100%);
+            color: var(--cor-texto);
+            border-radius: 15px 15px 0 0;
+            padding: 20px 25px;
+            margin-bottom: 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .cabecalho-master-detail h2 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Formulário master */
+        .formulario-master {
+            background: var(--cor-fundo);
+            color: var(--cor-texto);
+            border-radius: 0 0 15px 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .grid-campos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .campo-formulario {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .label-campo {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .input-campo {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .input-campo:focus {
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+        }
+
+        .input-readonly {
+            background: rgba(255, 255, 255, 0.7);
+            color: #333;
+        }
+
+        /* Container data e hora */
+        .container-data-hora {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .container-data-hora .input-campo {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .container-data-hora input[type="date"] {
+            flex: 2;
+        }
+
+        .container-data-hora input[type="time"] {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .input-campo[type="date"],
+        .input-campo[type="time"],
+        .input-campo[type="number"] {
+            cursor: pointer;
+        }
+
+        select.input-campo {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 35px;
+        }
+
+        textarea.input-campo {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Painel de ações */
+        .panel-acoes {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .conteudo-acoes {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-gravar {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 100px;
+            justify-content: center;
+        }
+
+        .btn-gravar:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-cancelar {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-cancelar:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-retornar {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-retornar:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* =========================================== */
+        /* === BOTÃO FLUTUANTE RETORNAR ADMIN === */
+        /* =========================================== */
+        .btn-retornar-flutuante-admin {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            border-radius: 50%;
+            color: #ffc107;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(23, 162, 184, 0.4);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            border: 3px solid #ffffff;
+        }
+        
+        .btn-retornar-flutuante-admin:hover {
+            background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 6px 20px rgba(23, 162, 184, 0.6);
+            color: #ffc107;
+            text-decoration: none;
+        }
+        
+        .btn-retornar-flutuante-admin:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+        
+        @media (max-width: 768px) {
+            .btn-retornar-flutuante-admin {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+                bottom: 20px;
+                left: 20px;
+            }
+        }
+
+        /* Seção de itens */
+        .secao-itens {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .cabecalho-itens {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .cabecalho-itens h3 {
+            color: #495057;
+            font-size: 1.4rem;
+            margin: 0;
+        }
+
+        .btn-adicionar-item {
+            background: linear-gradient(135deg, var(--cor-principal) 0%, var(--cor-secundaria) 100%);
+            color: var(--cor-texto);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-adicionar-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .lista-itens {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .item-lista {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .item-lista:hover {
+            background: #e9ecef;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-item {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex: 1;
+            flex-wrap: wrap;
+        }
+
+        .encargo-item {
+            font-weight: bold;
+            color: #495057;
+            min-width: 150px;
+        }
+
+        .info-item span {
+            color: #495057;
+        }
+
+        .acoes-item {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-editar-item {
+            background: #ffc107;
+            color: #212529;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-editar-item:hover {
+            background: #e0a800;
+            transform: translateY(-1px);
+        }
+
+        .btn-excluir-item {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-excluir-item:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .sem-itens {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #dee2e6;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 85%;
+            max-width: 600px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            max-height: calc(85vh - 120px);
+        }
+
+        .formulario-item {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .linha-item {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .linha-item .campo-item { flex: 1; }
+
+        .campo-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .campo-item label {
+            font-weight: 600;
+            color: #4338ca;
+        }
+
+        .checkbox-ocorrencias {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 18px;
+        }
+
+        .checkbox-ocorrencias label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.95rem;
+            color: #334155;
+        }
+
+        .container-botoes-modal {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+            position: sticky;
+            bottom: 0;
+            background: white;
+        }
+
+        .btn-adicionar-modal {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-adicionar-modal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-cancelar-modal {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancelar-modal:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Responsividade master-detail */
+        /* =========================================== */
+        /* === ALINHAMENTO BOTÕES DE AÇÃO EM MOBILE === */
+        /* =========================================== */
+        @media (max-width: 768px) {
+            /* Alinha botões de ação à esquerda em mobile */
+            .botoes-acao .d-flex {
+                justify-content: flex-start !important;
+                flex-wrap: wrap;
+            }
+            
+            /* Ajusta largura das colunas em mobile para que ações apareçam logo após Nome */
+            .table-responsive table thead th:nth-child(1),
+            .table-responsive table tbody td:nth-child(1) {
+                width: 5% !important;
+                min-width: 40px;
+            }
+            
+            .table-responsive table thead th:nth-child(2),
+            .table-responsive table tbody td:nth-child(2) {
+                width: 10% !important;
+                min-width: 50px;
+            }
+            
+            /* Coluna Nome - ocupa mais espaço */
+            .table-responsive table thead th:nth-child(3),
+            .table-responsive table tbody td:nth-child(3) {
+                width: 30% !important;
+                max-width: 200px;
+            }
+            
+            /* Oculta colunas intermediárias (entre Nome e Ações) em mobile */
+            .table-responsive table thead th:nth-child(n+4):not(:last-child),
+            .table-responsive table tbody td:nth-child(n+4):not(:last-child) {
+                display: none;
+            }
+            
+            /* Coluna de Ações - aparece logo após Nome */
+            .table-responsive table thead th:last-child,
+            .table-responsive table tbody td:last-child {
+                width: 55% !important;
+                display: table-cell !important;
+            }
+            
+            /* Ajusta tamanho dos botões em mobile */
+            .botoes-acao .btn {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.5rem;
+            }
+            
+            .botoes-acao .btn i {
+                margin-right: 0.25rem !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container-principal {
+                padding: 15px;
+            }
+            
+            .grid-campos {
+                grid-template-columns: 1fr;
+            }
+            
+            .formulario-item {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .cabecalho-master-detail h2 {
+                font-size: 1.3rem;
+            }
+            
+            .formulario-master {
+                padding: 15px;
+            }
+            
+            .input-campo {
+                font-size: 16px; /* Evita zoom automático no iOS */
+            }
+            
+            .modal-content {
+                width: 95%;
+                max-height: 90vh;
+            }
+            
+            .modal-body {
+                max-height: calc(90vh - 120px);
+            }
+
+            .linha-item {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .checkbox-ocorrencias {
+                flex-direction: column;
+            }
+            
+            .conteudo-acoes {
+                flex-direction: column;
+            }
+            
+            .btn-gravar,
+            .btn-cancelar,
+            .btn-retornar {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header estilo index.html com degradê vinho elaborado -->
+    <div class="header">
+        <div class="container">
+            <div class="row align-items-center">
+                <!-- Logo e título à esquerda -->
+                <div class="col-lg-6 col-md-5 col-sm-12">
+                    <div class="d-flex align-items-center flex-wrap" style="margin-left: -15px;">
+                        <span style="font-size: 2.5rem; margin-right: 15px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">📖</span>
+                        <h1 class="mb-0 me-3" style="font-size: 2.2rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                            Projeto On Crist
+                        </h1>
+                        <div class="header-emojis">
+                            🍞🍷🍇🕊️
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Menu de navegação à direita -->
+                <div class="col-lg-6 col-md-7 col-sm-12">
+                    <div class="d-flex justify-content-end align-items-center flex-wrap navigation-menu">
+                        <a href="/" class="nav-link text-white me-3 me-md-4" style="font-weight: 500; transition: all 0.3s ease;">
+                            <i class="fas fa-home me-1"></i>
+                            Início
+                        </a>
+                        {% if user.is_authenticated %}
+                            <span class="text-white me-3 me-md-4" style="font-weight: 500;">
+                                <i class="fas fa-user-circle me-1"></i>
+                                Olá, {{ user.get_full_name|default:user.email }}, seja bem-vindo!
+                            </span>
+                            <form id="logout-form" method="post" action="{% url 'logout' %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link text-white border-0 bg-transparent" style="font-weight: 500; transition: all 0.3s ease;">
+                                    <i class="fas fa-sign-out-alt me-1"></i>
+                                    Logout
+                                </button>
+                            </form>
+                        {% else %}
+                            <a href="{% url 'login' %}" class="nav-link text-white me-3 me-md-4" style="font-weight: 500; transition: all 0.3s ease;">
+                                <i class="fas fa-sign-in-alt me-1"></i>
+                                Login
+                            </a>
+                            <a href="{% url 'register' %}" class="nav-link text-white" style="font-weight: 500; transition: all 0.3s ease;">
+                                <i class="fas fa-user-plus me-1"></i>
+                                Cadastrar
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
+
+    {% block content %}
+    {% endblock %}
+    <!-- ############################ -->   
+    <!-- === TEMPLATE PAI REGISTROS UNICOS === -->
+    <!-- ############################ -->
+     
+    {% if modo_edicao or modo_visualizacao %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                
+                <!-- CONTAINER HEADER FIXO -->
+                <div class="card mb-3 formulario-sticky-header">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="{% block icone_formulario %}fas fa-church{% endblock %} me-2"></i>{% block titulo_formulario %}Informações{% endblock %}
+                        </h4>
+                    </div>
+                </div>
+                
+                <!-- Botão Flutuante Retornar (com ícone de engrenagem) -->
+                {% block botao_flutuante_retornar %}
+                <a href="{% block url_retornar %}{% url 'app_igreja:admin_area' %}{% endblock %}" 
+                   class="btn-retornar-flutuante-admin" 
+                   title="Retornar à Área Administrativa">
+                    <i class="fas fa-cog"></i>
+                </a>
+                {% endblock %}
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if modo_edicao %}
+                    <!-- MODO EDIÇÃO -->
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% block conteudo_edicao %}
+                        <!-- Conteúdo específico de edição -->
+                        {% endblock %}
+                        
+                        <!-- FOOTER EDIÇÃO -->
+                        <div class="card">
+                            <div class="card-footer footer-personalizado text-center">
+                                <button type="button" class="btn btn-secondary me-2" onclick="cancelarEdicao()">
+                                    <i class="fas fa-times me-1"></i>Cancelar
+                                </button>
+                                <button type="submit" class="btn btn-editar-personalizado">
+                                    <i class="fas fa-save me-1"></i>Gravar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                {% elif modo_visualizacao %}
+                    <!-- MODO VISUALIZAÇÃO -->
+                    {% block conteudo_visualizacao %}
+                    <!-- Conteúdo específico de visualização -->
+                    {% endblock %}
+                    
+                    <!-- FOOTER VISUALIZAÇÃO -->
+                    <div class="card">
+                        <div class="card-footer footer-personalizado text-center">
+                            <a href="{% block url_editar_formulario %}{% url 'app_igreja:admin_area' %}{% endblock %}" class="btn btn-editar-personalizado">
+                                <i class="fas fa-edit me-1"></i>Editar
+                            </a>
+                        </div>
+                    </div>
+
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function cancelarEdicao() {
+        if (confirm('Cancelar edição? As alterações não salvas serão perdidas.')) {
+            window.location.href = "{% block url_cancelar_edicao_formulario %}{% url 'app_igreja:admin_area' %}{% endblock %}";
+        }
+    }
+
+    </script>
+    {% endif %}
+
+
+    <!-- ############################ -->   
+   <!-- INICIO MONTAGEM TELA PAI - DETAIL  -->
+    <!-- ############################ -->    
+   
+    
+    {% if modo_detalhe %}
+    <!-- n1_principal: CARD PRINCIPAL -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                    <!-- n2_bloco_001: CARD HEADER -->
+                    <!-- Cabeçalho dinâmico -->
+                    <div class="card-header" style="background: linear-gradient(135deg, #007bff 0%, #6c757d 100%); color: #fff;">
+                        <!-- n3_bloco_001: GRADIENTE AZUL -->
+                        <h5 style="margin: 0; font-weight: 600;">
+                            {% block titulo_detalhe %}
+                            {% if acao == 'excluir' %}Exclusão de {{ model_verbose_name }}{% elif acao == 'editar' %}Edição de {{ model_verbose_name }}{% elif acao == 'consultar' %}Consulta de {{ model_verbose_name }}{% elif acao == 'incluir' %}Criar Novo {{ model_verbose_name }}{% else %}Detalhe de {{ model_verbose_name }}{% endif %}
+                            {% endblock %}
+                        </h5>
+                    </div>
+
+                    <!-- n2_bloco_002: CARD BODY -->
+                    <!-- Corpo: conteúdo específico do detalhe -->
+                    <div class="card-body" style="background: #20B2AA;">
+                        <!-- n3_bloco_002: FUNDO AZUL PISCINA -->
+                        {% block conteudo_detalhe %}
+                        <!-- Este bloco será preenchido pelos templates filhos -->
+                        {% endblock %}
+                    </div>
+
+                    <!-- n2_bloco_003: CARD FOOTER -->
+                    <!-- Footers condicionais por ação -->
+                        {% if acao == 'editar' or acao == 'incluir' %}
+                        <!-- n3_bloco_003: FUNDO VERDE -->
+                        <div class="card-footer" style="background: #17AA51;">
+                            <div class="d-flex justify-content-end gap-2">
+                                <!-- [Cancelar] [Gravar] (se editar) -->
+                                <button type="button" class="btn btn-secondary" onclick="bdCancelar()">
+                                    <i class="fas fa-times me-2"></i>Cancelar
+                                </button>
+                                <button type="button" class="btn btn-warning" onclick="bdGravar()">
+                                    <i class="fas fa-save me-2"></i>Gravar
+                                </button>
+                            </div>
+                        </div>
+                        {% elif acao == 'excluir' %}
+                        <!-- n3_bloco_003: FUNDO VERDE -->
+                        <div class="card-footer" style="background: #17AA51;">
+                            <div class="d-flex justify-content-end gap-2">
+                                <!-- [Cancelar] [Confirmar] (se excluir) -->
+                                <button type="button" class="btn btn-secondary" onclick="bdCancelar()">
+                                    <i class="fas fa-times me-2"></i>Cancelar
+                                </button>
+                                <button type="button" class="btn btn-danger" onclick="bdConfirmarExclusao()">
+                                    <i class="fas fa-check me-2"></i>Confirmar
+                                </button>
+                            </div>
+                        </div>
+                    {% else %}
+                    <!-- n3_bloco_003: FUNDO VERDE -->
+                    <div class="card-footer" style="background: #f8f9fa;">
+                        <!-- Botão Retornar removido - usar botão flutuante -->
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!--################
+    # TELA PAI DESBOARD #
+    ################## -->
+
+    <!-- === MODO DASHBOARD GENÉRICO === -->
+    {% if modo_dashboard %}
+    <!-- d1_bloco_001: CONTAINER PRINCIPAL -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                
+                <!-- dd2_bloco_001: HEADER FIXO -->
+                <div class="card mb-3 crud-sticky-header">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <!-- ddd3_bloco_001: GRADIENTE AZUL -->
+                        <h4 class="mb-0">
+                            <i class="{% block icone_dashboard %}fas fa-chart-line{% endblock %} me-2"></i>
+                            {% block titulo_dashboard %}Dashboard de {% block nome_modulo_dashboard %}Registros{% endblock %}{% endblock %}
+                        </h4>
+                    </div>
+                </div>
+                
+                <!-- Botão Flutuante Retornar para Dashboards -->
+                {% block botao_flutuante_retornar_dashboard %}
+                <a href="{% block url_retornar_dashboard %}{% url 'app_igreja:admin_area' %}{% endblock %}" 
+                   class="btn-retornar-flutuante-admin" 
+                   title="Retornar à Área Administrativa">
+                    <i class="fas fa-cog"></i>
+                </a>
+                {% endblock %}
+
+                <!-- dd2_bloco_002: PAINEL ESTATÍSTICAS -->
+                <div class="panel-container panel-container_estatistica">
+                    <div class="panel-header-base panel-header-estatisticas" onclick="togglePanel('estatisticas')">
+                        <!-- ddd3_bloco_001: GRADIENTE VERMELHO -->
+                        <h5><i class="fas fa-chart-bar"></i> Estatísticas</h5>
+                        <i class="fas fa-chevron-down panel-icon" id="icon-estatisticas"></i>
+                    </div>
+                    <div class="panel-content collapsed" id="panel-estatisticas">
+                        <!-- ddd3_bloco_002: CONTADORES -->
+                        <div class="cont_estatistica">
+                            {% block estatisticas_dashboard %}
+                            <div class="stat-item ativos">
+                                <span class="stat-number">0</span>
+                                <span class="stat-label">Ativos</span>
+                            </div>
+                            <div class="stat-item inativos">
+                                <span class="stat-number">0</span>
+                                <span class="stat-label">Inativos</span>
+                            </div>
+                            <div class="stat-item suspensos">
+                                <span class="stat-number">0</span>
+                                <span class="stat-label">Total</span>
+                            </div>
+                            {% endblock %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- dd2_bloco_003: PAINEL BUSCA -->
+                <div class="panel-container panel-container_busca">
+                    <div class="panel-header-base panel-header-busca" onclick="togglePanel('busca')">
+                        <!-- ddd3_bloco_001: GRADIENTE AZUL -->
+                        <h5><i class="fas fa-search"></i> Busca e Filtros</h5>
+                        <i class="fas fa-chevron-down panel-icon" id="icon-busca"></i>
+                    </div>
+                    <div class="panel-content expanded" id="panel-busca">
+                        <!-- ddd3_bloco_002: FORMULÁRIO BUSCA -->
+                        <div class="cont_busca">
+                            {% block busca_dashboard %}
+                            <form method="get" class="busca-campos">
+                                <div class="campo-busca">
+                                    <label for="busca_nome">Busca por Nome</label>
+                                    <input type="text" id="busca_nome" name="busca_nome" autocomplete="off" 
+                                           value="{{ request.GET.busca_nome }}" 
+                                           placeholder="Digite o nome...">
+                                </div>
+                                <div class="campo-busca">
+                                    <label for="filtro_status">Status</label>
+                                    <select id="filtro_status" name="status">
+                                        <option value="">Todos</option>
+                                        <option value="ativo" {% if request.GET.status == 'ativo' %}selected{% endif %}>Ativo</option>
+                                        <option value="inativo" {% if request.GET.status == 'inativo' %}selected{% endif %}>Inativo</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="cont_busca_btnbusca">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </form>
+                            {% endblock %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- dd2_bloco_004: TABELA LISTAGEM -->
+                <div class="card mb-3">
+                    <div class="card-header" style="background-color: #be6529; color: #000000;">
+                        <!-- nnn3_bloco_001: CABEÇALHO VERDE -->
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>Lista de {% block nome_modulo_lista_dashboard %}Registros{% endblock %}
+                        </h5>
+                    </div>
+                    <div class="card-body" style="background-color: hsl(23, 78%, 65%); color: #000000;">
+                        <!-- ddd3_bloco_002: CORPO VERDE -->
+                        {% block conteudo_listagem_dashboard %}
+                        {% if page_obj %}
+                            <div class="table-responsive">
+                                <table class="table table-hover table-striped">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th width="5%">Sel.</th>
+                                            {% block colunas_cabecalho_dashboard %}
+                                            <th width="10%">Foto</th>
+                                            <th width="30%">Nome</th>
+                                            <th width="15%">Status</th>
+                                            <th width="40%">Ações</th>
+                                            {% endblock %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% block linhas_tabela_dashboard %}
+                                        <!-- Estrutura padrão da linha - será preenchida pelos templates filhos -->
+                                        {% for item in page_obj %}
+                                        <tr>
+                                            {% block linha_completa_dashboard %}
+                                            <!-- Esta linha será sobrescrita pelos templates filhos -->
+                                            <td><i class="fas fa-ellipsis-v" onclick="selecionarRegistro({{ item.id }})" style="cursor: pointer;"></i></td>
+                                            <td>{{ item.id }}</td>
+                                            <td>{{ item }}</td>
+                                            {% endblock %}
+                                        </tr>
+                                        {% endfor %}
+                                        {% endblock %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Paginação padrão -->
+                            {% block paginacao_dashboard %}
+                            {% if page_obj.has_other_pages %}
+                            <nav aria-label="Paginação">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1">Primeira</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                                        </li>
+                                    {% endif %}
+
+                                    <li class="page-item active">
+                                        <span class="page-link">
+                                            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                        </span>
+                                    </li>
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            {% endif %}
+                            {% endblock %}
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">Nenhum registro encontrado</h5>
+                                <p class="text-muted">{% block mensagem_vazio_dashboard %}Clique em "Novo Registro" para adicionar o primeiro item.{% endblock %}</p>
+                            </div>
+                        {% endif %}
+                        {% endblock %}
+                    </div>
+                </div>
+
+                <!-- dd2_bloco_005: BOTÃO FLUTUANTE -->
+                {% block botao_flutuante_dashboard %}
+                <button type="button" class="cont_lista_btnadd" title="{% block titulo_botao_flutuante_dashboard %}Criar Novo Registro{% endblock %}" onclick="{% block onclick_botao_flutuante_dashboard %}incluirNovoDashboard(){% endblock %}">
+                    <i class="{% block icone_botao_flutuante_dashboard %}fas fa-plus{% endblock %}"></i>
+                </button>
+                {% endblock %}
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // === FUNÇÃO PARA CONTROLE DOS PAINÉIS COLAPSÁVEIS ===
+    function togglePanel(panelId) {
+        const panel = document.getElementById('panel-' + panelId);
+        const icon = document.getElementById('icon-' + panelId);
+        
+        if (panel && icon) {
+            if (panel.classList.contains('collapsed')) {
+                // Expandir painel
+                panel.classList.remove('collapsed');
+                panel.classList.add('expanded');
+                icon.classList.add('rotated');
+            } else {
+                // Colapsar painel
+                panel.classList.remove('expanded');
+                panel.classList.add('collapsed');
+                icon.classList.remove('rotated');
+            }
+        }
+    }
+
+    // === FUNÇÕES ESPECÍFICAS DO DASHBOARD ===
+    function incluirNovoDashboard() {
+        console.log('Botão flutuante do dashboard clicado!');
+        window.location.href = "{% block url_criar_novo_dashboard %}{% url 'app_igreja:admin_area' %}{% endblock %}";
+    }
+
+    // === FUNÇÕES PARA CONTROLE DE SELEÇÃO DE REGISTROS ===
+    function selecionarRegistroDashboard(id) {
+        const botoesAcao = document.getElementById('acoes_' + id);
+        
+        // Se os botões já estão visíveis, fechar (toggle)
+        if (botoesAcao && botoesAcao.style.display === 'block') {
+            botoesAcao.style.display = 'none';
+            return;
+        }
+        
+        // Esconder todos os botões de ação
+        document.querySelectorAll('.botoes-acao').forEach(function(elemento) {
+            elemento.style.display = 'none';
+        });
+        
+        // Mostrar botões do registro selecionado
+        if (botoesAcao) {
+            botoesAcao.style.display = 'block';
+        }
+    }
+
+    // === FUNÇÕES GENÉRICAS PARA AÇÕES DO DASHBOARD ===
+    function consultarRegistroDashboard(id) {
+        console.log('Consultar registro:', id);
+        // Implementar conforme necessário
+    }
+
+    function editarRegistroDashboard(id) {
+        console.log('Editar registro:', id);
+        // Implementar conforme necessário
+    }
+
+    function excluirRegistroDashboard(id) {
+        if (confirm('Tem certeza que deseja excluir este registro?')) {
+            console.log('Excluir registro:', id);
+            // Implementar conforme necessário
+        }
+    }
+    </script>
+    {% endif %}
+
+    
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-cross me-2"></i>Projeto On Crist</h5>
+                    <p class="mb-0">Conectando fé e tecnologia</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-center justify-content-md-end">
+                        <a href="#" class="text-white me-3" onclick="enviarWhatsApp()">
+                            <i class="fab fa-whatsapp fa-2x"></i>
+                        </a>
+                        <a href="#" class="text-white me-3" onclick="compartilharPagina()">
+                            <i class="fas fa-share-alt fa-2x"></i>
+                        </a>
+                                                 <a href="mailto:vag.gandolfo@gmail.com" class="text-white">
+                             <i class="fas fa-envelope fa-2x"></i>
+                         </a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-3">
+            <p class="mb-0">&copy; 2024 Projeto On Crist. Todos os direitos reservados. By. V.Gandolfo</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- PWA JavaScript -->
+    {% if request.get_host == 'localhost:8000' or request.get_host == '127.0.0.1:8000' %}
+        <script src="{% static 'js/app.js' %}"></script>
+    {% else %}
+        <script src="{% static 'js/app_pa.js' %}"></script>
+    {% endif %}
+    
+    <!-- JavaScript global -->
+    <script>
+    function enviarWhatsApp() {
+        const mensagem = encodeURIComponent('Olá! Conheça nossa paróquia: ' + window.location.href);
+        const numero = '5518997366866'; // WhatsApp do V.Gandolfo
+        
+        // Tentar abrir o app do WhatsApp primeiro
+        const appUrl = `whatsapp://send?phone=${numero}&text=${mensagem}`;
+        const webUrl = `https://wa.me/${numero}?text=${mensagem}`;
+        
+        // Verificar se o app está instalado
+        if (navigator.userAgent.match(/Android|iPhone|iPad|iPod/i)) {
+            // Em dispositivos móveis, tentar abrir o app
+            window.location.href = appUrl;
+            
+            // Fallback: se o app não abrir em 2 segundos, abrir no navegador
+            setTimeout(() => {
+                window.open(webUrl, '_blank');
+            }, 2000);
+        } else {
+            // Em desktop, abrir no navegador
+            window.open(webUrl, '_blank');
+        }
+    }
+
+    function compartilharPagina() {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Projeto On Cristo - Paróquia',
+                text: 'Conheça nossa paróquia!',
+                url: window.location.href
+            });
+        } else {
+            navigator.clipboard.writeText(window.location.href).then(function() {
+                alert('Link copiado para a área de transferência!');
+            });
+        }
+    }
+
+    // Funções para detalhes CRUD
+    function bdRetornar() {
+        {% block bd_url_retornar %}
+        window.history.back();
+        {% endblock %}
+    }
+
+    function bdCancelar() {
+        {% block bd_url_cancelar %}
+        window.history.back();
+        {% endblock %}
+    }
+
+    function bdGravar() {
+        const form = document.getElementById('detail-form');
+        if (form) { 
+            console.log('Submetendo form:', form.action);
+            form.submit(); 
+        } else {
+            console.error('Form detail-form não encontrado');
+        }
+    }
+
+    function bdConfirmarExclusao() {
+        if (confirm('Confirmar exclusão?')) {
+            const form = document.getElementById('detail-form');
+            if (form) { form.submit(); }
+        }
+    }
+
+    </script>
+
+
+    <!-- Scripts globais -->
+    <script src="{% static 'js/global-utils.js' %}"></script>
+    <script src="{% static 'js/formularios.js' %}"></script>
+    {% if user.is_authenticated and user.is_staff %}
+        <!-- <script src="{% static 'js/automation.js' %}"></script> -->
+    {% endif %}
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html> 

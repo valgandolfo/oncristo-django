@@ -227,6 +227,38 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- CONTAINER URLs REDES SOCIAIS -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-horarios-fixos">
+                            <h5 class="mb-0">URLs Redes Sociais</h5>
+                        </div>
+                        <div class="card-body horarios-fixos-bg">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">URL do YouTube:</label>
+                                        {{ form.PAR_url_youtube }}
+                                        <small class="form-text text-muted">{{ form.PAR_url_youtube.help_text }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">URL do Facebook:</label>
+                                        {{ form.PAR_url_facebook }}
+                                        <small class="form-text text-muted">{{ form.PAR_url_facebook.help_text }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">URL do Instagram:</label>
+                                        {{ form.PAR_url_instagram }}
+                                        <small class="form-text text-muted">{{ form.PAR_url_instagram.help_text }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 {% endblock %}
 
 {% block conteudo_visualizacao %}
@@ -341,6 +373,44 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- CONTAINER URLs REDES SOCIAIS -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-horarios-fixos">
+                            <h5 class="mb-0">URLs Redes Sociais</h5>
+                        </div>
+                        <div class="card-body horarios-fixos-bg">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p><strong>YouTube:</strong> 
+                                        {% if paroquia.PAR_url_youtube %}
+                                            <a href="{{ paroquia.PAR_url_youtube }}" target="_blank" rel="noopener noreferrer">{{ paroquia.PAR_url_youtube }}</a>
+                                        {% else %}
+                                            <span class="text-muted">Não informado</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Facebook:</strong> 
+                                        {% if paroquia.PAR_url_facebook %}
+                                            <a href="{{ paroquia.PAR_url_facebook }}" target="_blank" rel="noopener noreferrer">{{ paroquia.PAR_url_facebook }}</a>
+                                        {% else %}
+                                            <span class="text-muted">Não informado</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Instagram:</strong> 
+                                        {% if paroquia.PAR_url_instagram %}
+                                            <a href="{{ paroquia.PAR_url_instagram }}" target="_blank" rel="noopener noreferrer">{{ paroquia.PAR_url_instagram }}</a>
+                                        {% else %}
+                                            <span class="text-muted">Não informado</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 {% endblock %}
 
 {% block conteudo_horarios %}
@@ -394,6 +464,44 @@
                                         <label class="form-label">Sábado:</label>
                                         {{ form_horarios.sabado_horarios }}
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTAINER URLs REDES SOCIAIS -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-horarios-fixos">
+                            <h5 class="mb-0">URLs Redes Sociais</h5>
+                        </div>
+                        <div class="card-body horarios-fixos-bg">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p><strong>YouTube:</strong> 
+                                        {% if paroquia.PAR_url_youtube %}
+                                            <a href="{{ paroquia.PAR_url_youtube }}" target="_blank" rel="noopener noreferrer">{{ paroquia.PAR_url_youtube }}</a>
+                                        {% else %}
+                                            <span class="text-muted">Não informado</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Facebook:</strong> 
+                                        {% if paroquia.PAR_url_facebook %}
+                                            <a href="{{ paroquia.PAR_url_facebook }}" target="_blank" rel="noopener noreferrer">{{ paroquia.PAR_url_facebook }}</a>
+                                        {% else %}
+                                            <span class="text-muted">Não informado</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Instagram:</strong> 
+                                        {% if paroquia.PAR_url_instagram %}
+                                            <a href="{{ paroquia.PAR_url_instagram }}" target="_blank" rel="noopener noreferrer">{{ paroquia.PAR_url_instagram }}</a>
+                                        {% else %}
+                                            <span class="text-muted">Não informado</span>
+                                        {% endif %}
+                                    </p>
                                 </div>
                             </div>
                         </div>

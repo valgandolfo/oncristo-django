@@ -179,8 +179,18 @@
         <div class="mb-3"><label class="form-label fw-bold">Status</label>
             {% if acao == 'incluir' or acao == 'editar' %}{{ form.COL_status }}{% if form.COL_status.errors %}<div class="text-danger small">{% for error in form.COL_status.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
             {% else %}<div class="form-control" readonly>{% if colaborador.COL_status == 'ATIVO' %}<span class="badge bg-success">Ativo</span>{% elif colaborador.COL_status == 'PENDENTE' %}<span class="badge bg-warning">Pendente</span>{% elif colaborador.COL_status == 'INATIVO' %}<span class="badge bg-danger">Inativo</span>{% else %}{{ colaborador.COL_status|default:'Não informado' }}{% endif %}</div>{% endif %}
-                            </div>
-                        </div>
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Função</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.COL_funcao }}{% if form.COL_funcao.errors %}<div class="text-danger small">{% for error in form.COL_funcao.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}
+                {% if funcao_colaborador %}
+                    <input type="text" class="form-control" value="{{ funcao_colaborador.FUN_nome_funcao }}" readonly>
+                {% else %}
+                    <input type="text" class="form-control" value="Não informado" readonly>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
     <div class="col-md-6">
         <div class="mb-3"><label class="form-label fw-bold">CEP</label>
             {% if acao == 'incluir' or acao == 'editar' %}{{ form.COL_cep }}{% if form.COL_cep.errors %}<div class="text-danger small">{% for error in form.COL_cep.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}

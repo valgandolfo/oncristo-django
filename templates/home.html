@@ -4,6 +4,41 @@
 {% block title %}Projeto On Crist - Paróquia{% endblock %}
 
 {% block content %}
+<!-- Botão Flutuante AO VIVO (YouTube) -->
+{% if paroquia.PAR_url_youtube %}
+<div id="btn-ao-vivo" class="btn-ao-vivo-container" style="display: none;">
+    <button onclick="abrirYouTubeAoVivo()" class="btn-ao-vivo">
+        <i class="fas fa-circle me-2"></i>
+        <span>AO VIVO</span>
+    </button>
+</div>
+
+<!-- Modal para exibir vídeo ao vivo -->
+<div id="modal-youtube-ao-vivo" class="modal-youtube-container" style="display: none;">
+    <div class="modal-youtube-content">
+        <div class="modal-youtube-header">
+            <h5 class="mb-0">
+                <i class="fas fa-video me-2"></i>
+                Transmissão ao Vivo
+            </h5>
+            <button onclick="fecharModalYouTube()" class="btn-close-modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-youtube-body">
+            <div id="youtube-player-container">
+                <iframe id="youtube-live-iframe" 
+                        src="" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Seção de boas-vindas com container verde claro -->
 <div class="container-fluid welcome-section py-4">
     <div class="container">
@@ -251,6 +286,65 @@ Seção de Informações e Serviços
     </div>
 </div>
 
+<!#########################################
+# Seção Redes Sociais - SIGA-NOS
+#########################################>
+{% if paroquia.PAR_url_youtube or paroquia.PAR_url_facebook or paroquia.PAR_url_instagram %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 50%, #f1b0b7 100%) !important;">
+                <div class="card-header text-center" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
+                    <h4 class="mb-0">
+                        <i class="fas fa-share-alt me-2"></i>
+                        SIGA-NOS
+                    </h4>
+                </div>
+                <div class="card-body p-3">
+                    <div class="d-flex flex-column gap-2">
+                        {% if paroquia.PAR_url_youtube %}
+                        <a href="{{ paroquia.PAR_url_youtube }}" target="_blank" rel="noopener noreferrer" 
+                           class="btn btn-block d-flex align-items-center justify-content-center social-btn-youtube"
+                           style="background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); color: white; border: none; padding: 8px 15px; border-radius: 8px; text-decoration: none; transition: all 0.3s ease;">
+                            <i class="fab fa-youtube me-2" style="font-size: 1.2rem;"></i>
+                            <div class="text-start">
+                                <div class="fw-bold" style="font-size: 0.95rem;">YouTube</div>
+                                <small style="opacity: 0.9; font-size: 0.75rem;">Missas ao Vivo</small>
+                            </div>
+                        </a>
+                        {% endif %}
+                        
+                        {% if paroquia.PAR_url_facebook %}
+                        <a href="{{ paroquia.PAR_url_facebook }}" target="_blank" rel="noopener noreferrer" 
+                           class="btn btn-block d-flex align-items-center justify-content-center social-btn-facebook"
+                           style="background: linear-gradient(135deg, #1877f2 0%, #0d5dbf 100%); color: white; border: none; padding: 8px 15px; border-radius: 8px; text-decoration: none; transition: all 0.3s ease;">
+                            <i class="fab fa-facebook me-2" style="font-size: 1.2rem;"></i>
+                            <div class="text-start">
+                                <div class="fw-bold" style="font-size: 0.95rem;">Facebook</div>
+                                <small style="opacity: 0.9; font-size: 0.75rem;">Nossa Página</small>
+                            </div>
+                        </a>
+                        {% endif %}
+                        
+                        {% if paroquia.PAR_url_instagram %}
+                        <a href="{{ paroquia.PAR_url_instagram }}" target="_blank" rel="noopener noreferrer" 
+                           class="btn btn-block d-flex align-items-center justify-content-center social-btn-instagram"
+                           style="background: linear-gradient(135deg, #e4405f 0%, #c13584 50%, #833ab4 100%); color: white; border: none; padding: 8px 15px; border-radius: 8px; text-decoration: none; transition: all 0.3s ease;">
+                            <i class="fab fa-instagram me-2" style="font-size: 1.2rem;"></i>
+                            <div class="text-start">
+                                <div class="fw-bold" style="font-size: 0.95rem;">Instagram</div>
+                                <small style="opacity: 0.9; font-size: 0.75rem;">Siga-nos</small>
+                            </div>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- CSS para Banners Rotativos -->
 <style>
 .banner-container {
@@ -295,6 +389,199 @@ Seção de Informações e Serviços
 
 .banner-indicator:hover {
     transform: scale(1.1);
+}
+
+/* Estilos para botões de redes sociais */
+.social-btn-youtube:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(255, 0, 0, 0.4);
+    background: linear-gradient(135deg, #ff1a1a 0%, #e60000 100%) !important;
+}
+
+.social-btn-facebook:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(24, 119, 242, 0.4);
+    background: linear-gradient(135deg, #1a86ff 0%, #0e6ae6 100%) !important;
+}
+
+.social-btn-instagram:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(228, 64, 95, 0.4);
+    background: linear-gradient(135deg, #f56040 0%, #d42a6a 50%, #9d3ab4 100%) !important;
+}
+
+/* Botão Flutuante AO VIVO */
+.btn-ao-vivo-container {
+    position: fixed !important;
+    top: 80px;
+    right: 20px;
+    z-index: 9999 !important;
+    display: block !important;
+}
+
+.btn-ao-vivo {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+    cursor: pointer;
+    display: flex !important;
+    align-items: center;
+    transition: all 0.3s ease;
+    animation: piscar 2s infinite;
+    white-space: nowrap;
+}
+
+.btn-ao-vivo:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+}
+
+.btn-ao-vivo:active {
+    transform: scale(0.95);
+}
+
+.btn-ao-vivo i {
+    font-size: 0.7rem;
+    animation: pulso 1.5s infinite;
+}
+
+@keyframes piscar {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+    }
+    50% {
+        opacity: 0.8;
+        box-shadow: 0 4px 20px rgba(40, 167, 69, 0.7);
+    }
+}
+
+@keyframes pulso {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
+/* Modal YouTube ao Vivo */
+.modal-youtube-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 10000 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-youtube-content {
+    background: white;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modal-youtube-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #dee2e6;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-radius: 15px 15px 0 0;
+}
+
+.modal-youtube-header h5 {
+    margin: 0;
+    font-weight: bold;
+}
+
+.btn-close-modal {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.btn-close-modal:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.modal-youtube-body {
+    padding: 0;
+    flex: 1;
+    overflow: hidden;
+}
+
+#youtube-player-container {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+}
+
+#youtube-live-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Responsivo - ajustar posição em telas menores */
+@media (max-width: 768px) {
+    .btn-ao-vivo-container {
+        top: 60px !important;
+        right: 10px !important;
+        z-index: 9999 !important;
+    }
+    
+    .btn-ao-vivo {
+        padding: 10px 16px;
+        font-size: 0.8rem;
+    }
+    
+    .modal-youtube-container {
+        padding: 10px;
+    }
+    
+    .modal-youtube-content {
+        max-height: 95vh;
+    }
+    
+    .modal-youtube-header {
+        padding: 12px 15px;
+    }
+    
+    .modal-youtube-header h5 {
+        font-size: 1rem;
+    }
 }
 </style>
 
@@ -358,6 +645,130 @@ function abrirDivulgacao() {
 function buscarMural() {
     alert('Funcionalidade de Busca no Mural será implementada em breve!');
 }
+
+// Função para abrir YouTube ao vivo (modal)
+function abrirYouTubeAoVivo() {
+    {% if paroquia.PAR_url_youtube %}
+    const modal = document.getElementById('modal-youtube-ao-vivo');
+    const iframe = document.getElementById('youtube-live-iframe');
+    const youtubeUrl = '{{ paroquia.PAR_url_youtube|escapejs }}';
+    
+    if (!modal || !iframe) return;
+    
+    // Converter URL do canal para URL de embed ao vivo
+    // Se for URL do canal, tentar encontrar vídeo ao vivo
+    let embedUrl = youtubeUrl;
+    
+    // Se for URL do canal, tentar converter para embed
+    if (youtubeUrl.includes('/@')) {
+        // Para canais com @username, vamos abrir a página do canal
+        embedUrl = youtubeUrl.replace('/@', '/embed/live_stream?channel=');
+    } else if (youtubeUrl.includes('/channel/')) {
+        const channelId = youtubeUrl.split('/channel/')[1].split('/')[0];
+        embedUrl = `https://www.youtube.com/embed/live_stream?channel=${channelId}`;
+    } else if (youtubeUrl.includes('/c/')) {
+        // Para canais customizados, vamos tentar abrir a página do canal
+        embedUrl = youtubeUrl;
+    }
+    
+    // Se não conseguir converter, usar a URL original
+    iframe.src = embedUrl;
+    modal.style.display = 'flex';
+    
+    // Prevenir scroll do body quando modal estiver aberto
+    document.body.style.overflow = 'hidden';
+    {% endif %}
+}
+
+// Função para fechar modal YouTube
+function fecharModalYouTube() {
+    const modal = document.getElementById('modal-youtube-ao-vivo');
+    const iframe = document.getElementById('youtube-live-iframe');
+    
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    if (iframe) {
+        iframe.src = ''; // Pausar vídeo ao fechar
+    }
+    
+    // Restaurar scroll do body
+    document.body.style.overflow = '';
+}
+
+// Fechar modal ao clicar fora
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('modal-youtube-ao-vivo');
+    if (modal && event.target === modal) {
+        fecharModalYouTube();
+    }
+});
+
+// Fechar modal com ESC
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        fecharModalYouTube();
+    }
+});
+
+// Verificar se há transmissão ao vivo no YouTube
+{% if paroquia.PAR_url_youtube %}
+function verificarTransmissaoAoVivo() {
+    const btnAoVivo = document.getElementById('btn-ao-vivo');
+    
+    if (!btnAoVivo) return;
+    
+    // Verificar via API se há transmissão ao vivo
+    fetch('/app_igreja/api/youtube/verificar-ao-vivo/')
+        .then(response => response.json())
+        .then(data => {
+            // Por enquanto, vamos mostrar o botão sempre que houver URL do YouTube
+            // Em produção, você pode usar a API do YouTube Data API v3 para verificar realmente
+            
+            // Exemplo de verificação real (requer API key do YouTube):
+            /*
+            const channelId = data.canal_info?.id;
+            const apiKey = 'SUA_API_KEY_AQUI';
+            
+            if (channelId && apiKey) {
+                fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=live&type=video&key=${apiKey}`)
+                    .then(response => response.json())
+                    .then(youtubeData => {
+                        if (youtubeData.items && youtubeData.items.length > 0) {
+                            btnAoVivo.style.display = 'block';
+                        } else {
+                            btnAoVivo.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao verificar transmissão ao vivo:', error);
+                        btnAoVivo.style.display = 'none';
+                    });
+            }
+            */
+            
+            // Por enquanto, mostrar o botão sempre que houver URL do YouTube
+            // Você pode descomentar o código acima quando tiver API key do YouTube
+            btnAoVivo.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Erro ao verificar transmissão ao vivo:', error);
+            btnAoVivo.style.display = 'none';
+        });
+}
+
+// Verificar imediatamente ao carregar a página e depois a cada 2 minutos
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(verificarTransmissaoAoVivo, 1000);
+        setInterval(verificarTransmissaoAoVivo, 120000); // A cada 2 minutos
+    });
+} else {
+    setTimeout(verificarTransmissaoAoVivo, 1000);
+    setInterval(verificarTransmissaoAoVivo, 120000); // A cada 2 minutos
+}
+{% endif %}
 
 {% if banners %}
 // Dados dos banners

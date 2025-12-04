@@ -21,7 +21,21 @@ class TBCOLABORADORES(models.Model):
     COL_estado = models.CharField(max_length=2, blank=True, null=True, verbose_name="Estado")
     COL_data_nascimento = models.DateField(blank=True, null=True, verbose_name="Data de Nascimento")
     COL_sexo = models.CharField(max_length=1, blank=True, null=True, verbose_name="Sexo", choices=[('M', 'Masculino'), ('F', 'Feminino')])
-    COL_estado_civil = models.CharField(max_length=20, blank=True, null=True, verbose_name="Estado Civil")
+    COL_estado_civil = models.CharField(
+        max_length=20, 
+        blank=True, 
+        null=True, 
+        verbose_name="Estado Civil",
+        choices=[
+            ('', 'Selecione...'),
+            ('SOLTEIRO', 'Solteiro(a)'),
+            ('CASADO', 'Casado(a)'),
+            ('DIVORCIADO', 'Divorciado(a)'),
+            ('VIUVO', 'Viúvo(a)'),
+            ('UNIAO_ESTAVEL', 'União Estável'),
+            ('SEPARADO', 'Separado(a)'),
+        ]
+    )
     COL_funcao_pretendida = models.CharField(max_length=100, blank=True, null=True, verbose_name="Função Pretendida")
     COL_foto = models.ImageField(upload_to='colaboradores/', blank=True, null=True, verbose_name="Foto")
     COL_status = models.CharField(max_length=20, default='PENDENTE', verbose_name="Status", choices=[
@@ -31,6 +45,7 @@ class TBCOLABORADORES(models.Model):
     ])
     COL_membro_ativo = models.BooleanField(default=False, verbose_name="Membro Ativo")
     COL_funcao_id = models.IntegerField(blank=True, null=True, verbose_name="ID da Função")
+    COL_funcao = models.IntegerField(blank=True, null=True, verbose_name="Função")
     COL_data_cadastro = models.DateTimeField(default=timezone.now, verbose_name="Data de Cadastro")
     COL_data_atualizacao = models.DateTimeField(auto_now=True, verbose_name="Data de Atualização")
     

@@ -320,3 +320,19 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Botão flutuante oculto para este módulo -->
 {% endblock %}
 
+{% block bd_url_retornar %}
+{% if mes and ano %}
+window.location.href = "{% url 'app_igreja:listar_itens_escala' %}?mes={{ mes }}&ano={{ ano }}";
+{% else %}
+window.location.href = "{% url 'app_igreja:listar_itens_escala' %}";
+{% endif %}
+{% endblock %}
+
+{% block bd_url_cancelar %}
+{% if mes and ano %}
+window.location.href = "{% url 'app_igreja:listar_itens_escala' %}?mes={{ mes }}&ano={{ ano }}";
+{% else %}
+window.location.href = "{% url 'app_igreja:listar_itens_escala' %}";
+{% endif %}
+{% endblock %}
+

@@ -1,0 +1,200 @@
+{% extends 'admin_area/tpl_relatorio_base.html' %}
+{% load static %}
+
+{% block title %}Relatório de Escala Mensal de Missas{% endblock %}
+
+{% block filtros %}
+<form method="get" class="row g-3 align-items-end">
+    <div class="col-md-3">
+        <label for="mes" class="form-label fw-bold">Mês:</label>
+        <select name="mes" id="mes" class="form-select" required>
+            <option value="">Selecione o mês</option>
+            <option value="1" {% if mes == '1' %}selected{% endif %}>Janeiro</option>
+            <option value="2" {% if mes == '2' %}selected{% endif %}>Fevereiro</option>
+            <option value="3" {% if mes == '3' %}selected{% endif %}>Março</option>
+            <option value="4" {% if mes == '4' %}selected{% endif %}>Abril</option>
+            <option value="5" {% if mes == '5' %}selected{% endif %}>Maio</option>
+            <option value="6" {% if mes == '6' %}selected{% endif %}>Junho</option>
+            <option value="7" {% if mes == '7' %}selected{% endif %}>Julho</option>
+            <option value="8" {% if mes == '8' %}selected{% endif %}>Agosto</option>
+            <option value="9" {% if mes == '9' %}selected{% endif %}>Setembro</option>
+            <option value="10" {% if mes == '10' %}selected{% endif %}>Outubro</option>
+            <option value="11" {% if mes == '11' %}selected{% endif %}>Novembro</option>
+            <option value="12" {% if mes == '12' %}selected{% endif %}>Dezembro</option>
+        </select>
+    </div>
+    
+    <div class="col-md-2">
+        <label for="ano" class="form-label fw-bold">Ano:</label>
+        <input type="number" 
+               name="ano" 
+               id="ano"
+               class="form-control" 
+               value="{{ ano }}"
+               placeholder="Ex: 2025"
+               min="2000"
+               max="2100"
+               required>
+    </div>
+    
+    <div class="col-md-3">
+        <label for="colaborador" class="form-label fw-bold">Colaborador:</label>
+        <select name="colaborador" id="colaborador" class="form-select">
+            <option value="">Todos</option>
+            {% for colaborador in colaboradores %}
+            <option value="{{ colaborador.COL_id }}" {% if colaborador_id == colaborador.COL_id|floatformat:0 %}selected{% endif %}>
+                {{ colaborador.COL_nome_completo }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div class="col-md-2">
+        <label for="funcao" class="form-label fw-bold">Função:</label>
+        <select name="funcao" id="funcao" class="form-select">
+            <option value="">Todas</option>
+            {% for funcao in funcoes %}
+            <option value="{{ funcao.FUN_id }}" {% if funcao_id == funcao.FUN_id|floatformat:0 %}selected{% endif %}>
+                {{ funcao.FUN_nome_funcao }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div class="col-md-2">
+        <label for="status" class="form-label fw-bold">Status:</label>
+        <select name="status" id="status" class="form-select">
+            <option value="">Todos</option>
+            <option value="EM_ABERTO" {% if status == 'EM_ABERTO' %}selected{% endif %}>Em aberto</option>
+            <option value="RESERVADO" {% if status == 'RESERVADO' %}selected{% endif %}>Reservado</option>
+            <option value="DEFINIDO" {% if status == 'DEFINIDO' %}selected{% endif %}>Definido</option>
+        </select>
+    </div>
+    
+    <div class="col-md-3">
+        <label for="grupo" class="form-label fw-bold">Grupo:</label>
+        <select name="grupo" id="grupo" class="form-select">
+            <option value="">Todos</option>
+            {% for grupo in grupos %}
+            <option value="{{ grupo.GRU_id }}" {% if grupo_id == grupo.GRU_id|floatformat:0 %}selected{% endif %}>
+                {{ grupo.GRU_nome_grupo }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div class="col-md-2">
+        <label for="situacao" class="form-label fw-bold">Situação:</label>
+        <select name="situacao" id="situacao" class="form-select">
+            <option value="">Todas</option>
+            <option value="true" {% if situacao == 'true' %}selected{% endif %}>Bloqueado</option>
+            <option value="false" {% if situacao == 'false' %}selected{% endif %}>Desbloqueado</option>
+        </select>
+    </div>
+    
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-buscar w-100">
+            <i class="fas fa-search me-2"></i>
+            Buscar
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block grid %}
+{% if itens_escala %}
+    <table class="relatorio-table">
+        <thead>
+            <tr>
+                <th style="width: 8%;">Dia</th>
+                <th style="width: 12%;">Dia Semana</th>
+                <th style="width: 8%;">Hora</th>
+                <th style="width: 15%;">Encargo</th>
+                <th style="width: 20%;">Colaborador</th>
+                <th style="width: 15%;">Função</th>
+                <th style="width: 12%;">Grupo</th>
+                <th style="width: 10%;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in itens_escala %}
+            <tr>
+                <td>
+                    <i class="fas fa-calendar-day me-2"></i>
+                    {{ item.ITE_ESC_DATA|date:"d/m/Y" }}
+                </td>
+                <td>
+                    <i class="fas fa-calendar-week me-2"></i>
+                    {{ item.dia_semana_nome }}
+                </td>
+                <td>
+                    <i class="fas fa-clock me-2"></i>
+                    {{ item.ITE_ESC_HORARIO|date:"H:i" }}
+                </td>
+                <td>
+                    <i class="fas fa-tasks me-2"></i>
+                    {{ item.ITE_ESC_ENCARGO|default:"-" }}
+                </td>
+                <td>
+                    <i class="fas fa-user me-2"></i>
+                    {{ item.colaborador_nome }}
+                </td>
+                <td>
+                    <i class="fas fa-briefcase me-2"></i>
+                    {{ item.funcao_nome|default:"-" }}
+                </td>
+                <td>
+                    <i class="fas fa-users me-2"></i>
+                    {{ item.grupo_nome }}
+                </td>
+                <td>
+                    {% if item.ITE_ESC_STATUS == 'EM_ABERTO' %}
+                        <span class="badge bg-warning">Em aberto</span>
+                    {% elif item.ITE_ESC_STATUS == 'RESERVADO' %}
+                        <span class="badge bg-info">Reservado</span>
+                    {% elif item.ITE_ESC_STATUS == 'DEFINIDO' %}
+                        <span class="badge bg-success">Definido</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ item.ITE_ESC_STATUS }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <div class="text-center p-4">
+        <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+        <p class="text-muted">Nenhum item de escala encontrado para o mês/ano selecionado.</p>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block botao_imprimir_pdf %}
+<a href="{% url 'app_igreja:relatorio_escala_mensal_missas_pdf' %}?mes={{ mes }}&ano={{ ano }}&colaborador={{ colaborador_id }}&funcao={{ funcao_id }}&status={{ status }}&grupo={{ grupo_id }}&situacao={{ situacao }}" class="btn btn-imprimir" target="_blank">
+    <i class="fas fa-print me-2"></i>
+    Imprimir
+</a>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Definir mês e ano atual como padrão se não houver filtro
+    const mesInput = document.getElementById('mes');
+    const anoInput = document.getElementById('ano');
+    
+    if (mesInput && !mesInput.value) {
+        const hoje = new Date();
+        mesInput.value = hoje.getMonth() + 1;
+    }
+    
+    if (anoInput && !anoInput.value) {
+        const hoje = new Date();
+        anoInput.value = hoje.getFullYear();
+    }
+});
+</script>
+{% endblock %}
+

@@ -29,8 +29,11 @@ def popular_choices_formulario(form):
     funcoes = TBFUNCAO.objects.all().order_by('FUN_nome_funcao')
     funcao_choices = [('', 'Selecione uma função...')]
     for funcao in funcoes:
-        funcao_choices.append((funcao.FUN_id, funcao.FUN_nome_funcao))
+        funcao_choices.append((str(funcao.FUN_id), funcao.FUN_nome_funcao))
     form.fields['COL_funcao_id'].choices = funcao_choices
+    # Popular também o campo COL_funcao se existir
+    if 'COL_funcao' in form.fields:
+        form.fields['COL_funcao'].choices = funcao_choices
 
 @login_required
 @admin_required
@@ -137,10 +140,23 @@ def editar_colaborador(request, colaborador_id):
     # Popular choices dos campos de grupo e função
     popular_choices_formulario(form)
     
+    # Buscar todas as funções para exibição
+    funcoes = TBFUNCAO.objects.all().order_by('FUN_nome_funcao')
+    
+    # Buscar função específica do colaborador se existir
+    funcao_colaborador = None
+    if colaborador.COL_funcao:
+        try:
+            funcao_colaborador = TBFUNCAO.objects.get(FUN_id=colaborador.COL_funcao)
+        except TBFUNCAO.DoesNotExist:
+            pass
+    
     next_url = request.META.get('HTTP_REFERER')
     context = {
         'form': form,
         'colaborador': colaborador,
+        'funcoes': funcoes,
+        'funcao_colaborador': funcao_colaborador,
         'titulo': f'Editar Colaborador: {colaborador.COL_nome_completo}',
         # novo padrão PAI-filho
         'acao': 'editar',
@@ -159,8 +175,21 @@ def detalhar_colaborador(request, colaborador_id):
     """
     colaborador = get_object_or_404(TBCOLABORADORES, COL_id=colaborador_id)
     
+    # Buscar todas as funções para exibição
+    funcoes = TBFUNCAO.objects.all().order_by('FUN_nome_funcao')
+    
+    # Buscar função específica do colaborador se existir
+    funcao_colaborador = None
+    if colaborador.COL_funcao:
+        try:
+            funcao_colaborador = TBFUNCAO.objects.get(FUN_id=colaborador.COL_funcao)
+        except TBFUNCAO.DoesNotExist:
+            pass
+    
     context = {
         'colaborador': colaborador,
+        'funcoes': funcoes,
+        'funcao_colaborador': funcao_colaborador,
         'titulo': f'Detalhes do Colaborador: {colaborador.COL_nome_completo}',
         # compat atual
         'modo_detalhes': True,

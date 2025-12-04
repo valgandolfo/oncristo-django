@@ -1648,7 +1648,7 @@
         </div>
     </div>
 
-    {% if messages %}
+    {% if messages and not modo_edicao and not modo_visualizacao %}
     <div class="container mt-3">
         {% for message in messages %}
         <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -1815,7 +1815,12 @@
                     {% else %}
                     <!-- n3_bloco_003: FUNDO VERDE -->
                     <div class="card-footer" style="background: #f8f9fa;">
-                        <!-- Botão Retornar removido - usar botão flutuante -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <!-- [Retornar] (se consultar) -->
+                            <button type="button" class="btn btn-secondary" onclick="bdRetornar()">
+                                <i class="fas fa-arrow-left me-2"></i>Retornar
+                            </button>
+                        </div>
                     </div>
                     {% endif %}
                 </div>

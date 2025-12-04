@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Escala Mensal de Missas</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1.5cm;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 9pt;
+            line-height: 1.3;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 8px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 16pt;
+            color: #333;
+        }
+        
+        .info {
+            margin-bottom: 12px;
+            font-size: 8pt;
+        }
+        
+        .info strong {
+            color: #555;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        table thead {
+            background-color: #09788e;
+            color: white;
+        }
+        
+        table th {
+            padding: 6px;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #fff;
+            font-size: 8pt;
+        }
+        
+        table td {
+            padding: 5px;
+            border: 1px solid #ddd;
+            font-size: 8pt;
+        }
+        
+        table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .footer {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 7pt;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>RELATÓRIO DE ESCALA MENSAL DE MISSAS</h1>
+        {% if paroquia %}
+        <p style="margin: 5px 0; font-size: 10pt;">{{ paroquia.PAR_nome_paroquia }}</p>
+        {% endif %}
+    </div>
+    
+    <div class="info">
+        {% if mes_nome and ano %}
+        <strong>Período:</strong> {{ mes_nome }}/{{ ano }}<br>
+        {% endif %}
+        <strong>Total encontrado:</strong> {{ total_encontrado }} item{{ total_encontrado|pluralize }} de escala
+    </div>
+    
+    {% if itens_escala %}
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 8%;">Dia</th>
+                <th style="width: 10%;">Dia Semana</th>
+                <th style="width: 7%;">Hora</th>
+                <th style="width: 15%;">Encargo</th>
+                <th style="width: 18%;">Colaborador</th>
+                <th style="width: 12%;">Função</th>
+                <th style="width: 15%;">Grupo</th>
+                <th style="width: 15%;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in itens_escala %}
+            <tr>
+                <td>{{ item.ITE_ESC_DATA|date:"d/m/Y" }}</td>
+                <td>{{ item.dia_semana_nome }}</td>
+                <td>{{ item.ITE_ESC_HORARIO|date:"H:i" }}</td>
+                <td>{{ item.ITE_ESC_ENCARGO|default:"-" }}</td>
+                <td>{{ item.colaborador_nome }}</td>
+                <td>{{ item.funcao_nome|default:"-" }}</td>
+                <td>{{ item.grupo_nome }}</td>
+                <td>
+                    {% if item.ITE_ESC_STATUS == 'EM_ABERTO' %}
+                        Em aberto
+                    {% elif item.ITE_ESC_STATUS == 'RESERVADO' %}
+                        Reservado
+                    {% elif item.ITE_ESC_STATUS == 'DEFINIDO' %}
+                        Definido
+                    {% else %}
+                        {{ item.ITE_ESC_STATUS }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; margin-top: 30px; color: #666;">
+        Nenhum item de escala encontrado para o mês/ano selecionado.
+    </p>
+    {% endif %}
+    
+    <div class="footer">
+        <p>Gerado em {{ "now"|date:"d/m/Y H:i" }}</p>
+    </div>
+</body>
+</html>
+

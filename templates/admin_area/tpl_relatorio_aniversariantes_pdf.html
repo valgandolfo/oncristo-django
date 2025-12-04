@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Aniversariantes</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.4;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 18pt;
+            color: #333;
+        }
+        
+        .info {
+            margin-bottom: 15px;
+            font-size: 9pt;
+        }
+        
+        .info strong {
+            color: #555;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        table thead {
+            background-color: #09788e;
+            color: white;
+        }
+        
+        table th {
+            padding: 8px;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #fff;
+        }
+        
+        table td {
+            padding: 6px;
+            border: 1px solid #ddd;
+        }
+        
+        table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 8pt;
+        }
+        
+        .badge-dizimista {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .badge-colaborador {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 8pt;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>RELATÓRIO DE ANIVERSARIANTES</h1>
+        {% if paroquia %}
+        <p style="margin: 5px 0; font-size: 11pt;">{{ paroquia.PAR_nome_paroquia }}</p>
+        {% endif %}
+    </div>
+    
+    <div class="info">
+        <strong>Período:</strong> {{ data_filtro }}<br>
+        <strong>Tipo:</strong> {{ tipo_filtro }}<br>
+        <strong>Total encontrado:</strong> {{ total_encontrado }} aniversariante{{ total_encontrado|pluralize }}
+    </div>
+    
+    {% if aniversariantes %}
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 50%;">Nome</th>
+                <th style="width: 25%;">Data Aniversário</th>
+                <th style="width: 25%;">Tipo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pessoa in aniversariantes %}
+            <tr>
+                <td>{{ pessoa.nome }}</td>
+                <td>{{ pessoa.data_aniversario|date:"d/m/Y" }}</td>
+                <td>
+                    {% if pessoa.tipo == 'Dizimista' %}
+                        <span class="badge badge-dizimista">{{ pessoa.tipo }}</span>
+                    {% else %}
+                        <span class="badge badge-colaborador">{{ pessoa.tipo }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; margin-top: 30px; color: #666;">
+        Nenhum aniversariante encontrado para os filtros selecionados.
+    </p>
+    {% endif %}
+    
+    <div class="footer">
+        <p>Gerado em {{ "now"|date:"d/m/Y H:i" }}</p>
+    </div>
+</body>
+</html>
+
