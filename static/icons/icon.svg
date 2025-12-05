@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A0522D;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fundo com gradiente -->
+  <rect width="192" height="192" rx="20" fill="url(#bg)"/>
+  
+  <!-- Imagem centralizada (simulada) -->
+  <rect x="48" y="48" width="96" height="96" rx="10" fill="#FFFFFF" opacity="0.9"/>
+  
+  <!-- Texto "On Cristo" -->
+  <text x="96" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">
+    On Cristo
+  </text>
+</svg>

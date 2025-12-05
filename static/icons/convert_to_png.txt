@@ -1,0 +1,5 @@
+# Placeholder para conversão PNG
+# Para converter SVG para PNG, use:
+# rsvg-convert -w 72 -h 72 icon-72x72.svg > icon-72x72.png
+# rsvg-convert -w 96 -h 96 icon-96x96.svg > icon-96x96.png
+# etc...

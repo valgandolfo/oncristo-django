@@ -1,0 +1,89 @@
+{% comment %}
+EXEMPLO DE USO DA BIBLIOTECA DE FORMULÁRIOS
+
+Para usar em qualquer formulário, basta incluir:
+
+1. Carregar a biblioteca:
+{% block extra_js %}
+<script src="{% static 'js/formularios.js' %}"></script>
+{% endblock %}
+
+2. Inicializar as funcionalidades:
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Opção 1: Campos padrão (DIS_telefone, DIS_cep, DIS_cpf)
+    inicializarMascaras();
+    
+    // Opção 2: Campos personalizados
+    inicializarMascaras({
+        telefone: 'meu_telefone',
+        cep: 'meu_cep', 
+        cpf: 'meu_cpf'
+    });
+    
+    // Opção 3: Buscar CEP manualmente
+    buscarCep('12345678', {
+        endereco: 'meu_endereco',
+        bairro: 'meu_bairro',
+        cidade: 'minha_cidade',
+        estado: 'meu_estado'
+    });
+    
+    // Opção 4: Verificar telefone manualmente
+    verificarTelefone('11999999999', 'meu_telefone');
+    
+    // Opção 5: Preview de foto
+    const inputFoto = document.getElementById('foto');
+    if (inputFoto) {
+        inputFoto.addEventListener('change', function() {
+            previewFoto(this, 'preview-foto');
+        });
+    }
+});
+</script>
+
+FUNÇÕES DISPONÍVEIS:
+
+1. buscarCep(cep, campos, callback)
+   - Busca dados do CEP automaticamente
+   - Preenche campos de endereço
+   - Suporte a callback personalizado
+
+2. verificarTelefone(telefone, campoId, callback)
+   - Verifica se telefone já existe
+   - Validação em tempo real
+   - Suporte a callback personalizado
+
+3. mascaraTelefone(valor)
+   - Aplica máscara (11) 99999-9999
+   - Retorna valor formatado
+
+4. mascaraCep(valor)
+   - Aplica máscara 99999-999
+   - Retorna valor formatado
+
+5. mascaraCpf(valor)
+   - Aplica máscara 999.999.999-99
+   - Retorna valor formatado
+
+6. validarCpf(cpf)
+   - Valida CPF usando algoritmo oficial
+   - Retorna true/false
+
+7. previewFoto(input, previewId)
+   - Mostra preview da foto selecionada
+   - Suporte a ID personalizado
+
+8. inicializarMascaras(campos)
+   - Inicializa todas as máscaras automaticamente
+   - Configuração de campos personalizados
+   - Event listeners automáticos
+
+VANTAGENS:
+- ✅ Reutilizável em qualquer formulário
+- ✅ Configurável para diferentes campos
+- ✅ Callbacks personalizados
+- ✅ Validações automáticas
+- ✅ Máscaras consistentes
+- ✅ Código limpo e organizado
+{% endcomment %}
