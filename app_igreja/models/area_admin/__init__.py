@@ -19,6 +19,7 @@ from .models_escala import TBESCALA, TBITEM_ESCALA
 from .models_whatsapp import TBWHATSAPP
 from .models_visual import TBVISUAL
 from .models_banners import TBBANNERS
+from .models_agenda_mes import TBAGENDAMES, TBITEAGENDAMES
 
 __all__ = [
     'TBDIOCESE',
@@ -41,4 +42,6 @@ __all__ = [
     'TBMURAL',
     'TBVISUAL',
     'TBBANNERS',
+    'TBAGENDAMES',
+    'TBITEAGENDAMES',
 ]

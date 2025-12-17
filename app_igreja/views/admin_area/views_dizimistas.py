@@ -36,27 +36,35 @@ def listar_dizimistas(request):
     """
     
     # Busca
-    query = request.GET.get('q', '')
-    status_filter = request.GET.get('status', '')
-    
-    dizimistas = TBDIZIMISTAS.objects.all()
-    
-    if query:
-        dizimistas = dizimistas.filter(
-            Q(DIS_nome__icontains=query) | 
-            Q(DIS_telefone__icontains=query) |
-            Q(DIS_email__icontains=query) |
-            Q(DIS_cidade__icontains=query)
-        )
-    
-    if status_filter:
-        if status_filter == 'ativo':
-            dizimistas = dizimistas.filter(DIS_status=True)
-        elif status_filter == 'pendente':
-            dizimistas = dizimistas.filter(DIS_status=False)
-    
-    # Ordenação
-    dizimistas = dizimistas.order_by('DIS_nome')
+    query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+
+    # Controla se o usuário já executou uma busca (preencheu algum filtro ou navegou na paginação)
+    busca_realizada = bool(query or status_filter or request.GET.get('page'))
+
+    # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
+    if busca_realizada:
+        dizimistas = TBDIZIMISTAS.objects.all()
+
+        if query:
+            dizimistas = dizimistas.filter(
+                Q(DIS_nome__icontains=query)
+                | Q(DIS_telefone__icontains=query)
+                | Q(DIS_email__icontains=query)
+                | Q(DIS_cidade__icontains=query)
+            )
+
+        if status_filter:
+            if status_filter == 'ativo':
+                dizimistas = dizimistas.filter(DIS_status=True)
+            elif status_filter == 'pendente':
+                dizimistas = dizimistas.filter(DIS_status=False)
+
+        # Ordenação
+        dizimistas = dizimistas.order_by('DIS_nome')
+    else:
+        # Queryset vazio até que o usuário faça a primeira busca
+        dizimistas = TBDIZIMISTAS.objects.none()
     
     # Paginação
     paginator = Paginator(dizimistas, 20)
@@ -76,6 +84,7 @@ def listar_dizimistas(request):
         'ativos': ativos,
         'pendentes': pendentes,
         'modo_dashboard': True,
+        'busca_realizada': busca_realizada,
     }
     
     return render(request, 'admin_area/tpl_dizimistas.html', context)
@@ -93,7 +102,18 @@ def criar_dizimista(request):
         
         if form.is_valid():
             dizimista = form.save()
-            # Redirecionar para lista de dizimistas
+            # Reconstruir URL com filtros preservados do POST (campos hidden)
+            params = []
+            if request.POST.get('q'):
+                params.append(f"q={request.POST.get('q')}")
+            if request.POST.get('status'):
+                params.append(f"status={request.POST.get('status')}")
+            if request.POST.get('page'):
+                params.append(f"page={request.POST.get('page')}")
+            
+            query_string = '&'.join(params)
+            if query_string:
+                return redirect(f"{reverse('app_igreja:listar_dizimistas')}?{query_string}")
             return redirect('app_igreja:listar_dizimistas')
         else:
             messages.error(request, 'Erro ao cadastrar dizimista. Verifique os dados.')
@@ -147,7 +167,18 @@ def editar_dizimista(request, dizimista_id):
         
         if form.is_valid():
             form.save()
-            # Redirecionar para lista de dizimistas
+            # Reconstruir URL com filtros preservados do POST (campos hidden)
+            params = []
+            if request.POST.get('q'):
+                params.append(f"q={request.POST.get('q')}")
+            if request.POST.get('status'):
+                params.append(f"status={request.POST.get('status')}")
+            if request.POST.get('page'):
+                params.append(f"page={request.POST.get('page')}")
+            
+            query_string = '&'.join(params)
+            if query_string:
+                return redirect(f"{reverse('app_igreja:listar_dizimistas')}?{query_string}")
             return redirect('app_igreja:listar_dizimistas')
         else:
             messages.error(request, 'Erro ao atualizar dizimista. Verifique os campos.')
@@ -177,7 +208,18 @@ def excluir_dizimista(request, dizimista_id):
     
     if request.method == 'POST':
         dizimista.delete()
-        # Redirecionar para lista após exclusão
+        # Reconstruir URL com filtros preservados do POST (campos hidden)
+        params = []
+        if request.POST.get('q'):
+            params.append(f"q={request.POST.get('q')}")
+        if request.POST.get('status'):
+            params.append(f"status={request.POST.get('status')}")
+        if request.POST.get('page'):
+            params.append(f"page={request.POST.get('page')}")
+        
+        query_string = '&'.join(params)
+        if query_string:
+            return redirect(f"{reverse('app_igreja:listar_dizimistas')}?{query_string}")
         return redirect('app_igreja:listar_dizimistas')
     
     next_url = request.META.get('HTTP_REFERER') or reverse('app_igreja:listar_dizimistas')

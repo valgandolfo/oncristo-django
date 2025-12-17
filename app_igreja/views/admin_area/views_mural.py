@@ -17,23 +17,31 @@ def listar_murais(request):
     Lista todos os murais com paginação e busca
     """
     # Parâmetros de busca
-    busca = request.GET.get('busca', '')
-    status = request.GET.get('status', '')
+    busca = request.GET.get('busca', '').strip()
+    status = request.GET.get('status', '').strip()
     
-    # Query base
-    murais = TBMURAL.objects.all().order_by('-MUR_data_mural')
+    # Controla se o usuário já executou uma busca (preencheu algum filtro ou navegou na paginação)
+    busca_realizada = bool(busca or status or request.GET.get('page'))
     
-    # Filtros
-    if busca:
-        murais = murais.filter(
-            Q(MUR_titulo_mural__icontains=busca)
-        )
-    
-    if status:
-        if status == 'ativo':
-            murais = murais.filter(MUR_ativo=True)
-        elif status == 'inativo':
-            murais = murais.filter(MUR_ativo=False)
+    # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
+    if busca_realizada:
+        # Query base
+        murais = TBMURAL.objects.all().order_by('-MUR_data_mural')
+        
+        # Filtros
+        if busca:
+            murais = murais.filter(
+                Q(MUR_titulo_mural__icontains=busca)
+            )
+        
+        if status:
+            if status == 'ativo':
+                murais = murais.filter(MUR_ativo=True)
+            elif status == 'inativo':
+                murais = murais.filter(MUR_ativo=False)
+    else:
+        # Queryset vazio até que o usuário faça a primeira busca
+        murais = TBMURAL.objects.none()
     
     # Paginação
     paginator = Paginator(murais, 10)
@@ -69,6 +77,7 @@ def listar_murais(request):
         'modo_dashboard': True,
         'model_verbose_name': 'Mural da Paróquia',
         'mural_section': 'list',  # Seção: Lista
+        'busca_realizada': busca_realizada,
     }
     
     return render(request, 'admin_area/tpl_mural.html', context)

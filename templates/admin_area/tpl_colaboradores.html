@@ -74,52 +74,62 @@
 
 <!-- === BLOCO LINHAS TABELA DASHBOARD === -->
 {% block linhas_tabela_dashboard %}
-{% for colaborador in page_obj %}
-<tr>
-    {% block linha_completa_dashboard %}
-    <td><i class="fas fa-ellipsis-v" onclick="selecionarRegistroDashboard({{ colaborador.COL_id }})" style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;" onmouseover="this.style.backgroundColor='#e9ecef'" onmouseout="this.style.backgroundColor='transparent'"></i></td>
-    <td>
-        <div>
-            <div class="mb-2">
-                {% if colaborador.COL_foto %}
-                    <img src="{{ colaborador.COL_foto.url }}" alt="Foto" class="img-thumbnail" style="width: 40px; height: 40px;">
-                {% else %}
-                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                        <i class="fas fa-user text-muted"></i>
+{% if busca_realizada %}
+    {% for colaborador in page_obj %}
+    <tr>
+        {% block linha_completa_dashboard %}
+        <td><i class="fas fa-ellipsis-v" onclick="selecionarRegistroDashboard({{ colaborador.COL_id }})" style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;" onmouseover="this.style.backgroundColor='#e9ecef'" onmouseout="this.style.backgroundColor='transparent'"></i></td>
+        <td>
+            <div>
+                <div class="mb-2">
+                    {% if colaborador.COL_foto %}
+                        <img src="{{ colaborador.COL_foto.url }}" alt="Foto" class="img-thumbnail" style="width: 40px; height: 40px;">
+                    {% else %}
+                        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-user text-muted"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <!-- Botões de ação -->
+                <div class="botoes-acao" id="acoes_{{ colaborador.COL_id }}" style="display: none;">
+                    <div class="d-flex gap-2 justify-content-start align-items-center">
+                        <a href="{% url 'app_igreja:detalhar_colaborador' colaborador.COL_id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="btn btn-info btn-sm d-flex align-items-center">
+                            <i class="fas fa-eye me-1"></i>Consultar
+                        </a>
+                        <a href="{% url 'app_igreja:editar_colaborador' colaborador.COL_id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="btn btn-warning btn-sm d-flex align-items-center">
+                            <i class="fas fa-edit me-1"></i>Editar
+                        </a>
+                        <a href="{% url 'app_igreja:excluir_colaborador' colaborador.COL_id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="btn btn-danger btn-sm d-flex align-items-center">
+                            <i class="fas fa-trash me-1"></i>Excluir
+                        </a>
                     </div>
-                {% endif %}
-            </div>
-            <!-- Botões de ação -->
-            <div class="botoes-acao" id="acoes_{{ colaborador.COL_id }}" style="display: none;">
-                <div class="d-flex gap-2 justify-content-start align-items-center">
-                    <a href="{% url 'app_igreja:detalhar_colaborador' colaborador.COL_id %}" class="btn btn-info btn-sm d-flex align-items-center">
-                        <i class="fas fa-eye me-1"></i>Consultar
-                    </a>
-                    <a href="{% url 'app_igreja:editar_colaborador' colaborador.COL_id %}" class="btn btn-warning btn-sm d-flex align-items-center">
-                        <i class="fas fa-edit me-1"></i>Editar
-                    </a>
-                    <a href="{% url 'app_igreja:excluir_colaborador' colaborador.COL_id %}" class="btn btn-danger btn-sm d-flex align-items-center">
-                        <i class="fas fa-trash me-1"></i>Excluir
-                    </a>
                 </div>
             </div>
-        </div>
-    </td>
-    <td>{{ colaborador.COL_nome_completo }}</td>
-    <td>{{ colaborador.COL_apelido|default:"-" }}</td>
-    <td>{{ colaborador.COL_telefone|default:"-" }}</td>
-    <td>{% if colaborador.COL_status == 'ATIVO' %}<span class="badge bg-success">Ativo</span>{% elif colaborador.COL_status == 'PENDENTE' %}<span class="badge bg-warning">Pendente</span>{% elif colaborador.COL_status == 'INATIVO' %}<span class="badge bg-danger">Inativo</span>{% else %}{{ colaborador.COL_status|default:"-" }}{% endif %}</td>
-    {% endblock %}
-</tr>
-{% empty %}
-<tr>
-    <td colspan="6" class="text-center text-muted">
-        <i class="fas fa-user-friends fa-2x mb-2"></i>
-        <br>
-        Nenhum colaborador encontrado.
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
+        </td>
+        <td>{{ colaborador.COL_nome_completo }}</td>
+        <td>{{ colaborador.COL_apelido|default:"-" }}</td>
+        <td>{{ colaborador.COL_telefone|default:"-" }}</td>
+        <td>{% if colaborador.COL_status == 'ATIVO' %}<span class="badge bg-success">Ativo</span>{% elif colaborador.COL_status == 'PENDENTE' %}<span class="badge bg-warning">Pendente</span>{% elif colaborador.COL_status == 'INATIVO' %}<span class="badge bg-danger">Inativo</span>{% else %}{{ colaborador.COL_status|default:"-" }}{% endif %}</td>
+        {% endblock %}
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6" class="text-center text-muted">
+            <i class="fas fa-user-friends fa-2x mb-2"></i>
+            <br>
+            Nenhum colaborador encontrado para os filtros informados.
+        </td>
+    </tr>
+    {% endfor %}
+{% else %}
+    <tr>
+        <td colspan="6" class="text-center text-muted">
+            <i class="fas fa-search fa-2x mb-2"></i>
+            <br>
+            Preencha os filtros acima e clique em <strong>Buscar</strong> para listar os colaboradores.
+        </td>
+    </tr>
+{% endif %}
 {% endblock %}
 
 <!-- === BLOCO MENSAGEM VAZIO DASHBOARD === -->
@@ -135,6 +145,12 @@
 
 {% if acao == 'incluir' or acao == 'editar' %}
 {% csrf_token %}
+<!-- Campos hidden para preservar filtros da busca -->
+<input type="hidden" name="busca_telefone" value="{{ request.GET.busca_telefone|default:'' }}">
+<input type="hidden" name="busca_nome" value="{{ request.GET.busca_nome|default:'' }}">
+<input type="hidden" name="busca_apelido" value="{{ request.GET.busca_apelido|default:'' }}">
+<input type="hidden" name="busca_status" value="{{ request.GET.busca_status|default:'' }}">
+<input type="hidden" name="page" value="{{ request.GET.page|default:'' }}">
 {% if form.non_field_errors %}
     <div class="alert alert-danger">
         <h6>Erro ao {% if acao == 'editar' %}editar{% else %}cadastrar{% endif %} colaborador:</h6>
@@ -143,6 +159,12 @@
                         {% endif %}
 {% elif acao == 'excluir' %}
 {% csrf_token %}
+<!-- Campos hidden para preservar filtros da busca -->
+<input type="hidden" name="busca_telefone" value="{{ request.GET.busca_telefone|default:'' }}">
+<input type="hidden" name="busca_nome" value="{{ request.GET.busca_nome|default:'' }}">
+<input type="hidden" name="busca_apelido" value="{{ request.GET.busca_apelido|default:'' }}">
+<input type="hidden" name="busca_status" value="{{ request.GET.busca_status|default:'' }}">
+<input type="hidden" name="page" value="{{ request.GET.page|default:'' }}">
                         {% endif %}
                         
 <!-- ESTRUTURA ÚNICA DE CAMPOS PARA TODAS AS AÇÕES -->
@@ -172,19 +194,21 @@
             {% if acao == 'incluir' or acao == 'editar' %}{{ form.COL_estado_civil }}{% if form.COL_estado_civil.errors %}<div class="text-danger small">{% for error in form.COL_estado_civil.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
             {% else %}<input type="text" class="form-control" value="{{ colaborador.COL_estado_civil|default:'Não informado' }}" readonly>{% endif %}
         </div>
-        <div class="mb-3"><label class="form-label fw-bold">Função Pretendida</label>
-            {% if acao == 'incluir' or acao == 'editar' %}{{ form.COL_funcao_pretendida }}{% if form.COL_funcao_pretendida.errors %}<div class="text-danger small">{% for error in form.COL_funcao_pretendida.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
-            {% else %}<input type="text" class="form-control" value="{{ colaborador.COL_funcao_pretendida|default:'Não informado' }}" readonly>{% endif %}
-        </div>
-        <div class="mb-3"><label class="form-label fw-bold">Status</label>
-            {% if acao == 'incluir' or acao == 'editar' %}{{ form.COL_status }}{% if form.COL_status.errors %}<div class="text-danger small">{% for error in form.COL_status.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
-            {% else %}<div class="form-control" readonly>{% if colaborador.COL_status == 'ATIVO' %}<span class="badge bg-success">Ativo</span>{% elif colaborador.COL_status == 'PENDENTE' %}<span class="badge bg-warning">Pendente</span>{% elif colaborador.COL_status == 'INATIVO' %}<span class="badge bg-danger">Inativo</span>{% else %}{{ colaborador.COL_status|default:'Não informado' }}{% endif %}</div>{% endif %}
-        </div>
         <div class="mb-3"><label class="form-label fw-bold">Função</label>
             {% if acao == 'incluir' or acao == 'editar' %}{{ form.COL_funcao }}{% if form.COL_funcao.errors %}<div class="text-danger small">{% for error in form.COL_funcao.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
             {% else %}
                 {% if funcao_colaborador %}
                     <input type="text" class="form-control" value="{{ funcao_colaborador.FUN_nome_funcao }}" readonly>
+                {% else %}
+                    <input type="text" class="form-control" value="Não informado" readonly>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Grupo Litúrgico</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.COL_grupo_liturgico }}{% if form.COL_grupo_liturgico.errors %}<div class="text-danger small">{% for error in form.COL_grupo_liturgico.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}
+                {% if colaborador.COL_grupo_liturgico %}
+                    <input type="text" class="form-control" value="{{ colaborador.COL_grupo_liturgico }}" readonly>
                 {% else %}
                     <input type="text" class="form-control" value="Não informado" readonly>
                 {% endif %}
@@ -219,11 +243,11 @@
         <div class="mb-3"><label class="form-label fw-bold">Estado</label>
             {% if acao == 'incluir' or acao == 'editar' %}{{ form.COL_estado }}{% if form.COL_estado.errors %}<div class="text-danger small">{% for error in form.COL_estado.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
             {% else %}<input type="text" class="form-control" value="{{ colaborador.COL_estado|default:'-' }}" readonly>{% endif %}
-                </div>
-        <div class="mb-3"><label class="form-label fw-bold">Membro Ativo</label>
-            {% if acao == 'incluir' or acao == 'editar' %}<div class="form-check">{{ form.COL_membro_ativo }}<label class="form-check-label fw-bold" for="{{ form.COL_membro_ativo.id_for_label }}">Membro Ativo</label></div>{% if form.COL_membro_ativo.errors %}<div class="text-danger small">{% for error in form.COL_membro_ativo.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
-            {% else %}<div class="form-control" readonly>{% if colaborador.COL_membro_ativo %}<span class="badge bg-success">Sim</span>{% else %}<span class="badge bg-secondary">Não</span>{% endif %}</div>{% endif %}
-            </div>
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold">Status</label>
+            {% if acao == 'incluir' or acao == 'editar' %}{{ form.COL_status }}{% if form.COL_status.errors %}<div class="text-danger small">{% for error in form.COL_status.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+            {% else %}<div class="form-control" readonly>{% if colaborador.COL_status == 'ATIVO' %}<span class="badge bg-success">Ativo</span>{% elif colaborador.COL_status == 'PENDENTE' %}<span class="badge bg-warning">Pendente</span>{% elif colaborador.COL_status == 'INATIVO' %}<span class="badge bg-danger">Inativo</span>{% else %}{{ colaborador.COL_status|default:'Não informado' }}{% endif %}</div>{% endif %}
+        </div>
         <div class="mb-3"><label class="form-label fw-bold">Foto do Colaborador</label>
             {% if acao == 'incluir' or acao == 'editar' %}{{ form.COL_foto }}{% if form.COL_foto.errors %}<div class="text-danger small">{% for error in form.COL_foto.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
             {% else %}<div class="form-control" readonly>{% if colaborador.COL_foto %}<img src="{{ colaborador.COL_foto.url }}" alt="Foto do Colaborador" class="img-thumbnail" style="max-width: 100px; max-height: 100px;">{% else %}<span class="text-muted">Não informada</span>{% endif %}</div>{% endif %}

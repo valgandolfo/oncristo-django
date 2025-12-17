@@ -46,6 +46,11 @@ class TBCOLABORADORES(models.Model):
     COL_membro_ativo = models.BooleanField(default=False, verbose_name="Membro Ativo")
     COL_funcao_id = models.IntegerField(blank=True, null=True, verbose_name="ID da Função")
     COL_funcao = models.IntegerField(blank=True, null=True, verbose_name="Função")
+    COL_grupo_liturgico = models.IntegerField(
+        blank=True,
+        null=True,
+        verbose_name="Grupo Litúrgico"
+    )
     COL_data_cadastro = models.DateTimeField(default=timezone.now, verbose_name="Data de Cadastro")
     COL_data_atualizacao = models.DateTimeField(auto_now=True, verbose_name="Data de Atualização")
     

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.urls import reverse
 from functools import wraps
 
 # Imports dos models e forms
@@ -42,26 +43,35 @@ def listar_colaboradores(request):
     Lista colaboradores (padrão PAI-filho): suporta busca e status, com paginação
     """
     # Filtros específicos conforme solicitado
-    busca_telefone = request.GET.get('busca_telefone', '')
-    busca_nome = request.GET.get('busca_nome', '')
-    busca_apelido = request.GET.get('busca_apelido', '')
-    busca_status = request.GET.get('busca_status', '')
+    busca_telefone = request.GET.get('busca_telefone', '').strip()
+    busca_nome = request.GET.get('busca_nome', '').strip()
+    busca_apelido = request.GET.get('busca_apelido', '').strip()
+    busca_status = request.GET.get('busca_status', '').strip()
 
-    colaboradores_qs = TBCOLABORADORES.objects.all()
+    # Controla se o usuário já executou uma busca (preencheu algum filtro ou navegou na paginação)
+    busca_realizada = bool(
+        busca_telefone or busca_nome or busca_apelido or busca_status or request.GET.get('page')
+    )
 
-    if busca_telefone:
-        colaboradores_qs = colaboradores_qs.filter(COL_telefone__icontains=busca_telefone)
-    
-    if busca_nome:
-        colaboradores_qs = colaboradores_qs.filter(COL_nome_completo__icontains=busca_nome)
-    
-    if busca_apelido:
-        colaboradores_qs = colaboradores_qs.filter(COL_apelido__icontains=busca_apelido)
-    
-    if busca_status:
-        colaboradores_qs = colaboradores_qs.filter(COL_status=busca_status)
+    if busca_realizada:
+        colaboradores_qs = TBCOLABORADORES.objects.all()
 
-    # Estatísticas para o painel
+        if busca_telefone:
+            colaboradores_qs = colaboradores_qs.filter(COL_telefone__icontains=busca_telefone)
+        
+        if busca_nome:
+            colaboradores_qs = colaboradores_qs.filter(COL_nome_completo__icontains=busca_nome)
+        
+        if busca_apelido:
+            colaboradores_qs = colaboradores_qs.filter(COL_apelido__icontains=busca_apelido)
+        
+        if busca_status:
+            colaboradores_qs = colaboradores_qs.filter(COL_status=busca_status)
+    else:
+        # Queryset vazio até que o usuário faça a primeira busca
+        colaboradores_qs = TBCOLABORADORES.objects.none()
+
+    # Estatísticas para o painel (considerando apenas o queryset atual)
     ativos = colaboradores_qs.filter(COL_status='ATIVO').count()
     inativos = colaboradores_qs.filter(COL_status='INATIVO').count()
     total_colaboradores = colaboradores_qs.count()
@@ -83,6 +93,7 @@ def listar_colaboradores(request):
         'busca_nome': busca_nome,
         'busca_apelido': busca_apelido,
         'busca_status': busca_status,
+        'busca_realizada': busca_realizada,
         'model_verbose_name_plural': 'Colaboradores',
     }
 
@@ -100,6 +111,22 @@ def criar_colaborador(request):
         
         if form.is_valid():
             colaborador = form.save()
+            # Reconstruir URL com filtros preservados do POST (campos hidden)
+            params = []
+            if request.POST.get('busca_telefone'):
+                params.append(f"busca_telefone={request.POST.get('busca_telefone')}")
+            if request.POST.get('busca_nome'):
+                params.append(f"busca_nome={request.POST.get('busca_nome')}")
+            if request.POST.get('busca_apelido'):
+                params.append(f"busca_apelido={request.POST.get('busca_apelido')}")
+            if request.POST.get('busca_status'):
+                params.append(f"busca_status={request.POST.get('busca_status')}")
+            if request.POST.get('page'):
+                params.append(f"page={request.POST.get('page')}")
+            
+            query_string = '&'.join(params)
+            if query_string:
+                return redirect(f"{reverse('app_igreja:listar_colaboradores')}?{query_string}")
             return redirect('app_igreja:listar_colaboradores')
     else:
         form = ColaboradorForm()
@@ -133,6 +160,22 @@ def editar_colaborador(request, colaborador_id):
         
         if form.is_valid():
             form.save()
+            # Reconstruir URL com filtros preservados do POST (campos hidden)
+            params = []
+            if request.POST.get('busca_telefone'):
+                params.append(f"busca_telefone={request.POST.get('busca_telefone')}")
+            if request.POST.get('busca_nome'):
+                params.append(f"busca_nome={request.POST.get('busca_nome')}")
+            if request.POST.get('busca_apelido'):
+                params.append(f"busca_apelido={request.POST.get('busca_apelido')}")
+            if request.POST.get('busca_status'):
+                params.append(f"busca_status={request.POST.get('busca_status')}")
+            if request.POST.get('page'):
+                params.append(f"page={request.POST.get('page')}")
+            
+            query_string = '&'.join(params)
+            if query_string:
+                return redirect(f"{reverse('app_igreja:listar_colaboradores')}?{query_string}")
             return redirect('app_igreja:listar_colaboradores')
     else:
         form = ColaboradorForm(instance=colaborador)
@@ -211,6 +254,22 @@ def excluir_colaborador(request, colaborador_id):
     
     if request.method == 'POST':
         colaborador.delete()
+        # Reconstruir URL com filtros preservados do POST (campos hidden)
+        params = []
+        if request.POST.get('busca_telefone'):
+            params.append(f"busca_telefone={request.POST.get('busca_telefone')}")
+        if request.POST.get('busca_nome'):
+            params.append(f"busca_nome={request.POST.get('busca_nome')}")
+        if request.POST.get('busca_apelido'):
+            params.append(f"busca_apelido={request.POST.get('busca_apelido')}")
+        if request.POST.get('busca_status'):
+            params.append(f"busca_status={request.POST.get('busca_status')}")
+        if request.POST.get('page'):
+            params.append(f"page={request.POST.get('page')}")
+        
+        query_string = '&'.join(params)
+        if query_string:
+            return redirect(f"{reverse('app_igreja:listar_colaboradores')}?{query_string}")
         return redirect('app_igreja:listar_colaboradores')
     
     next_url = request.META.get('HTTP_REFERER')

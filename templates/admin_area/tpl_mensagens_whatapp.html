@@ -71,47 +71,57 @@
 <!-- === BLOCO LINHAS TABELA DASHBOARD === -->
 {% block linhas_tabela_dashboard %}
 {% if acao != 'incluir' and acao != 'editar' %}
-{% for mensagem in page_obj %}
-<tr>
-    {% block linha_completa_dashboard %}
-    <td>
-        <i class="fas fa-ellipsis-v" onclick="selecionarRegistroDashboard({{ mensagem.WHA_id }})" style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;" onmouseover="this.style.backgroundColor='#e9ecef'" onmouseout="this.style.backgroundColor='transparent'"></i>
-        <!-- Botões de ação -->
-        <div class="botoes-acao" id="acoes_{{ mensagem.WHA_id }}" style="display: none;">
-            <div class="d-flex gap-2 justify-content-start align-items-center">
-                <a href="{% url 'app_igreja:whatsapp_detail' mensagem.WHA_id %}" class="btn btn-info btn-sm d-flex align-items-center">
-                    <i class="fas fa-eye me-1"></i>Consultar
-                </a>
-                {% if mensagem.WHA_status == 'ERRO' %}
-                <a href="{% url 'app_igreja:whatsapp_enviar_mensagem' %}?editar={{ mensagem.WHA_id }}" class="btn btn-warning btn-sm d-flex align-items-center">
-                    <i class="fas fa-edit me-1"></i>Editar
-                </a>
-                <a href="{% url 'app_igreja:whatsapp_excluir' mensagem.WHA_id %}" class="btn btn-danger btn-sm d-flex align-items-center">
-                    <i class="fas fa-trash me-1"></i>Excluir
-                </a>
-                {% endif %}
+{% if busca_realizada %}
+    {% for mensagem in page_obj %}
+    <tr>
+        {% block linha_completa_dashboard %}
+        <td>
+            <i class="fas fa-ellipsis-v" onclick="selecionarRegistroDashboard({{ mensagem.WHA_id }})" style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;" onmouseover="this.style.backgroundColor='#e9ecef'" onmouseout="this.style.backgroundColor='transparent'"></i>
+            <!-- Botões de ação -->
+            <div class="botoes-acao" id="acoes_{{ mensagem.WHA_id }}" style="display: none;">
+                <div class="d-flex gap-2 justify-content-start align-items-center">
+                    <a href="{% url 'app_igreja:whatsapp_detail' mensagem.WHA_id %}" class="btn btn-info btn-sm d-flex align-items-center">
+                        <i class="fas fa-eye me-1"></i>Consultar
+                    </a>
+                    {% if mensagem.WHA_status == 'ERRO' %}
+                    <a href="{% url 'app_igreja:whatsapp_enviar_mensagem' %}?editar={{ mensagem.WHA_id }}" class="btn btn-warning btn-sm d-flex align-items-center">
+                        <i class="fas fa-edit me-1"></i>Editar
+                    </a>
+                    <a href="{% url 'app_igreja:whatsapp_excluir' mensagem.WHA_id %}" class="btn btn-danger btn-sm d-flex align-items-center">
+                        <i class="fas fa-trash me-1"></i>Excluir
+                    </a>
+                    {% endif %}
+                </div>
             </div>
-        </div>
-    </td>
-    <td>{{ mensagem.WHA_data_criacao|date:"d/m/Y H:i" }}</td>
-    <td>
-        <span class="badge bg-primary">{{ mensagem.get_WHA_destinatario_tipo_display }}</span>
-    </td>
-    <td>
-        <span class="badge bg-info">{{ mensagem.get_WHA_tipo_midia_display }}</span>
-    </td>
-    <td><strong>Total:</strong> {{ mensagem.WHA_total_enviadas }} | <strong>Enviada:</strong> {{ mensagem.WHA_sucessos|default:0 }} | <strong>erro:</strong> {{ mensagem.WHA_erros|default:0 }}</td>
-    {% endblock %}
-</tr>
-{% empty %}
-<tr>
-    <td colspan="5" class="text-center text-muted">
-        <i class="fab fa-whatsapp fa-2x mb-2"></i>
-        <br>
-        Nenhuma mensagem encontrada.
-    </td>
-</tr>
-{% endfor %}
+        </td>
+        <td>{{ mensagem.WHA_data_criacao|date:"d/m/Y H:i" }}</td>
+        <td>
+            <span class="badge bg-primary">{{ mensagem.get_WHA_destinatario_tipo_display }}</span>
+        </td>
+        <td>
+            <span class="badge bg-info">{{ mensagem.get_WHA_tipo_midia_display }}</span>
+        </td>
+        <td><strong>Total:</strong> {{ mensagem.WHA_total_enviadas }} | <strong>Enviada:</strong> {{ mensagem.WHA_sucessos|default:0 }} | <strong>erro:</strong> {{ mensagem.WHA_erros|default:0 }}</td>
+        {% endblock %}
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5" class="text-center text-muted">
+            <i class="fab fa-whatsapp fa-2x mb-2"></i>
+            <br>
+            Nenhuma mensagem encontrada para os filtros informados.
+        </td>
+    </tr>
+    {% endfor %}
+{% else %}
+    <tr>
+        <td colspan="5" class="text-center text-muted">
+            <i class="fas fa-search fa-2x mb-2"></i>
+            <br>
+            Preencha os filtros acima e clique em <strong>Buscar</strong> para listar as mensagens WhatsApp.
+        </td>
+    </tr>
+{% endif %}
 {% endif %}
 {% endblock %}
 

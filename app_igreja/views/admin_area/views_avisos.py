@@ -22,10 +22,19 @@ def admin_required(view_func):
 @login_required
 @admin_required
 def listar_avisos(request):
-    avisos = TBAVISO.objects.all().order_by('-AVI_data', 'AVI_titulo')
-    busca_titulo = request.GET.get('busca_titulo', '')
-    if busca_titulo:
-        avisos = avisos.filter(AVI_titulo__icontains=busca_titulo)
+    busca_titulo = request.GET.get('busca_titulo', '').strip()
+    
+    # Controla se o usuário já executou uma busca (preencheu algum filtro ou navegou na paginação)
+    busca_realizada = bool(busca_titulo or request.GET.get('page'))
+    
+    # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
+    if busca_realizada:
+        avisos = TBAVISO.objects.all().order_by('-AVI_data', 'AVI_titulo')
+        if busca_titulo:
+            avisos = avisos.filter(AVI_titulo__icontains=busca_titulo)
+    else:
+        # Queryset vazio até que o usuário faça a primeira busca
+        avisos = TBAVISO.objects.none()
     
     paginator = Paginator(avisos, 10)
     page_number = request.GET.get('page')
@@ -34,6 +43,8 @@ def listar_avisos(request):
     context = {
         'page_obj': page_obj,
         'modo_dashboard': True,
+        'busca_realizada': busca_realizada,
+        'busca_titulo': busca_titulo,
     }
     return render(request, 'admin_area/tpl_avisos.html', context)
 

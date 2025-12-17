@@ -43,10 +43,21 @@ def grava_item_modelo(modelo, encargo, ocorrencias):
 @method_decorator(login_required, name='dispatch')
 class MasterDetailModeloListView(View):
     def get(self, request):
-        modelos = TBMODELO.objects.all().order_by('-MOD_DATA_CRIACAO')
-        busca = request.GET.get('busca', '')
-        if busca:
-            modelos = modelos.filter(MOD_DESCRICAO__icontains=busca)
+        busca = request.GET.get('busca', '').strip()
+        
+        # Controla se o usuário já executou uma busca (preencheu algum filtro ou navegou na paginação)
+        busca_realizada = bool(busca or request.GET.get('page'))
+        
+        # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
+        if busca_realizada:
+            modelos = TBMODELO.objects.all().order_by('-MOD_DATA_CRIACAO')
+            # Aplicar filtros - se digitar "todos", lista todos sem filtro
+            if busca and busca.lower() != 'todos':
+                modelos = modelos.filter(MOD_DESCRICAO__icontains=busca)
+            # Se for "todos", não aplica filtro (já está com todos os registros)
+        else:
+            # Queryset vazio até que o usuário faça a primeira busca
+            modelos = TBMODELO.objects.none()
 
         paginator = Paginator(modelos, 10)
         page_number = request.GET.get('page')
@@ -62,6 +73,7 @@ class MasterDetailModeloListView(View):
             'model_verbose_name': 'Modelo',
             'master_detail_mode': True,
             'modelos_section': 'list',
+            'busca_realizada': busca_realizada,
         }
         return render(request, 'admin_area/tpl_modelos.html', context)
 
@@ -70,7 +82,7 @@ class MasterDetailModeloListView(View):
 class MasterDetailModeloView(View):
     def get(self, request, pk):
         modelo = get_object_or_404(TBMODELO, pk=pk)
-        itens = modelo.itens.all().order_by('ITEM_MOD_ENCARGO')
+        itens = modelo.itens.all().order_by('ITEM_MOD_ID')
         confirmar_exclusao = request.GET.get('confirmar_exclusao')
         
         # Determinar ação baseado no parâmetro
@@ -109,11 +121,11 @@ class MasterDetailModeloCreateView(View):
 
         if pk:
             modelo = get_object_or_404(TBMODELO, pk=pk)
-            itens = modelo.itens.all().order_by('ITEM_MOD_ENCARGO')
+            itens = modelo.itens.all().order_by('ITEM_MOD_ID')
             modo_manutencao = True
         elif modelo_id_url:
             modelo = get_object_or_404(TBMODELO, pk=modelo_id_url)
-            itens = modelo.itens.all().order_by('ITEM_MOD_ENCARGO')
+            itens = modelo.itens.all().order_by('ITEM_MOD_ID')
             modo_manutencao = True
 
         context = {

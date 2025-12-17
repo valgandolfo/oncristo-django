@@ -199,26 +199,66 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# AWS S3 Configuration
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')
-AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', '')
-AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
-AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
-AWS_DEFAULT_ACL = None  # Removido para evitar erro de ACL
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
-}
-AWS_S3_FILE_OVERWRITE = False
-AWS_S3_VERIFY = True
+# Configuração de armazenamento de arquivos
+# Opções: 'local', 'aws', 'backblaze', 'wasabi', 'cloudflare', 'digitalocean'
+STORAGE_PROVIDER = os.getenv('STORAGE_PROVIDER', 'local').lower()
 
-# Use S3 for media files
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-# Configurações adicionais para S3
-AWS_S3_USE_SSL = True
-AWS_S3_USE_SSE = True
-AWS_S3_ENCRYPTION = True
+if STORAGE_PROVIDER != 'local':
+    # Configurações comuns para serviços S3-compatible
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')
+    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', '')
+    AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
+    AWS_DEFAULT_ACL = None  # Removido para evitar erro de ACL
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400',
+    }
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_S3_VERIFY = True
+    AWS_S3_USE_SSL = True
+    
+    # Configurações específicas por provedor
+    if STORAGE_PROVIDER == 'aws':
+        # Amazon S3
+        AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+        AWS_S3_ENDPOINT_URL = None  # Usa endpoint padrão da AWS
+        AWS_S3_USE_SSE = True
+        AWS_S3_ENCRYPTION = True
+        
+    elif STORAGE_PROVIDER == 'backblaze':
+        # Backblaze B2 (S3-compatible)
+        AWS_S3_ENDPOINT_URL = f'https://s3.{AWS_S3_REGION_NAME}.backblazeb2.com'
+        AWS_S3_CUSTOM_DOMAIN = None
+        AWS_S3_USE_SSE = False
+        AWS_S3_ENCRYPTION = False
+        
+    elif STORAGE_PROVIDER == 'wasabi':
+        # Wasabi (S3-compatible)
+        AWS_S3_ENDPOINT_URL = f'https://s3.{AWS_S3_REGION_NAME}.wasabisys.com'
+        AWS_S3_CUSTOM_DOMAIN = None
+        AWS_S3_USE_SSE = False
+        AWS_S3_ENCRYPTION = False
+        
+    elif STORAGE_PROVIDER == 'cloudflare':
+        # Cloudflare R2 (S3-compatible)
+        AWS_S3_ENDPOINT_URL = f'https://{os.getenv("CLOUDFLARE_ACCOUNT_ID", "")}.r2.cloudflarestorage.com'
+        AWS_S3_CUSTOM_DOMAIN = None
+        AWS_S3_USE_SSE = False
+        AWS_S3_ENCRYPTION = False
+        
+    elif STORAGE_PROVIDER == 'digitalocean':
+        # DigitalOcean Spaces (S3-compatible)
+        AWS_S3_ENDPOINT_URL = f'https://{AWS_S3_REGION_NAME}.digitaloceanspaces.com'
+        AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.{AWS_S3_REGION_NAME}.digitaloceanspaces.com'
+        AWS_S3_USE_SSE = False
+        AWS_S3_ENCRYPTION = False
+    
+    # Use S3-compatible storage
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    
+else:
+    # Usar armazenamento local (FileSystemStorage padrão do Django)
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -229,6 +269,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/app_igreja/admin-area/'
 LOGOUT_REDIRECT_URL = '/'
+
+# Configurações de Sessão - Timeout de Inatividade por Segurança
+# Timeout de 30 minutos (1800 segundos) para área administrativa
+SESSION_COOKIE_AGE = 1800  # 30 minutos em segundos
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expira ao fechar o navegador
+SESSION_SAVE_EVERY_REQUEST = True  # Atualiza sessão a cada requisição (detecta atividade)
+SESSION_COOKIE_SECURE = DJANGO_ENV == 'production'  # HTTPS apenas em produção
+SESSION_COOKIE_HTTPONLY = True  # Previne acesso via JavaScript (XSS)
+SESSION_COOKIE_SAMESITE = 'Lax'  # Proteção CSRF
 # Email configuration
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')

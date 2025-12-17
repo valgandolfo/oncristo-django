@@ -230,6 +230,11 @@
     {% endif %}
 </div>
 
+<!-- Botão Flutuante com Engrenagem -->
+<button type="button" class="cont_lista_btnadd" title="Configurações" onclick="window.location.href='{% url 'app_igreja:admin_area' %}'">
+    <i class="fas fa-cog"></i>
+</button>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const mesSelect = document.getElementById('id_mes');

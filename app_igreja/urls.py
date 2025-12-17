@@ -41,6 +41,7 @@ from .views.admin_area.views_modelos_master_detail import (
     MasterDetailModeloCreateView,
     MasterDetailModeloDeleteView,
 )
+from .views.admin_area.views_agenda_mes import agenda_mes, excluir_agenda_dia, buscar_encargos_modelo
 from .views.admin_area.views_extrator_liturgias import extrator_liturgias, extrator_liturgias_api
 from .views.admin_area.views_relatorios import relatorio_aniversariantes, relatorio_escala_mensal_missas, relatorio_aniversariantes_pdf, relatorio_escala_mensal_missas_pdf
 # inicio das views da área pública
@@ -260,6 +261,11 @@ urlpatterns = [
     path('admin-area/modelos-master-detail/create/<int:pk>/', MasterDetailModeloCreateView.as_view(), name='modelos_master_detail_create_pk'),
     path('admin-area/modelos-master-detail/<int:pk>/', MasterDetailModeloView.as_view(), name='modelos_master_detail_view'),
     path('admin-area/modelos-master-detail/<int:pk>/delete/', MasterDetailModeloDeleteView.as_view(), name='modelos_master_detail_delete'),
+    
+    # URLs para Agenda do Mês
+    path('admin-area/agenda-mes/', agenda_mes, name='agenda_mes'),
+    path('admin-area/agenda-mes/<int:agenda_id>/excluir/', excluir_agenda_dia, name='excluir_agenda_dia'),
+    path('admin-area/agenda-mes/modelo/<int:modelo_id>/encargos/', buscar_encargos_modelo, name='buscar_encargos_modelo'),
     
     # URLs para Área Pública
     path('horarios-missas/', horarios_missas_publico, name='horarios_missas_publico'),

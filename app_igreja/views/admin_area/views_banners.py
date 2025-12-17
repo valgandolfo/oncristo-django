@@ -39,27 +39,35 @@ def listar_banners(request):
     """
     
     # Busca
-    query = request.GET.get('q', '')
-    status_filter = request.GET.get('status', '')
+    query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '').strip()
     
-    banners = TBBANNERS.objects.all()
+    # Controla se o usuário já executou uma busca (preencheu algum filtro ou navegou na paginação)
+    busca_realizada = bool(query or status_filter or request.GET.get('page'))
     
-    if query:
-        banners = banners.filter(
-            Q(BAN_NOME_PATROCINADOR__icontains=query) | 
-            Q(BAN_DESCRICAO_COMERCIAL__icontains=query) |
-            Q(BAN_TELEFONE__icontains=query) |
-            Q(BAN_ENDERECO__icontains=query)
-        )
-    
-    if status_filter:
-        if status_filter == 'ativo':
-            banners = banners.filter(BAN_ORDEM__gt=0)
-        elif status_filter == 'inativo':
-            banners = banners.filter(BAN_ORDEM=0)
-    
-    # Ordenação
-    banners = banners.order_by('BAN_ORDEM', 'BAN_NOME_PATROCINADOR')
+    # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
+    if busca_realizada:
+        banners = TBBANNERS.objects.all()
+        
+        if query:
+            banners = banners.filter(
+                Q(BAN_NOME_PATROCINADOR__icontains=query) | 
+                Q(BAN_DESCRICAO_COMERCIAL__icontains=query) |
+                Q(BAN_TELEFONE__icontains=query) |
+                Q(BAN_ENDERECO__icontains=query)
+            )
+        
+        if status_filter:
+            if status_filter == 'ativo':
+                banners = banners.filter(BAN_ORDEM__gt=0)
+            elif status_filter == 'inativo':
+                banners = banners.filter(BAN_ORDEM=0)
+        
+        # Ordenação
+        banners = banners.order_by('BAN_ORDEM', 'BAN_NOME_PATROCINADOR')
+    else:
+        # Queryset vazio até que o usuário faça a primeira busca
+        banners = TBBANNERS.objects.none()
     
     # Paginação
     paginator = Paginator(banners, 20)
@@ -79,6 +87,7 @@ def listar_banners(request):
         'ativos': ativos,
         'inativos': inativos,
         'modo_dashboard': True,
+        'busca_realizada': busca_realizada,
     }
     
     return render(request, 'admin_area/tpl_banners.html', context)

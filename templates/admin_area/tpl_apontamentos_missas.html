@@ -187,7 +187,7 @@ tr.item-bloqueado:hover {
                     <td>
                         <div class="grupo-container" id="container_grupo_{{ item.ITE_ESC_ID }}">
                             <!-- Sempre mostrar nome do grupo -->
-                            <span id="nome_grupo_{{ item.ITE_ESC_ID }}">{{ item.grupo_nome|default:"-" }}</span>
+                                <span id="nome_grupo_{{ item.ITE_ESC_ID }}">{{ item.grupo_nome|default:"-" }}</span>
                             
                             <!-- Modo edição: select + check (inicialmente oculto) -->
                             <div class="grupo-select-wrapper" id="wrapper_grupo_{{ item.ITE_ESC_ID }}">
@@ -214,11 +214,11 @@ tr.item-bloqueado:hover {
                     <td>
                         <div class="grupo-container" id="container_status_{{ item.ITE_ESC_ID }}">
                             <!-- Sempre mostrar status atual -->
-                            <span id="nome_status_{{ item.ITE_ESC_ID }}">
-                                {% if item.ITE_ESC_STATUS == 'DEFINIDO' %}Definido
-                                {% elif item.ITE_ESC_STATUS == 'RESERVADO' %}Reservado
-                                {% else %}Em Aberto{% endif %}
-                            </span>
+                                <span id="nome_status_{{ item.ITE_ESC_ID }}">
+                                    {% if item.ITE_ESC_STATUS == 'DEFINIDO' %}Definido
+                                    {% elif item.ITE_ESC_STATUS == 'RESERVADO' %}Reservado
+                                    {% else %}Em Aberto{% endif %}
+                                </span>
                             
                             <!-- Modo edição: select + check (inicialmente oculto) -->
                             <div class="grupo-select-wrapper" id="wrapper_status_{{ item.ITE_ESC_ID }}">
@@ -239,7 +239,7 @@ tr.item-bloqueado:hover {
                     </td>
                     <td>
                         <i class="fas fa-pencil-alt icone-enviar" 
-                           data-item-id="{{ item.ITE_ESC_ID }}"
+                               data-item-id="{{ item.ITE_ESC_ID }}"
                            data-colaborador-nome="{{ item.colaborador_nome|default:'' }}"
                            data-encargo="{{ item.ITE_ESC_ENCARGO|default:'' }}"
                            data-data="{{ item.ITE_ESC_DATA|date:'d' }}"
@@ -553,7 +553,7 @@ function salvarGrupo(itemId) {
 // (Função mantida para compatibilidade, mas não é mais usada já que o ícone sempre está habilitado)
 function atualizarIconeEnviar(itemId) {
     // Não precisa fazer nada, o ícone de lápis sempre está habilitado
-    return;
+        return;
 }
 
 // Função para entrar em modo de edição do status
@@ -859,25 +859,25 @@ function fecharModalAtribuicao() {
 function atribuirApontamento() {
     if (!dadosItemAtual) {
         alert('Erro: Dados do item não encontrados');
-        return;
-    }
-    
+                return;
+            }
+            
     const grupoSelect = document.getElementById('modal-grupo-select');
     const statusSelect = document.getElementById('modal-status-select');
-    
-    if (!grupoSelect || !statusSelect) {
-        alert('Erro: Elementos do formulário não encontrados');
-        return;
-    }
-    
+            
+            if (!grupoSelect || !statusSelect) {
+                alert('Erro: Elementos do formulário não encontrados');
+                return;
+            }
+            
     const grupoId = grupoSelect.value;
-    const status = statusSelect.value;
-    
-    if (!grupoId || grupoId === '') {
+            const status = statusSelect.value;
+            
+            if (!grupoId || grupoId === '') {
         alert('Por favor, selecione um grupo antes de atribuir.');
-        return;
-    }
-    
+                return;
+            }
+            
     // Obter valores de situação (bloquear/desbloquear)
     const radioBloquear = document.getElementById('radio-bloquear');
     const radioDesbloquear = document.getElementById('radio-desbloquear');
@@ -895,9 +895,9 @@ function atribuirApontamento() {
     if (acaoSituacao) {
         if (!diaInicial || !diaFinal) {
             alert('Por favor, informe o dia inicial e dia final para ' + (acaoSituacao === 'bloquear' ? 'bloquear' : 'desbloquear') + ' o período.');
-            return;
-        }
-        
+                return;
+            }
+            
         const diaInicialInt = parseInt(diaInicial);
         const diaFinalInt = parseInt(diaFinal);
         

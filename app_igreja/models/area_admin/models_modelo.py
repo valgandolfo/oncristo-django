@@ -33,7 +33,7 @@ class TBITEM_MODELO(models.Model):
         db_table = 'TBITEM_MODELO'
         verbose_name = 'Item do Modelo'
         verbose_name_plural = 'Itens do Modelo'
-        ordering = ['ITEM_MOD_MODELO', 'ITEM_MOD_ENCARGO']
+        ordering = ['ITEM_MOD_MODELO', 'ITEM_MOD_ID']
 
     def __str__(self):
         return f"{self.ITEM_MOD_MODELO.MOD_DESCRICAO} - {self.ITEM_MOD_ENCARGO}"

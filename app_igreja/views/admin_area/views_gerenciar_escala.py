@@ -45,8 +45,26 @@ def listar_itens_escala(request):
     from datetime import date
     
     # Buscar mês/ano da query string
-    mes = request.GET.get('mes', '')
-    ano = request.GET.get('ano', '')
+    mes = request.GET.get('mes', '').strip()
+    ano = request.GET.get('ano', '').strip()
+    page_number = request.GET.get('page', '').strip()
+    
+    # Se houver page na URL mas não houver mes/ano, significa que o usuário está navegando na paginação
+    # Nesse caso, precisamos manter os valores anteriores (que devem estar na sessão ou na URL anterior)
+    # Por segurança, se não houver mes/ano e houver page, redirecionar para a primeira página sem filtros
+    if page_number and (not mes or not ano):
+        # Se estiver navegando na paginação mas perdeu os parâmetros mes/ano, redirecionar para a primeira página
+        hoje = date.today()
+        mes_atual = hoje.month
+        ano_atual = hoje.year
+        
+        context = {
+            'modo_dashboard': True,
+            'sem_filtro': True,
+            'mes': mes_atual,
+            'ano': ano_atual,
+        }
+        return render(request, 'admin_area/tpl_gerenciar_escala.html', context)
     
     # Se não tiver mês/ano, usar mês e ano atual como padrão
     if not mes or not ano:
@@ -92,7 +110,11 @@ def listar_itens_escala(request):
         # Buscar itens da escala
         itens = TBITEM_ESCALA.objects.filter(
             ITE_ESC_ESCALA=escala_master
-        ).order_by('ITE_ESC_DATA', 'ITE_ESC_HORARIO')
+        )
+
+        # Não listar datas passadas: mostrar apenas da data atual em diante
+        hoje = date.today()
+        itens = itens.filter(ITE_ESC_DATA__gte=hoje).order_by('ITE_ESC_DATA', 'ITE_ESC_HORARIO')
         
         # Organizar por dia para exibição
         dias_semana_pt = {
@@ -164,6 +186,8 @@ def criar_item_escala(request):
     """
     mes = request.GET.get('mes', '')
     ano = request.GET.get('ano', '')
+    data_param = request.GET.get('data', '').strip()  # Data do item anterior (formato Y-m-d)
+    hora_param = request.GET.get('hora', '').strip()  # Hora do item anterior (formato H:i)
     
     if not mes or not ano:
         messages.error(request, 'Mês e ano são obrigatórios.')
@@ -190,14 +214,44 @@ def criar_item_escala(request):
             messages.error(request, 'Erro ao criar item. Verifique os dados.')
     else:
         form = ItemEscalaForm(escala=escala_master, acao='incluir')
-        # Definir data padrão como primeiro dia do mês se não especificada
-        if not form.initial.get('ITE_ESC_DATA'):
+        
+        # Se vier data e hora da URL (do item anterior), usar essas como padrão
+        if data_param:
+            try:
+                from datetime import datetime
+                data_obj = datetime.strptime(data_param, '%Y-%m-%d').date()
+                form.initial['ITE_ESC_DATA'] = data_obj
+            except ValueError:
+                # Se data inválida, usar primeiro dia do mês
+                form.initial['ITE_ESC_DATA'] = primeiro_dia_mes
+        else:
+            # Se não vier data, usar primeiro dia do mês
             form.initial['ITE_ESC_DATA'] = primeiro_dia_mes
+        
+        # Se vier hora da URL (do item anterior), usar como padrão
+        if hora_param:
+            try:
+                from datetime import datetime
+                hora_obj = datetime.strptime(hora_param, '%H:%M').time()
+                form.initial['ITE_ESC_HORARIO'] = hora_obj
+            except ValueError:
+                # Se hora inválida, não definir (deixa vazio)
+                pass
     
     dias_semana_pt = {
         0: 'Segunda-feira', 1: 'Terça-feira', 2: 'Quarta-feira', 3: 'Quinta-feira',
         4: 'Sexta-feira', 5: 'Sábado', 6: 'Domingo'
     }
+    
+    # Calcular dia da semana se a data foi definida
+    dia_semana_nome = None
+    if data_param:
+        try:
+            from datetime import datetime
+            data_obj = datetime.strptime(data_param, '%Y-%m-%d').date()
+            dia_semana_nome = dias_semana_pt.get(data_obj.weekday())
+        except ValueError:
+            pass
     
     context = {
         'form': form,
@@ -208,6 +262,7 @@ def criar_item_escala(request):
         'mes': mes,
         'ano': ano,
         'dias_semana_pt': dias_semana_pt,
+        'dia_semana_nome': dia_semana_nome,  # Dia da semana quando data vem da URL
     }
     
     return render(request, 'admin_area/tpl_gerenciar_escala.html', context)

@@ -32,18 +32,27 @@ def listar_grupos(request):
     Lista todos os grupos litúrgicos com paginação
     """
     
-    grupos = TBGRUPOS.objects.all().order_by('GRU_nome_grupo')
-    
     # Parâmetros de busca
-    busca_nome = request.GET.get('busca_nome', '')
-    filtro_ativo = request.GET.get('filtro_ativo', '')
+    busca_nome = request.GET.get('busca_nome', '').strip()
+    filtro_ativo = request.GET.get('filtro_ativo', '').strip()
     
-    # Aplicar filtros
-    if busca_nome:
-        grupos = grupos.filter(GRU_nome_grupo__icontains=busca_nome)
+    # Controla se o usuário já executou uma busca (preencheu algum filtro ou navegou na paginação)
+    busca_realizada = bool(busca_nome or filtro_ativo or request.GET.get('page'))
     
-    if filtro_ativo != '':
-        grupos = grupos.filter(GRU_ativo=bool(int(filtro_ativo)))
+    # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
+    if busca_realizada:
+        grupos = TBGRUPOS.objects.all().order_by('GRU_nome_grupo')
+        
+        # Aplicar filtros - se digitar "todos", lista todos sem filtro de nome
+        if busca_nome and busca_nome.lower() != 'todos':
+            grupos = grupos.filter(GRU_nome_grupo__icontains=busca_nome)
+        # Se for "todos", não aplica filtro de nome (já está com todos os registros)
+        
+        if filtro_ativo != '':
+            grupos = grupos.filter(GRU_ativo=bool(int(filtro_ativo)))
+    else:
+        # Queryset vazio até que o usuário faça a primeira busca
+        grupos = TBGRUPOS.objects.none()
     
     # Paginação
     paginator = Paginator(grupos, 10)  # 10 grupos por página
@@ -65,6 +74,9 @@ def listar_grupos(request):
         'grupos_inativos': grupos_inativos,
         'grupos_hoje': grupos_hoje,
         'modo_dashboard': True,  # Migrado para nova tela pai dashboard
+        'busca_realizada': busca_realizada,
+        'busca_nome': busca_nome,
+        'filtro_ativo': filtro_ativo,
     }
     
     return render(request, 'admin_area/tpl_grupos.html', context)
@@ -80,8 +92,19 @@ def criar_grupo(request):
         form = GrupoForm(request.POST)
         if form.is_valid():
             grupo = form.save()
-            next_url = request.POST.get('next', reverse('app_igreja:listar_grupos'))
-            return redirect(next_url)
+            # Reconstruir URL com filtros preservados do POST (campos hidden)
+            params = []
+            if request.POST.get('busca_nome'):
+                params.append(f"busca_nome={request.POST.get('busca_nome')}")
+            if request.POST.get('filtro_ativo'):
+                params.append(f"filtro_ativo={request.POST.get('filtro_ativo')}")
+            if request.POST.get('page'):
+                params.append(f"page={request.POST.get('page')}")
+            
+            query_string = '&'.join(params)
+            if query_string:
+                return redirect(f"{reverse('app_igreja:listar_grupos')}?{query_string}")
+            return redirect('app_igreja:listar_grupos')
     else:
         form = GrupoForm()
     
@@ -111,8 +134,19 @@ def editar_grupo(request, grupo_id):
         form = GrupoForm(request.POST, instance=grupo)
         if form.is_valid():
             grupo = form.save()
-            next_url = request.POST.get('next', reverse('app_igreja:listar_grupos'))
-            return redirect(next_url)
+            # Reconstruir URL com filtros preservados do POST (campos hidden)
+            params = []
+            if request.POST.get('busca_nome'):
+                params.append(f"busca_nome={request.POST.get('busca_nome')}")
+            if request.POST.get('filtro_ativo'):
+                params.append(f"filtro_ativo={request.POST.get('filtro_ativo')}")
+            if request.POST.get('page'):
+                params.append(f"page={request.POST.get('page')}")
+            
+            query_string = '&'.join(params)
+            if query_string:
+                return redirect(f"{reverse('app_igreja:listar_grupos')}?{query_string}")
+            return redirect('app_igreja:listar_grupos')
     else:
         form = GrupoForm(instance=grupo)
     
@@ -158,8 +192,19 @@ def excluir_grupo(request, grupo_id):
     
     if request.method == 'POST':
         grupo.delete()
-        next_url = request.POST.get('next', reverse('app_igreja:listar_grupos'))
-        return redirect(next_url)
+        # Reconstruir URL com filtros preservados do POST (campos hidden)
+        params = []
+        if request.POST.get('busca_nome'):
+            params.append(f"busca_nome={request.POST.get('busca_nome')}")
+        if request.POST.get('filtro_ativo'):
+            params.append(f"filtro_ativo={request.POST.get('filtro_ativo')}")
+        if request.POST.get('page'):
+            params.append(f"page={request.POST.get('page')}")
+        
+        query_string = '&'.join(params)
+        if query_string:
+            return redirect(f"{reverse('app_igreja:listar_grupos')}?{query_string}")
+        return redirect('app_igreja:listar_grupos')
     
     form = GrupoForm(instance=grupo)
     next_url = request.META.get('HTTP_REFERER', reverse('app_igreja:listar_grupos'))

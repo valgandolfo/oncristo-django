@@ -32,14 +32,23 @@ def listar_funcoes(request):
     Lista todas as funções com paginação
     """
     
-    funcoes = TBFUNCAO.objects.all().order_by('FUN_nome_funcao')
-    
     # Parâmetros de busca
-    busca_nome = request.GET.get('busca_nome', '')
+    busca_nome = request.GET.get('busca_nome', '').strip()
     
-    # Aplicar filtros
-    if busca_nome:
-        funcoes = funcoes.filter(FUN_nome_funcao__icontains=busca_nome)
+    # Controla se o usuário já executou uma busca (preencheu algum filtro ou navegou na paginação)
+    busca_realizada = bool(busca_nome or request.GET.get('page'))
+    
+    # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
+    if busca_realizada:
+        funcoes = TBFUNCAO.objects.all().order_by('FUN_nome_funcao')
+        
+        # Aplicar filtros - se digitar "todos", lista todos sem filtro
+        if busca_nome and busca_nome.lower() != 'todos':
+            funcoes = funcoes.filter(FUN_nome_funcao__icontains=busca_nome)
+        # Se for "todos", não aplica filtro (já está com todos os registros)
+    else:
+        # Queryset vazio até que o usuário faça a primeira busca
+        funcoes = TBFUNCAO.objects.none()
     
     # Paginação
     paginator = Paginator(funcoes, 10)  # 10 funções por página
@@ -55,6 +64,8 @@ def listar_funcoes(request):
         'page_obj': page_obj,
         'total_funcoes': total_funcoes,
         'modo_dashboard': True,
+        'busca_realizada': busca_realizada,
+        'busca_nome': busca_nome,
     }
     
     return render(request, 'admin_area/tpl_funcoes.html', context)

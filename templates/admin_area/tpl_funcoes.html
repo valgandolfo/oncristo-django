@@ -59,52 +59,62 @@
 
 <!-- === BLOCO LINHAS TABELA DASHBOARD === -->
 {% block linhas_tabela_dashboard %}
-{% for funcao in page_obj %}
-<tr>
-    {% block linha_completa_dashboard %}
-    <td>
-        <i class="fas fa-ellipsis-v" 
-           onclick="selecionarRegistroDashboard({{ funcao.FUN_id }})"
-           style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;"
-           onmouseover="this.style.backgroundColor='#e9ecef'" 
-           onmouseout="this.style.backgroundColor='transparent'"></i>
-    </td>
-    <td>{{ funcao.FUN_id }}</td>
-    <td>
-        <div>
-            <div class="mb-2">
-                <strong>{{ funcao.FUN_nome_funcao }}</strong>
-            </div>
-            <!-- Botões de ação -->
-            <div class="botoes-acao" id="acoes_{{ funcao.FUN_id }}" style="display: none;">
-                <div class="d-flex gap-2 justify-content-start align-items-center">
-                    <a href="{% url 'app_igreja:detalhar_funcao' funcao.FUN_id %}" class="btn btn-info btn-sm d-flex align-items-center">
-                        <i class="fas fa-eye me-1"></i>Consultar
-                    </a>
-                    <a href="{% url 'app_igreja:editar_funcao' funcao.FUN_id %}" class="btn btn-warning btn-sm d-flex align-items-center">
-                        <i class="fas fa-edit me-1"></i>Editar
-                    </a>
-                    <a href="{% url 'app_igreja:excluir_funcao' funcao.FUN_id %}" class="btn btn-danger btn-sm d-flex align-items-center">
-                        <i class="fas fa-trash me-1"></i>Excluir
-                    </a>
+{% if busca_realizada %}
+    {% for funcao in page_obj %}
+    <tr>
+        {% block linha_completa_dashboard %}
+        <td>
+            <i class="fas fa-ellipsis-v" 
+               onclick="selecionarRegistroDashboard({{ funcao.FUN_id }})"
+               style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;"
+               onmouseover="this.style.backgroundColor='#e9ecef'" 
+               onmouseout="this.style.backgroundColor='transparent'"></i>
+        </td>
+        <td>{{ funcao.FUN_id }}</td>
+        <td>
+            <div>
+                <div class="mb-2">
+                    <strong>{{ funcao.FUN_nome_funcao }}</strong>
+                </div>
+                <!-- Botões de ação -->
+                <div class="botoes-acao" id="acoes_{{ funcao.FUN_id }}" style="display: none;">
+                    <div class="d-flex gap-2 justify-content-start align-items-center">
+                        <a href="{% url 'app_igreja:detalhar_funcao' funcao.FUN_id %}" class="btn btn-info btn-sm d-flex align-items-center">
+                            <i class="fas fa-eye me-1"></i>Consultar
+                        </a>
+                        <a href="{% url 'app_igreja:editar_funcao' funcao.FUN_id %}" class="btn btn-warning btn-sm d-flex align-items-center">
+                            <i class="fas fa-edit me-1"></i>Editar
+                        </a>
+                        <a href="{% url 'app_igreja:excluir_funcao' funcao.FUN_id %}" class="btn btn-danger btn-sm d-flex align-items-center">
+                            <i class="fas fa-trash me-1"></i>Excluir
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-    </td>
-    <td>
-        <span class="badge bg-success">Ativo</span>
-    </td>
-    {% endblock %}
-</tr>
-{% empty %}
-<tr>
-    <td colspan="3" class="text-center text-muted">
-        <i class="fas fa-briefcase fa-2x mb-2"></i>
-        <br>
-        Nenhuma função encontrada.
-    </td>
-</tr>
-{% endfor %}
+        </td>
+        <td>
+            <span class="badge bg-success">Ativo</span>
+        </td>
+        {% endblock %}
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="3" class="text-center text-muted">
+            <i class="fas fa-briefcase fa-2x mb-2"></i>
+            <br>
+            Nenhuma função encontrada para os filtros informados.
+        </td>
+    </tr>
+    {% endfor %}
+{% else %}
+    <tr>
+        <td colspan="3" class="text-center text-muted">
+            <i class="fas fa-search fa-2x mb-2"></i>
+            <br>
+            Preencha os filtros acima e clique em <strong>Buscar</strong> para listar as funções.
+        </td>
+    </tr>
+{% endif %}
 {% endblock %}
 
 <!-- === BLOCO MENSAGEM VAZIO DASHBOARD === -->

@@ -1,0 +1,932 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load format_utils %}
+
+{% block title %}Agenda do Mês{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
+<style>
+.agenda-calendario {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    background: linear-gradient(135deg, #216bda 0%, #74e3eb 100%);
+    border: 3px solid #667eea;
+    border-radius: 15px;
+    padding: 5px;
+    margin-top: 20px;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.agenda-dia-btn {
+    background: white;
+    padding: 15px 5px;
+    min-height: 80px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #333;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.agenda-dia-btn:hover {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    text-decoration: none;
+    color: #333;
+    border-color: #667eea;
+}
+
+.agenda-dia-btn.com-modelo {
+    background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+    border: 3px solid #4caf50;
+    color: #2e7d32;
+    font-weight: 700;
+}
+
+.agenda-dia-btn.com-modelo:hover {
+    background: linear-gradient(135deg, #a5d6a7 0%, #81c784 100%);
+    color: #1b5e20;
+    border-color: #2e7d32;
+}
+
+.agenda-dia-btn.hoje {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe082 100%);
+    border: 3px solid #ffc107;
+    font-weight: 700;
+}
+
+.agenda-dia-btn.hoje.com-modelo {
+    background: linear-gradient(135deg, #dcedc8 0%, #c5e1a5 100%);
+    border: 3px solid #8bc34a;
+}
+
+.agenda-dia-btn.vazio {
+    background: #f5f5f5;
+    cursor: default;
+    border: 1px solid #e0e0e0;
+    box-shadow: none;
+}
+
+.agenda-dia-btn.vazio:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.agenda-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    font-size: 0.9em;
+}
+
+.btn-dia-numero {
+    font-size: 1.4em;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.btn-dia-icone {
+    font-size: 1em;
+    color: #4caf50;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Modal */
+.modal-agenda {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+}
+
+.modal-agenda.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content-agenda {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 0;
+    border: none;
+    width: 90%;
+    max-width: 600px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    animation: modalFadeIn 0.3s ease-out;
+    overflow: hidden;
+}
+
+@keyframes modalFadeIn {
+    from {opacity: 0; transform: scale(0.8) translateY(-50px);}
+    to {opacity: 1; transform: scale(1) translateY(0);}
+}
+
+.modal-header-agenda {
+    padding: 25px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 0;
+}
+
+.modal-body-agenda {
+    padding: 30px;
+    background: #fafafa;
+}
+
+.modal-footer-agenda {
+    padding: 20px 30px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: white;
+}
+
+.close-modal {
+    color: white;
+    float: right;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    opacity: 0.9;
+    transition: opacity 0.3s;
+    line-height: 1;
+}
+
+.close-modal:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.alert-criar-mes {
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe082 100%);
+    border: 2px solid #ffc107;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+}
+
+.card-agenda {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.card-header-agenda {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 0;
+    padding: 20px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow card-agenda">
+                <div class="card-header card-header-agenda text-white">
+                    <h4 class="mb-0"><i class="fas fa-calendar me-2"></i>Agenda do Mês</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Formulário de Seleção de Mês/Ano -->
+                    <form method="get" class="row g-3 mb-4" id="form-mes-ano">
+                        <div class="col-md-3">
+                            <label for="mes" class="form-label fw-bold">Mês:</label>
+                            <select name="mes" id="mes" class="form-select" required>
+                                <option value="">Selecione o mês</option>
+                                <option value="1" {% if mes == 1 %}selected{% endif %}>Janeiro</option>
+                                <option value="2" {% if mes == 2 %}selected{% endif %}>Fevereiro</option>
+                                <option value="3" {% if mes == 3 %}selected{% endif %}>Março</option>
+                                <option value="4" {% if mes == 4 %}selected{% endif %}>Abril</option>
+                                <option value="5" {% if mes == 5 %}selected{% endif %}>Maio</option>
+                                <option value="6" {% if mes == 6 %}selected{% endif %}>Junho</option>
+                                <option value="7" {% if mes == 7 %}selected{% endif %}>Julho</option>
+                                <option value="8" {% if mes == 8 %}selected{% endif %}>Agosto</option>
+                                <option value="9" {% if mes == 9 %}selected{% endif %}>Setembro</option>
+                                <option value="10" {% if mes == 10 %}selected{% endif %}>Outubro</option>
+                                <option value="11" {% if mes == 11 %}selected{% endif %}>Novembro</option>
+                                <option value="12" {% if mes == 12 %}selected{% endif %}>Dezembro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="ano" class="form-label fw-bold">Ano:</label>
+                            <input type="number" name="ano" id="ano" class="form-control" 
+                                   value="{{ ano }}" min="2020" max="2100" required>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-search me-2"></i>Buscar
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Mensagem se mês não existe -->
+                    {% if mes and ano and not mes_existe %}
+                        <div class="alert alert-criar-mes" role="alert">
+                            <h5 class="alert-heading">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Agenda não encontrada!
+                            </h5>
+                            <p class="mb-3">
+                                A agenda para <strong>{{ mes_nome }} de {{ ano }}</strong> ainda não foi criada.
+                            </p>
+                            <p class="mb-3">
+                                Deseja criar a agenda com todos os dias do mês em branco?
+                            </p>
+                            <hr>
+                            <div class="d-flex gap-2">
+                                <a href="?mes={{ mes }}&ano={{ ano }}&criar_mes=sim" class="btn btn-success btn-lg">
+                                    <i class="fas fa-check me-2"></i>Sim, criar agenda
+                                </a>
+                                <a href="{% url 'app_igreja:agenda_mes' %}" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times me-2"></i>Cancelar
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+
+7                    <!-- Formulário/Consulta de Dia (se estiver em modo inclusão/edição/consulta) -->
+                    {% if acao == 'incluir' or acao == 'editar' or acao == 'consultar' %}
+                        {% if acao == 'consultar' and agenda_dia %}
+                            <div class="form-agenda-dia">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-eye me-2"></i>Consultar Agenda - Dia {{ dia_selecionado }}/{{ mes }}/{{ ano }}
+                                </h5>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold">Modelo:</label>
+                                        <input type="text" class="form-control" 
+                                               value="{% if modelo_dia_selecionado %}{{ modelo_dia_selecionado.MOD_DESCRICAO }}{% else %}Não informado{% endif %}" 
+                                               readonly>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold">Encargos:</label>
+                                        <textarea class="form-control" rows="5" readonly>{{ agenda_dia.AGE_ITE_ENCARGOS|default:"Não informado" }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        {% elif acao == 'incluir' or acao == 'editar' %}
+                            {% if form_dia %}
+                                <div class="form-agenda-dia">
+                                    <h5 class="mb-3">
+                                        {% if acao == 'incluir' %}
+                                            <i class="fas fa-plus-circle me-2"></i>Incluir Agenda - Dia {{ dia_selecionado }}/{{ mes }}/{{ ano }}
+                                        {% else %}
+                                            <i class="fas fa-edit me-2"></i>Editar Agenda - Dia {{ dia_selecionado }}/{{ mes }}/{{ ano }}
+                                        {% endif %}
+                                    </h5>
+                                    <form method="post" id="formAgendaDia">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="dia" value="{{ dia_selecionado }}">
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-12">
+                                                <label class="form-label fw-bold">Modelo:</label>
+                                                <select name="modelo" id="selectModeloForm" class="form-control" onchange="carregarEncargosModeloForm(this.value)">
+                                                    <option value="">Selecione um modelo...</option>
+                                                    {% for modelo in modelos %}
+                                                        <option value="{{ modelo.MOD_ID }}" {% if form_dia.modelo.value == modelo.MOD_ID|stringformat:"s" %}selected{% endif %}>{{ modelo.MOD_DESCRICAO }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-12">
+                                                <label class="form-label fw-bold">Encargos:</label>
+                                                <textarea name="encargos" id="textareaEncargosForm" class="form-control" rows="5" placeholder="Os encargos serão preenchidos automaticamente ao selecionar um modelo...">{{ form_dia.encargos.value|default:"" }}</textarea>
+                                            </div>
+                                        </div>
+                                        
+                                        
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+
+                    <!-- Calendário (só aparece se mês/ano foram escolhidos E existe) -->
+                    {% if mes and ano and mes_existe %}
+                    <div class="agenda-calendario">
+                        <!-- Cabeçalho dos dias da semana -->
+                        <div class="agenda-header">DOM</div>
+                        <div class="agenda-header">SEG</div>
+                        <div class="agenda-header">TER</div>
+                        <div class="agenda-header">QUA</div>
+                        <div class="agenda-header">QUI</div>
+                        <div class="agenda-header">SEX</div>
+                        <div class="agenda-header">SÁB</div>
+
+                        <!-- Dias do calendário -->
+                        {% for semana in calendario %}
+                            {% for dia in semana %}
+                                {% if dia == 0 %}
+                                    <div class="agenda-dia-btn vazio"></div>
+                                {% else %}
+                                    {% if dia in dias_com_agenda %}
+                                        {% with dia_info=agendas_mes_detalhes|get_item:dia %}
+                                            <a href="#" 
+                                               onclick="abrirModalDia({{ dia }}, {{ mes }}, {{ ano }}, {{ dia_info.modelo_id|default:0 }}); return false;"
+                                               class="agenda-dia-btn com-modelo {% if dia == hoje.day and mes == hoje.month and ano == hoje.year %}hoje{% endif %}">
+                                                <span class="btn-dia-numero">{{ dia }}</span>
+                                                {% if dia_info.tem_modelo %}
+                                                    <span class="btn-dia-icone" title="Modelo lançado">
+                                                        <i class="fas fa-check-circle"></i>
+                                                    </span>
+                                                {% endif %}
+                                            </a>
+                                        {% endwith %}
+                                    {% else %}
+                                        <a href="#" 
+                                           onclick="abrirModalDia({{ dia }}, {{ mes }}, {{ ano }}, 0); return false;"
+                                           class="agenda-dia-btn {% if dia == hoje.day and mes == hoje.month and ano == hoje.year %}hoje{% endif %}">
+                                            <span class="btn-dia-numero">{{ dia }}</span>
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Formulário/Consulta -->
+<div id="modalAgenda" class="modal-agenda">
+    <div class="modal-content-agenda">
+        <div class="modal-header-agenda">
+            <h5 class="mb-0" id="modalTitulo">
+                <i class="fas fa-calendar me-2"></i>Agenda do Mês
+            </h5>
+            <span class="close-modal" onclick="fecharModal()">&times;</span>
+        </div>
+        <div class="modal-body-agenda" id="modalBody">
+            <!-- Conteúdo será carregado via JavaScript -->
+        </div>
+        <div class="modal-footer-agenda" id="modalFooter">
+            <!-- Botões serão carregados via JavaScript -->
+        </div>
+    </div>
+</div>
+
+<script>
+let diaAtual = null;
+let mesAtual = null;
+let anoAtual = null;
+let acaoAtual = null;
+
+// Função para garantir que o modal existe
+function garantirModalAgenda() {
+    let modal = document.getElementById('modalAgenda');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modalAgenda';
+        modal.className = 'modal-agenda';
+        modal.style.cssText = 'display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);';
+        document.body.appendChild(modal);
+    }
+    return modal;
+}
+
+// Função para abrir modal verificando se AGE_ITE_MODELO = 0
+function abrirModalDia(dia, mes, ano, modeloId) {
+    diaAtual = dia;
+    mesAtual = mes;
+    anoAtual = ano;
+    
+    // Se modeloId = 0 ou null, abrir em modo edição, caso contrário em consulta
+    if (!modeloId || modeloId === 0) {
+        abrirModalAgendaForm(dia, mes, ano, null);
+    } else {
+        abrirModalAgendaConsulta(dia, mes, ano, modeloId);
+    }
+}
+
+// Função para abrir modal com formulário (como no apontamentos)
+function abrirModalAgendaForm(dia, mes, ano, modeloSelecionado) {
+    const modal = garantirModalAgenda();
+    
+    // Construir options do select de modelos
+    const modelos = {{ modelos_json|safe }};
+    let optionsModelo = '<option value="">Selecione um modelo...</option>';
+    modelos.forEach(function(modelo) {
+        const selected = modeloSelecionado && modelo.id == modeloSelecionado ? ' selected' : '';
+        optionsModelo += '<option value="' + modelo.id + '"' + selected + '>' + modelo.descricao + '</option>';
+    });
+    
+    // Buscar encargos atuais se houver modelo selecionado
+    let encargosAtuais = '';
+    
+    // Definir botoes conforme modeloSelecionado
+    const footerEdicao = `
+        <button type="button" class="btn-modal-cancelar-agenda" style="flex: 1; padding: 12px; border: 1px solid #6c757d; background-color: #6c757d; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+            <i class="fas fa-times me-2"></i>Cancelar
+        </button>
+        <button type="button" class="btn-modal-salvar-agenda" style="flex: 1; padding: 12px; border: 1px solid #28a745; background-color: #28a745; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+            <i class="fas fa-save me-2"></i>Gravar
+        </button>
+    `;
+    const footerSomenteCancelarLanc = `
+        <button type="button" class="btn-modal-cancelar-lancamento-agenda" style="flex: 1; padding: 12px; border: 1px solid #dc3545; background-color: #dc3545; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+            <i class="fas fa-ban me-2"></i>Cancelar Lançamento
+        </button>
+    `;
+    const footerHtml = (!modeloSelecionado || modeloSelecionado === 0 || modeloSelecionado === '0') ? footerEdicao : footerSomenteCancelarLanc;
+
+    modal.innerHTML = `
+        <div style="background-color: #fefefe; margin: 10% auto; padding: 30px; border: 1px solid #888; width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #dee2e6; padding-bottom: 15px;">
+                <h4 style="margin: 0; font-weight: bold; color: #333;">
+                    <i class="fas fa-calendar me-2"></i>Agenda do Mês - Dia ${dia}/${mes}/${ano}
+                </h4>
+                <button type="button" class="btn-fechar-modal-agenda" style="background: none; border: none; font-size: 28px; font-weight: bold; color: #aaa; cursor: pointer; padding: 0; width: 35px; height: 35px; line-height: 28px;">&times;</button>
+            </div>
+            <form method="post" id="formAgendaDia">
+                {% csrf_token %}
+                <input type="hidden" name="dia" value="${dia}">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">Modelo:</label>
+                    <select name="modelo" class="form-control" id="selectModelo" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        ${optionsModelo}
+                    </select>
+                </div>
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">Encargos:</label>
+                    <textarea name="encargos" id="textareaEncargos" class="form-control" rows="5" placeholder="Os encargos serão preenchidos automaticamente ao selecionar um modelo..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">${encargosAtuais}</textarea>
+                </div>
+                <div style="display: flex; justify-content: space-between; gap: 10px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+                    ${footerHtml}
+                </div>
+            </form>
+        </div>
+    `;
+    
+    modal.style.display = 'block';
+    
+    // Event listeners
+    modal.querySelector('.btn-fechar-modal-agenda').addEventListener('click', fecharModalAgenda);
+    const btnCancelar = modal.querySelector('.btn-modal-cancelar-agenda');
+    if (btnCancelar) btnCancelar.addEventListener('click', fecharModalAgenda);
+    const btnSalvar = modal.querySelector('.btn-modal-salvar-agenda');
+    if (btnSalvar) btnSalvar.addEventListener('click', salvarAgenda);
+    const btnCancelarLanc = modal.querySelector('.btn-modal-cancelar-lancamento-agenda');
+    if (btnCancelarLanc) btnCancelarLanc.addEventListener('click', function() { cancelarLancamento(); });
+    
+    // Event listener para o select de modelo
+    const selectModelo = modal.querySelector('#selectModelo');
+    if (selectModelo) {
+        selectModelo.addEventListener('change', function() {
+            carregarEncargosModelo(this.value);
+        });
+        
+        // Se já tiver modelo selecionado, carregar encargos
+        if (modeloSelecionado) {
+            setTimeout(function() {
+                carregarEncargosModelo(modeloSelecionado);
+            }, 100);
+        }
+    }
+    
+    // Fechar ao clicar fora
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            fecharModalAgenda();
+        }
+    });
+}
+
+// Função para abrir modal de consulta
+function abrirModalAgendaConsulta(dia, mes, ano, modeloId) {
+    // Carregar dados via AJAX e mostrar em modo consulta
+    carregarDadosAgenda(dia, mes, ano);
+}
+
+function fecharModalAgenda() {
+    const modal = document.getElementById('modalAgenda');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    diaAtual = null;
+    mesAtual = null;
+    anoAtual = null;
+}
+
+// Função antiga mantida para compatibilidade
+function fecharModal() {
+    fecharModalAgenda();
+}
+
+function salvarAgenda() {
+    const form = document.getElementById('formAgendaDia');
+    const formData = new FormData(form);
+    
+    fetch('{% url "app_igreja:agenda_mes" %}?mes=' + mesAtual + '&ano=' + anoAtual, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('Erro ao salvar agenda');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao salvar agenda');
+    });
+}
+
+function cancelarLancamento() {
+    if (!confirm('Tem certeza que deseja cancelar o lançamento? O modelo será removido.')) {
+        return;
+    }
+    
+    const form = document.getElementById('formAgendaDia');
+    const formData = new FormData(form);
+    formData.append('cancelar_lancamento', '1');
+    formData.append('modelo', '0'); // Colocar modelo = 0
+    
+    fetch('{% url "app_igreja:agenda_mes" %}?mes=' + mesAtual + '&ano=' + anoAtual, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('Erro ao cancelar lançamento');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao cancelar lançamento');
+    });
+}
+
+function carregarDadosAgenda(dia, mes, ano) {
+    const modal = garantirModalAgenda();
+    
+    fetch('{% url "app_igreja:agenda_mes" %}?mes=' + mes + '&ano=' + ano + '&dia=' + dia + '&acao=consultar')
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const consultaDiv = doc.querySelector('.form-agenda-dia');
+            
+            let modalContent = '';
+            if (consultaDiv) {
+                const rows = consultaDiv.querySelectorAll('.row');
+                let bodyContent = '';
+                rows.forEach(row => {
+                    bodyContent += row.outerHTML;
+                });
+                modalContent = bodyContent;
+            } else {
+                modalContent = '<p>Nenhum dado encontrado para este dia.</p>';
+            }
+            
+            modal.innerHTML = `
+                <div style="background-color: #fefefe; margin: 10% auto; padding: 30px; border: 1px solid #888; width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #dee2e6; padding-bottom: 15px;">
+                        <h4 style="margin: 0; font-weight: bold; color: #333;">
+                            <i class="fas fa-eye me-2"></i>Consultar Agenda - Dia ${dia}/${mes}/${ano}
+                        </h4>
+                        <button type="button" class="btn-fechar-modal-agenda" style="background: none; border: none; font-size: 28px; font-weight: bold; color: #aaa; cursor: pointer; padding: 0; width: 35px; height: 35px; line-height: 28px;">&times;</button>
+                    </div>
+                    <div>
+                        ${modalContent}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; gap: 10px; padding-top: 20px; border-top: 1px solid #dee2e6; margin-top: 20px;">
+                        <button type="button" class="btn-modal-cancelar-lancamento-consulta" style="flex: 1; padding: 12px; border: 1px solid #dc3545; background-color: #dc3545; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                            <i class="fas fa-ban me-2"></i>Cancelar Lançamento
+                        </button>
+                        <button type="button" class="btn-modal-fechar-consulta" style="flex: 1; padding: 12px; border: 1px solid #6c757d; background-color: #6c757d; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                            <i class="fas fa-times me-2"></i>Fechar
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+            
+            // Event listeners
+            modal.querySelector('.btn-fechar-modal-agenda').addEventListener('click', fecharModalAgenda);
+            modal.querySelector('.btn-modal-fechar-consulta').addEventListener('click', fecharModalAgenda);
+            const btnCancLanc = modal.querySelector('.btn-modal-cancelar-lancamento-consulta');
+            if (btnCancLanc) {
+                btnCancLanc.addEventListener('click', function() {
+                    cancelarLancamentoConsulta(dia, mes, ano);
+                });
+            }
+            
+            // Fechar ao clicar fora
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    fecharModalAgenda();
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao carregar dados da agenda.');
+        });
+}
+
+function carregarDadosAgendaEdicao(dia, mes, ano) {
+    // Buscar dados via AJAX e abrir modal com formulário
+    fetch('{% url "app_igreja:agenda_mes" %}?mes=' + mes + '&ano=' + ano + '&dia=' + dia + '&acao=editar')
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const formDiv = doc.querySelector('.form-agenda-dia form');
+            
+            if (formDiv) {
+                // Obter o valor do modelo selecionado do formulário original
+                const modeloSelecionado = formDiv.querySelector('select[name="modelo"]')?.value || '';
+                const encargosAtuais = formDiv.querySelector('textarea[name="encargos"]')?.value || '';
+                
+                // Abrir modal com formulário já preenchido
+                abrirModalAgendaForm(dia, mes, ano, modeloSelecionado);
+                
+                // Preencher encargos após um pequeno delay
+                setTimeout(function() {
+                    const textareaEncargos = document.getElementById('textareaEncargos');
+                    if (textareaEncargos) {
+                        textareaEncargos.value = encargosAtuais;
+                    }
+                }, 200);
+            } else {
+                // Se não encontrar formulário, abrir em modo inclusão
+                abrirModalAgendaForm(dia, mes, ano, null);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            // Em caso de erro, abrir em modo inclusão
+            abrirModalAgendaForm(dia, mes, ano, null);
+        });
+}
+
+// Fechar modal ao clicar fora
+window.onclick = function(event) {
+    const modal = document.getElementById('modalAgenda');
+    if (event.target == modal) {
+        fecharModal();
+    }
+}
+
+// Função para carregar encargos do modelo no modal
+function carregarEncargosModelo(modeloId) {
+    // Aguardar um pouco para garantir que o DOM foi atualizado
+    setTimeout(function() {
+        const textareaEncargos = document.getElementById('textareaEncargos');
+        
+        if (!modeloId || modeloId === '' || modeloId === '0') {
+            if (textareaEncargos) textareaEncargos.value = '';
+            return;
+        }
+        
+        if (!textareaEncargos) {
+            console.error('Campo de encargos não encontrado no modal. Tentando novamente...');
+            // Tentar novamente após um delay maior
+            setTimeout(function() {
+                carregarEncargosModelo(modeloId);
+            }, 200);
+            return;
+        }
+        
+        carregarEncargosAjax(modeloId, textareaEncargos);
+    }, 50);
+}
+
+// Função auxiliar para fazer a requisição AJAX
+function carregarEncargosAjax(modeloId, textareaEncargos) {
+    // Buscar encargos via AJAX
+    const urlBase = '{% url "app_igreja:buscar_encargos_modelo" 0 %}';
+    const url = urlBase.replace('0', modeloId);
+    
+    console.log('Carregando encargos para modelo (modal):', modeloId, 'URL:', url);
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro na resposta: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Dados recebidos (modal):', data);
+            if (data.success && data.encargos && data.encargos.length > 0) {
+                let encargosTexto = '';
+                
+                data.encargos.forEach((item, index) => {
+                    if (index > 0) encargosTexto += '\n';
+                    encargosTexto += item.encargo;
+                });
+                
+                textareaEncargos.value = encargosTexto;
+            } else {
+                textareaEncargos.value = '';
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao carregar encargos (modal):', error);
+            textareaEncargos.value = '';
+        });
+}
+
+// Função para carregar encargos no formulário fora do modal
+function carregarEncargosModeloForm(modeloId) {
+    const textareaEncargos = document.getElementById('textareaEncargosForm');
+    
+    if (!modeloId || modeloId === '') {
+        if (textareaEncargos) textareaEncargos.value = '';
+        return;
+    }
+    
+    if (!textareaEncargos) {
+        console.error('Campo de encargos não encontrado no formulário');
+        return;
+    }
+    
+    // Buscar encargos via AJAX
+    const urlBase = '{% url "app_igreja:buscar_encargos_modelo" 0 %}';
+    const url = urlBase.replace('0', modeloId);
+    
+    console.log('Carregando encargos para modelo (form):', modeloId, 'URL:', url);
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro na resposta: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Dados recebidos (form):', data);
+            if (data.success && data.encargos && data.encargos.length > 0) {
+                let encargosTexto = '';
+                
+                data.encargos.forEach((item, index) => {
+                    if (index > 0) encargosTexto += '\n';
+                    encargosTexto += item.encargo;
+                });
+                
+                textareaEncargos.value = encargosTexto;
+            } else {
+                textareaEncargos.value = '';
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao carregar encargos (form):', error);
+            textareaEncargos.value = '';
+        });
+}
+
+// Cancelar lançamento a partir da consulta (apenas botão único)
+function cancelarLancamentoConsulta(dia, mes, ano) {
+    if (!confirm('Tem certeza que deseja cancelar o lançamento? O modelo será removido.')) {
+        return;
+    }
+    const formData = new FormData();
+    formData.append('cancelar_lancamento', '1');
+    formData.append('dia', dia);
+    formData.append('mes', mes);
+    formData.append('ano', ano);
+    
+    fetch('{% url "app_igreja:agenda_mes" %}?mes=' + mes + '&ano=' + ano, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('Erro ao cancelar lançamento');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao cancelar lançamento');
+    });
+}
+
+// Preencher mês e ano atual se não estiverem preenchidos
+document.addEventListener('DOMContentLoaded', function() {
+    const mesSelect = document.getElementById('mes');
+    const anoInput = document.getElementById('ano');
+    
+    if (mesSelect && !mesSelect.value) {
+        const mesAtual = new Date().getMonth() + 1;
+        mesSelect.value = mesAtual;
+    }
+    
+    if (anoInput && !anoInput.value) {
+        const anoAtual = new Date().getFullYear();
+        anoInput.value = anoAtual;
+    }
+    
+    // Se estiver em modo edição e já tiver modelo selecionado, carregar encargos
+    const selectModeloForm = document.getElementById('selectModeloForm');
+    if (selectModeloForm && selectModeloForm.value) {
+        carregarEncargosModeloForm(selectModeloForm.value);
+    }
+});
+
+// Função para cancelar lançamento no formulário fora do modal
+function cancelarLancamentoForm() {
+    if (!confirm('Tem certeza que deseja cancelar o lançamento? O modelo será removido.')) {
+        return;
+    }
+    
+    const form = document.getElementById('formAgendaDia');
+    const formData = new FormData(form);
+    formData.append('cancelar_lancamento', '1');
+    formData.append('modelo', '0'); // Colocar modelo = 0
+    
+    const mesForm = {{ mes }};
+    const anoForm = {{ ano }};
+    
+    fetch('{% url "app_igreja:agenda_mes" %}?mes=' + mesForm + '&ano=' + anoForm, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('Erro ao cancelar lançamento');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao cancelar lançamento');
+    });
+}
+</script>
+
+<!-- Botão Flutuante com Engrenagem -->
+<button type="button" class="cont_lista_btnadd" title="Voltar para Área de Trabalho" onclick="window.location.href='{% url 'app_igreja:admin_area' %}'">
+    <i class="fas fa-cog"></i>
+</button>
+{% endblock %}

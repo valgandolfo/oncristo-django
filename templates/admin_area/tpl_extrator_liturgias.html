@@ -29,9 +29,10 @@
     }
 </style>
 
-<a href="{% url 'app_igreja:admin_area' %}" class="btn btn-secondary btn-retornar-flutuante">
-    <i class="fas fa-arrow-left me-2"></i>Retornar
-</a>
+<!-- Botão Flutuante com Engrenagem -->
+<button type="button" class="cont_lista_btnadd" title="Configurações" onclick="window.location.href='{% url 'app_igreja:admin_area' %}'">
+    <i class="fas fa-cog"></i>
+</button>
 
 <div class="container-fluid mt-4">
     <div class="row">

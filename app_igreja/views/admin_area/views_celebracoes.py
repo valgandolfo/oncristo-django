@@ -16,33 +16,41 @@ def listar_celebracoes(request):
     Lista todas as celebrações com filtros e paginação
     """
     # Filtros
-    busca_nome = request.GET.get('busca_nome', '')
-    filtro_status = request.GET.get('status', '')
-    filtro_data_inicio = request.GET.get('data_inicio', '')
-    filtro_data_fim = request.GET.get('data_fim', '')
+    busca_nome = request.GET.get('busca_nome', '').strip()
+    filtro_status = request.GET.get('status', '').strip()
+    filtro_data_inicio = request.GET.get('data_inicio', '').strip()
+    filtro_data_fim = request.GET.get('data_fim', '').strip()
     
-    # Query base
-    celebracoes = TBCELEBRACOES.objects.all()
+    # Controla se o usuário já executou uma busca (preencheu algum filtro ou navegou na paginação)
+    busca_realizada = bool(busca_nome or filtro_status or filtro_data_inicio or filtro_data_fim or request.GET.get('page'))
     
-    # Aplicar filtros
-    if busca_nome:
-        celebracoes = celebracoes.filter(
-            Q(CEL_nome_solicitante__icontains=busca_nome) |
-            Q(CEL_tipo_celebracao__icontains=busca_nome) |
-            Q(CEL_local__icontains=busca_nome)
-        )
-    
-    if filtro_status:
-        celebracoes = celebracoes.filter(CEL_status=filtro_status)
-    
-    if filtro_data_inicio:
-        celebracoes = celebracoes.filter(CEL_data_celebracao__gte=filtro_data_inicio)
-    
-    if filtro_data_fim:
-        celebracoes = celebracoes.filter(CEL_data_celebracao__lte=filtro_data_fim)
-    
-    # Ordenação
-    celebracoes = celebracoes.order_by('CEL_data_celebracao', 'CEL_horario')
+    # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
+    if busca_realizada:
+        # Query base
+        celebracoes = TBCELEBRACOES.objects.all()
+        
+        # Aplicar filtros
+        if busca_nome:
+            celebracoes = celebracoes.filter(
+                Q(CEL_nome_solicitante__icontains=busca_nome) |
+                Q(CEL_tipo_celebracao__icontains=busca_nome) |
+                Q(CEL_local__icontains=busca_nome)
+            )
+        
+        if filtro_status:
+            celebracoes = celebracoes.filter(CEL_status=filtro_status)
+        
+        if filtro_data_inicio:
+            celebracoes = celebracoes.filter(CEL_data_celebracao__gte=filtro_data_inicio)
+        
+        if filtro_data_fim:
+            celebracoes = celebracoes.filter(CEL_data_celebracao__lte=filtro_data_fim)
+        
+        # Ordenação
+        celebracoes = celebracoes.order_by('CEL_data_celebracao', 'CEL_horario')
+    else:
+        # Queryset vazio até que o usuário faça a primeira busca
+        celebracoes = TBCELEBRACOES.objects.none()
     
     # Paginação
     paginator = Paginator(celebracoes, 10)
@@ -77,6 +85,7 @@ def listar_celebracoes(request):
         'canceladas': canceladas,
         'proximas_celebracoes': proximas_celebracoes,
         'modo_dashboard': True,  # Migrado para nova tela pai dashboard
+        'busca_realizada': busca_realizada,
     }
     
     return render(request, 'admin_area/tpl_celebracoes.html', context)

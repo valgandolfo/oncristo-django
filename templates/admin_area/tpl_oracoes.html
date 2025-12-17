@@ -93,60 +93,70 @@
 
 <!-- === BLOCO LINHAS TABELA DASHBOARD === -->
 {% block linhas_tabela_dashboard %}
-{% for oracao in page_obj %}
-<tr>
-    {% block linha_completa_dashboard %}
-    <td>
-        <i class="fas fa-ellipsis-v" 
-           onclick="selecionarRegistroDashboard({{ oracao.id }})"
-           style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;"
-           onmouseover="this.style.backgroundColor='#e9ecef'" 
-           onmouseout="this.style.backgroundColor='transparent'"></i>
-    </td>
-    <td>{{ oracao.ORA_data_pedido|date:"d/m/Y" }}</td>
-    <td>
-        <div>
-            <div class="mb-2">
-                <strong>{{ oracao.ORA_nome_solicitante }}</strong>
-                {% if not oracao.ORA_ativo %}
-                    <br><span class="text-muted">Inativo</span>
-                {% endif %}
-            </div>
-            <!-- Botões de ação -->
-            <div class="botoes-acao" id="acoes_{{ oracao.id }}" style="display: none;">
-                <div class="d-flex gap-2 justify-content-start align-items-center">
-                    <a href="{% url 'app_igreja:detalhar_oracao' oracao.id %}" class="btn btn-info btn-sm d-flex align-items-center">
-                        <i class="fas fa-eye me-1"></i>Consultar
-                    </a>
-                    <a href="{% url 'app_igreja:editar_oracao' oracao.id %}" class="btn btn-warning btn-sm d-flex align-items-center">
-                        <i class="fas fa-edit me-1"></i>Editar
-                    </a>
-                    <a href="{% url 'app_igreja:excluir_oracao' oracao.id %}" class="btn btn-danger btn-sm d-flex align-items-center">
-                        <i class="fas fa-trash me-1"></i>Excluir
-                    </a>
+{% if busca_realizada %}
+    {% for oracao in page_obj %}
+    <tr>
+        {% block linha_completa_dashboard %}
+        <td>
+            <i class="fas fa-ellipsis-v" 
+               onclick="selecionarRegistroDashboard({{ oracao.id }})"
+               style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;"
+               onmouseover="this.style.backgroundColor='#e9ecef'" 
+               onmouseout="this.style.backgroundColor='transparent'"></i>
+        </td>
+        <td>{{ oracao.ORA_data_pedido|date:"d/m/Y" }}</td>
+        <td>
+            <div>
+                <div class="mb-2">
+                    <strong>{{ oracao.ORA_nome_solicitante }}</strong>
+                    {% if not oracao.ORA_ativo %}
+                        <br><span class="text-muted">Inativo</span>
+                    {% endif %}
+                </div>
+                <!-- Botões de ação -->
+                <div class="botoes-acao" id="acoes_{{ oracao.id }}" style="display: none;">
+                    <div class="d-flex gap-2 justify-content-start align-items-center">
+                        <a href="{% url 'app_igreja:detalhar_oracao' oracao.id %}" class="btn btn-info btn-sm d-flex align-items-center">
+                            <i class="fas fa-eye me-1"></i>Consultar
+                        </a>
+                        <a href="{% url 'app_igreja:editar_oracao' oracao.id %}" class="btn btn-warning btn-sm d-flex align-items-center">
+                            <i class="fas fa-edit me-1"></i>Editar
+                        </a>
+                        <a href="{% url 'app_igreja:excluir_oracao' oracao.id %}" class="btn btn-danger btn-sm d-flex align-items-center">
+                            <i class="fas fa-trash me-1"></i>Excluir
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-    </td>
-    <td>
-        <span class="badge badge-tipo">{{ oracao.get_tipo_oracao_display }}</span>
-    </td>
-    <td>
-        <span class="badge badge-{{ oracao.get_status_class }}">
-            {{ oracao.get_status_display }}
-        </span>
-    </td>
-    {% endblock %}
-</tr>
-{% empty %}
-<tr>
-    <td colspan="5" class="text-center text-muted">
-        <i class="fas fa-praying-hands fa-2x mb-2"></i>
-        <br>
-        Nenhum pedido de oração encontrado.
-    </td>
-</tr>
-{% endfor %}
+        </td>
+        <td>
+            <span class="badge badge-tipo">{{ oracao.get_tipo_oracao_display }}</span>
+        </td>
+        <td>
+            <span class="badge badge-{{ oracao.get_status_class }}">
+                {{ oracao.get_status_display }}
+            </span>
+        </td>
+        {% endblock %}
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5" class="text-center text-muted">
+            <i class="fas fa-praying-hands fa-2x mb-2"></i>
+            <br>
+            Nenhum pedido de oração encontrado para os filtros informados.
+        </td>
+    </tr>
+    {% endfor %}
+{% else %}
+    <tr>
+        <td colspan="5" class="text-center text-muted">
+            <i class="fas fa-search fa-2x mb-2"></i>
+            <br>
+            Preencha os filtros acima e clique em <strong>Buscar</strong> para listar os pedidos de oração.
+        </td>
+    </tr>
+{% endif %}
 {% endblock %}
 
 <!-- === BLOCO MENSAGEM VAZIO DASHBOARD === -->

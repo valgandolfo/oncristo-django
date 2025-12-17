@@ -31,7 +31,15 @@ def listar_celebrantes(request):
     Lista todos os celebrantes com paginação
     """
     
-    celebrantes = TBCELEBRANTES.objects.all().order_by('CEL_ordenacao', 'CEL_nome_celebrante')
+    # Controla se o usuário já executou uma busca (navegou na paginação)
+    busca_realizada = bool(request.GET.get('page'))
+    
+    # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro ou navegar na paginação
+    if busca_realizada:
+        celebrantes = TBCELEBRANTES.objects.all().order_by('CEL_ordenacao', 'CEL_nome_celebrante')
+    else:
+        # Queryset vazio até que o usuário faça a primeira busca
+        celebrantes = TBCELEBRANTES.objects.none()
     
     # Paginação
     paginator = Paginator(celebrantes, 10)  # 10 celebrantes por página
@@ -41,8 +49,9 @@ def listar_celebrantes(request):
     context = {
         'page_obj': page_obj,
         'celebrantes': page_obj,
-        'total_celebrantes': celebrantes.count(),
+        'total_celebrantes': TBCELEBRANTES.objects.count() if busca_realizada else 0,
         'modo_dashboard': True,
+        'busca_realizada': busca_realizada,
     }
     
     return render(request, 'admin_area/tpl_celebrantes.html', context)

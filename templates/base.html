@@ -1968,15 +1968,16 @@
 
                             <!-- Paginação padrão -->
                             {% block paginacao_dashboard %}
+                            {% load format_utils %}
                             {% if page_obj.has_other_pages %}
                             <nav aria-label="Paginação">
                                 <ul class="pagination justify-content-center">
                                     {% if page_obj.has_previous %}
                                         <li class="page-item">
-                                            <a class="page-link" href="?page=1">Primeira</a>
+                                            <a class="page-link" href="{% url_com_parametros page_number=1 %}">Primeira</a>
                                         </li>
                                         <li class="page-item">
-                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                                            <a class="page-link" href="{% url_com_parametros page_number=page_obj.previous_page_number %}">Anterior</a>
                                         </li>
                                     {% endif %}
 
@@ -1988,10 +1989,10 @@
 
                                     {% if page_obj.has_next %}
                                         <li class="page-item">
-                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a>
+                                            <a class="page-link" href="{% url_com_parametros page_number=page_obj.next_page_number %}">Próxima</a>
                                         </li>
                                         <li class="page-item">
-                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última</a>
+                                            <a class="page-link" href="{% url_com_parametros page_number=page_obj.paginator.num_pages %}">Última</a>
                                         </li>
                                     {% endif %}
                                 </ul>

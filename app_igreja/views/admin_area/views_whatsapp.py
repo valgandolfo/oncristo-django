@@ -341,37 +341,45 @@ def whatsapp_list(request):
     """Lista de mensagens enviadas usando formulário PAI"""
     from datetime import datetime
     
-    mensagens = TBWHATSAPP.objects.all().order_by('-WHA_data_criacao')
-    
     # Filtros
-    status_filter = request.GET.get('status', '')
-    tipo_filter = request.GET.get('tipo_destinatario', '')
-    data_inicio = request.GET.get('data_inicio', '')
-    data_fim = request.GET.get('data_fim', '')
+    status_filter = request.GET.get('status', '').strip()
+    tipo_filter = request.GET.get('tipo_destinatario', '').strip()
+    data_inicio = request.GET.get('data_inicio', '').strip()
+    data_fim = request.GET.get('data_fim', '').strip()
     
-    if status_filter:
-        mensagens = mensagens.filter(WHA_status=status_filter)
+    # Controla se o usuário já executou uma busca (preencheu algum filtro ou navegou na paginação)
+    busca_realizada = bool(status_filter or tipo_filter or data_inicio or data_fim or request.GET.get('page'))
     
-    if tipo_filter:
-        mensagens = mensagens.filter(WHA_destinatario_tipo=tipo_filter)
-    
-    # Filtro por data
-    if data_inicio:
-        try:
-            data_inicio_obj = datetime.strptime(data_inicio, '%Y-%m-%d').date()
-            mensagens = mensagens.filter(WHA_data_criacao__date__gte=data_inicio_obj)
-        except ValueError:
-            pass
-    
-    if data_fim:
-        try:
-            data_fim_obj = datetime.strptime(data_fim, '%Y-%m-%d').date()
-            mensagens = mensagens.filter(WHA_data_criacao__date__lte=data_fim_obj)
-        except ValueError:
-            pass
-    
-    # Ordenação
-    mensagens = mensagens.order_by('-WHA_data_criacao')
+    # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
+    if busca_realizada:
+        mensagens = TBWHATSAPP.objects.all().order_by('-WHA_data_criacao')
+        
+        if status_filter:
+            mensagens = mensagens.filter(WHA_status=status_filter)
+        
+        if tipo_filter:
+            mensagens = mensagens.filter(WHA_destinatario_tipo=tipo_filter)
+        
+        # Filtro por data
+        if data_inicio:
+            try:
+                data_inicio_obj = datetime.strptime(data_inicio, '%Y-%m-%d').date()
+                mensagens = mensagens.filter(WHA_data_criacao__date__gte=data_inicio_obj)
+            except ValueError:
+                pass
+        
+        if data_fim:
+            try:
+                data_fim_obj = datetime.strptime(data_fim, '%Y-%m-%d').date()
+                mensagens = mensagens.filter(WHA_data_criacao__date__lte=data_fim_obj)
+            except ValueError:
+                pass
+        
+        # Ordenação
+        mensagens = mensagens.order_by('-WHA_data_criacao')
+    else:
+        # Queryset vazio até que o usuário faça a primeira busca
+        mensagens = TBWHATSAPP.objects.none()
     
     # Paginação
     paginator = Paginator(mensagens, 20)
@@ -385,6 +393,7 @@ def whatsapp_list(request):
         'data_inicio': data_inicio,
         'data_fim': data_fim,
         'modo_dashboard': True,
+        'busca_realizada': busca_realizada,
     }
     
     return render(request, 'admin_area/tpl_mensagens_whatapp.html', context)

@@ -77,65 +77,75 @@
 
 <!-- === BLOCO LINHAS TABELA DASHBOARD === -->
 {% block linhas_tabela_dashboard %}
-{% for celebrante in page_obj %}
-<tr>
-    {% block linha_completa_dashboard %}
-    <td>
-        <i class="fas fa-ellipsis-v" 
-           onclick="selecionarRegistroDashboard({{ celebrante.CEL_id }})"
-           style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;"
-           onmouseover="this.style.backgroundColor='#e9ecef'" 
-           onmouseout="this.style.backgroundColor='transparent'"></i>
-    </td>
-    <td>
-        {% if celebrante.CEL_foto %}
-            <img src="{{ celebrante.CEL_foto.url }}" alt="Foto" class="img-thumbnail" style="width: 40px; height: 40px;">
-        {% else %}
-            <div class="bg-secondary rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                <i class="fas fa-user text-white"></i>
-            </div>
-        {% endif %}
-    </td>
-    <td>
-        <div>
-            <div class="mb-2">
-                <strong>{{ celebrante.CEL_nome_celebrante|default:"Não informado" }}</strong>
-            </div>
-            <!-- Botões de ação -->
-            <div class="botoes-acao" id="acoes_{{ celebrante.CEL_id }}" style="display: none;">
-                <div class="d-flex gap-2 justify-content-start align-items-center">
-                    <a href="{% url 'app_igreja:detalhar_celebrante' celebrante.CEL_id %}" class="btn btn-info btn-sm d-flex align-items-center">
-                        <i class="fas fa-eye me-1"></i>Consultar
-                    </a>
-                    <a href="{% url 'app_igreja:editar_celebrante' celebrante.CEL_id %}" class="btn btn-warning btn-sm d-flex align-items-center">
-                        <i class="fas fa-edit me-1"></i>Editar
-                    </a>
-                    <a href="{% url 'app_igreja:excluir_celebrante' celebrante.CEL_id %}" class="btn btn-danger btn-sm d-flex align-items-center">
-                        <i class="fas fa-trash me-1"></i>Excluir
-                    </a>
+{% if busca_realizada %}
+    {% for celebrante in page_obj %}
+    <tr>
+        {% block linha_completa_dashboard %}
+        <td>
+            <i class="fas fa-ellipsis-v" 
+               onclick="selecionarRegistroDashboard({{ celebrante.CEL_id }})"
+               style="cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;"
+               onmouseover="this.style.backgroundColor='#e9ecef'" 
+               onmouseout="this.style.backgroundColor='transparent'"></i>
+        </td>
+        <td>
+            {% if celebrante.CEL_foto %}
+                <img src="{{ celebrante.CEL_foto.url }}" alt="Foto" class="img-thumbnail" style="width: 40px; height: 40px;">
+            {% else %}
+                <div class="bg-secondary rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="fas fa-user text-white"></i>
+                </div>
+            {% endif %}
+        </td>
+        <td>
+            <div>
+                <div class="mb-2">
+                    <strong>{{ celebrante.CEL_nome_celebrante|default:"Não informado" }}</strong>
+                </div>
+                <!-- Botões de ação -->
+                <div class="botoes-acao" id="acoes_{{ celebrante.CEL_id }}" style="display: none;">
+                    <div class="d-flex gap-2 justify-content-start align-items-center">
+                        <a href="{% url 'app_igreja:detalhar_celebrante' celebrante.CEL_id %}" class="btn btn-info btn-sm d-flex align-items-center">
+                            <i class="fas fa-eye me-1"></i>Consultar
+                        </a>
+                        <a href="{% url 'app_igreja:editar_celebrante' celebrante.CEL_id %}" class="btn btn-warning btn-sm d-flex align-items-center">
+                            <i class="fas fa-edit me-1"></i>Editar
+                        </a>
+                        <a href="{% url 'app_igreja:excluir_celebrante' celebrante.CEL_id %}" class="btn btn-danger btn-sm d-flex align-items-center">
+                            <i class="fas fa-trash me-1"></i>Excluir
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-    </td>
-    <td>{{ celebrante.CEL_ordenacao|default:"-" }}</td>
-    <td>
-        {% if celebrante.CEL_ativo %}
-            <span class="badge bg-success">Ativo</span>
-        {% else %}
-            <span class="badge bg-secondary">Inativo</span>
-        {% endif %}
-    </td>
-    {% endblock %}
-</tr>
-{% empty %}
-<tr>
-    <td colspan="5" class="text-center text-muted">
-        <i class="fas fa-user-tie fa-2x mb-2"></i>
-        <br>
-        Nenhum celebrante encontrado.
-    </td>
-</tr>
-{% endfor %}
+        </td>
+        <td>{{ celebrante.CEL_ordenacao|default:"-" }}</td>
+        <td>
+            {% if celebrante.CEL_ativo %}
+                <span class="badge bg-success">Ativo</span>
+            {% else %}
+                <span class="badge bg-secondary">Inativo</span>
+            {% endif %}
+        </td>
+        {% endblock %}
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5" class="text-center text-muted">
+            <i class="fas fa-user-tie fa-2x mb-2"></i>
+            <br>
+            Nenhum celebrante encontrado para os filtros informados.
+        </td>
+    </tr>
+    {% endfor %}
+{% else %}
+    <tr>
+        <td colspan="5" class="text-center text-muted">
+            <i class="fas fa-search fa-2x mb-2"></i>
+            <br>
+            Preencha os filtros acima e clique em <strong>Buscar</strong> para listar os celebrantes.
+        </td>
+    </tr>
+{% endif %}
 {% endblock %}
 
 <!-- === BLOCO MENSAGEM VAZIO DASHBOARD === -->

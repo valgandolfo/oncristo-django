@@ -432,3 +432,45 @@ def opcoes_mes(mes_selecionado=None, incluir_todos=False):
         opcoes.append(f'<option value="{num_mes}" {selected}>{nome_mes}</option>')
     
     return mark_safe('\n'.join(opcoes))
+
+@register.filter
+def get_item(dictionary, key):
+    """
+    Obtém item de um dicionário pela chave
+    """
+    if dictionary and isinstance(dictionary, dict):
+        return dictionary.get(key)
+    return None
+
+@register.simple_tag(takes_context=True)
+def url_com_parametros(context, page_number=None):
+    """
+    Constrói URL preservando todos os parâmetros GET existentes e substituindo/adicional o parâmetro 'page'.
+    
+    Args:
+        context: Contexto do template (automático)
+        page_number: Número da página (opcional)
+    
+    Returns:
+        String com a URL completa incluindo todos os parâmetros GET
+    """
+    from urllib.parse import urlencode
+    
+    request = context.get('request')
+    if not request:
+        return f"?page={page_number}" if page_number else "?"
+    
+    # Obter todos os parâmetros GET
+    params = dict(request.GET.items())
+    
+    # Atualizar ou adicionar o parâmetro page
+    if page_number:
+        params['page'] = page_number
+    elif 'page' in params:
+        # Se não especificar page_number mas houver page nos params, manter
+        pass
+    
+    # Construir query string
+    if params:
+        return f"?{urlencode(params)}"
+    return "?"

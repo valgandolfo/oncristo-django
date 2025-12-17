@@ -277,21 +277,21 @@ echo ""
 # Detectar IP local da rede
 IP_LOCAL=$(hostname -I | awk '{print $1}')
 print_info "📋 INFORMAÇÕES DO SERVIDOR:"
-echo "   🌐 Local (PC): http://127.0.0.1:8000"
-echo "   📱 Rede (Celular): http://${IP_LOCAL}:8000"
+echo "   🌐 Local (PC): http://127.0.0.1:8002"
+echo "   📱 Rede (Celular): http://${IP_LOCAL}:8002"
 echo "   🔧 Debug: HABILITADO"
 echo "   📊 Logs: VISÍVEIS NO TERMINAL"
 echo "   🛑 Para parar: Ctrl+C"
 echo ""
 print_info "🔗 URLs disponíveis:"
-echo "   🏠 Home Local: http://127.0.0.1:8000/"
-echo "   🏠 Home Celular: http://${IP_LOCAL}:8000/"
-echo "   🔐 Login: http://${IP_LOCAL}:8000/login/"
-echo "   📝 Registro: http://${IP_LOCAL}:8000/register/"
-echo "   ⚙️  Admin: http://${IP_LOCAL}:8000/app_igreja/admin-area/"
-echo "   🗄️  Django Admin: http://${IP_LOCAL}:8000/admin/"
-echo "   📱 WhatsApp Webhook: http://${IP_LOCAL}:8000/app_igreja/api/whatsapp/webhook/"
-echo "   🧪 Teste Webhook: http://${IP_LOCAL}:8000/app_igreja/api/whatsapp/test/"
+echo "   🏠 Home Local: http://127.0.0.1:8002/"
+echo "   🏠 Home Celular: http://${IP_LOCAL}:8002/"
+echo "   🔐 Login: http://${IP_LOCAL}:8002/login/"
+echo "   📝 Registro: http://${IP_LOCAL}:8002/register/"
+echo "   ⚙️  Admin: http://${IP_LOCAL}:8002/app_igreja/admin-area/"
+echo "   🗄️  Django Admin: http://${IP_LOCAL}:8002/admin/"
+echo "   📱 WhatsApp Webhook: http://${IP_LOCAL}:8002/app_igreja/api/whatsapp/webhook/"
+echo "   🧪 Teste Webhook: http://${IP_LOCAL}:8002/app_igreja/api/whatsapp/test/"
 echo ""
 print_warning "⚠️  LEMBRETES:"
 echo "   - Configure o arquivo .env_local com suas credenciais"
@@ -301,7 +301,7 @@ echo "   - Verifique se a pasta 'static/' existe"
 echo ""
 
 # Iniciar servidor com debug habilitado (0.0.0.0 permite acesso de outras máquinas na rede)
-python manage.py runserver 0.0.0.0:8000 --verbosity=2
+python manage.py runserver 0.0.0.0:8002 --verbosity=2
 
 # Se o servidor parar, mostrar mensagem
 echo ""

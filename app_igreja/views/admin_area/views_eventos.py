@@ -19,20 +19,28 @@ def listar_eventos(request):
     Lista todos os eventos com paginação e busca
     """
     # Parâmetros de busca
-    busca = request.GET.get('busca', '')
-    status = request.GET.get('status', '')
+    busca = request.GET.get('busca', '').strip()
+    status = request.GET.get('status', '').strip()
     
-    # Query base
-    eventos = TBEVENTO.objects.all().order_by('-EVE_DTCADASTRO')
+    # Controla se o usuário já executou uma busca (preencheu algum filtro ou navegou na paginação)
+    busca_realizada = bool(busca or status or request.GET.get('page'))
     
-    # Filtros
-    if busca:
-        eventos = eventos.filter(
-            Q(EVE_TITULO__icontains=busca)
-        )
-    
-    if status:
-        eventos = eventos.filter(EVE_STATUS=status)
+    # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
+    if busca_realizada:
+        # Query base
+        eventos = TBEVENTO.objects.all().order_by('-EVE_DTCADASTRO')
+        
+        # Filtros
+        if busca:
+            eventos = eventos.filter(
+                Q(EVE_TITULO__icontains=busca)
+            )
+        
+        if status:
+            eventos = eventos.filter(EVE_STATUS=status)
+    else:
+        # Queryset vazio até que o usuário faça a primeira busca
+        eventos = TBEVENTO.objects.none()
     
     # Paginação
     paginator = Paginator(eventos, 10)
@@ -67,6 +75,7 @@ def listar_eventos(request):
         'eventos_mes': eventos_mes,
         'modo_dashboard': True,  # Migrado para nova tela pai dashboard
         'model_verbose_name': 'Evento',
+        'busca_realizada': busca_realizada,
     }
     
     return render(request, 'admin_area/tpl_eventos.html', context)

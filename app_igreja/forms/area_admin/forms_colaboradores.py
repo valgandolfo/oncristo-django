@@ -7,6 +7,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from ...models.area_admin.models_colaboradores import TBCOLABORADORES
 from ...models.area_admin.models_funcoes import TBFUNCAO
+from ...models.area_admin.models_grupos import TBGRUPOS
 from .forms_commons import BaseAdminForm, DateInputWidget, get_estados_brasil
 
 
@@ -34,6 +35,16 @@ class ColaboradorForm(BaseAdminForm):
             'id': 'COL_funcao'
         })
     )
+
+    COL_grupo_liturgico = forms.ChoiceField(
+        label='Grupo Litúrgico',
+        required=False,
+        choices=[('', 'Selecione um grupo...')],
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+            'id': 'COL_grupo_liturgico'
+        })
+    )
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -42,14 +53,23 @@ class ColaboradorForm(BaseAdminForm):
         choices_funcoes = [('', 'Selecione uma função...')]
         choices_funcoes.extend([(str(funcao.FUN_id), funcao.FUN_nome_funcao) for funcao in funcoes])
         self.fields['COL_funcao_id'].choices = choices_funcoes
-        
+
         # Popular choices do campo COL_funcao
         if 'COL_funcao' in self.fields:
             self.fields['COL_funcao'].choices = choices_funcoes
-            
+
         # Se estiver editando, definir o valor inicial do campo COL_funcao
         if self.instance and self.instance.pk and self.instance.COL_funcao:
             self.fields['COL_funcao'].initial = str(self.instance.COL_funcao)
+
+        # Popular choices de grupos litúrgicos
+        grupos = TBGRUPOS.objects.filter(GRU_ativo=True).order_by('GRU_nome_grupo')
+        choices_grupos = [('', 'Selecione um grupo...')]
+        choices_grupos.extend([(str(grupo.GRU_id), grupo.GRU_nome_grupo) for grupo in grupos])
+        self.fields['COL_grupo_liturgico'].choices = choices_grupos
+
+        if self.instance and self.instance.pk and self.instance.COL_grupo_liturgico:
+            self.fields['COL_grupo_liturgico'].initial = str(self.instance.COL_grupo_liturgico)
     
     def clean_COL_funcao_id(self):
         """Converte string vazia para None"""
@@ -62,6 +82,16 @@ class ColaboradorForm(BaseAdminForm):
         """Converte string vazia para None"""
         value = self.cleaned_data.get('COL_funcao')
         if value == '' or value is None:
+            return None
+        try:
+            return int(value)
+        except (ValueError, TypeError):
+            return None
+
+    def clean_COL_grupo_liturgico(self):
+        """Converte string vazia para None"""
+        value = self.cleaned_data.get('COL_grupo_liturgico')
+        if value in ('', None):
             return None
         try:
             return int(value)
@@ -84,12 +114,11 @@ class ColaboradorForm(BaseAdminForm):
             'COL_data_nascimento',
             'COL_sexo',
             'COL_estado_civil',
-            'COL_funcao_pretendida',
             'COL_foto',
             'COL_status',
-            'COL_membro_ativo',
             'COL_funcao_id',
             'COL_funcao',
+            'COL_grupo_liturgico',
         ]
         widgets = {
             'COL_telefone': forms.TextInput(attrs={
@@ -161,11 +190,6 @@ class ColaboradorForm(BaseAdminForm):
                 ('UNIAO_ESTAVEL', 'União Estável'),
                 ('SEPARADO', 'Separado(a)'),
             ]),
-            'COL_funcao_pretendida': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Função pretendida',
-                'id': 'COL_funcao_pretendida'
-            }),
             'COL_foto': forms.FileInput(attrs={
                 'class': 'form-control',
                 'accept': 'image/*',
@@ -179,8 +203,8 @@ class ColaboradorForm(BaseAdminForm):
                 ('ATIVO', 'Ativo'),
                 ('INATIVO', 'Inativo')
             ]),
-            'COL_membro_ativo': forms.CheckboxInput(attrs={
-                'class': 'form-check-input',
-                'id': 'COL_membro_ativo'
+            'COL_grupo_liturgico': forms.Select(attrs={
+                'class': 'form-control',
+                'id': 'COL_grupo_liturgico'
             }),
         }
