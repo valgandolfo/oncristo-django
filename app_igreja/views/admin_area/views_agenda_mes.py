@@ -71,11 +71,21 @@ def agenda_mes(request):
     
     # Se foi selecionado um dia, processar ação
     dia = None
+    dia_passado = False
     if dia_str:
         try:
             dia = int(dia_str)
             if dia < 1 or dia > 31:
                 dia = None
+            else:
+                # Verificar se o dia passou
+                if mes and ano:
+                    data_dia = date(ano, mes, dia)
+                    if data_dia < hoje:
+                        dia_passado = True
+                        # Forçar modo consulta se for dia passado
+                        if acao in ['incluir', 'editar']:
+                            acao = 'consultar'
         except ValueError:
             dia = None
     
@@ -103,6 +113,14 @@ def agenda_mes(request):
             dia = int(request.POST.get('dia', dia or 0))
             if dia < 1 or dia > 31:
                 dia = None
+            else:
+                # Verificar se o dia passou
+                if mes and ano:
+                    data_dia = date(ano, mes, dia)
+                    if data_dia < hoje:
+                        dia_passado = True
+                        messages.error(request, 'Não é possível editar dias que já passaram.')
+                        return redirect(f"{request.path}?mes={mes}&ano={ano}")
         except (TypeError, ValueError):
             dia = None
         
@@ -111,6 +129,12 @@ def agenda_mes(request):
             if mes and ano and dia:
                 primeiro_dia_mes = date(ano, mes, 1)
                 dia_post = int(request.POST.get('dia', dia))
+                data_dia = date(ano, mes, dia_post)
+                
+                # Não permitir cancelar lançamento de dias passados
+                if data_dia < hoje:
+                    messages.error(request, 'Não é possível cancelar lançamento de dias que já passaram.')
+                    return redirect(f"{request.path}?mes={mes}&ano={ano}")
                 
                 try:
                     agenda_mes_obj = TBAGENDAMES.objects.get(AGE_MES=primeiro_dia_mes)
@@ -133,6 +157,7 @@ def agenda_mes(request):
             
             # Ler valores diretamente do POST para evitar falhas de validação do form
             modelo_raw = request.POST.get('modelo')
+            horario_raw = request.POST.get('horario', '')
             encargos = request.POST.get('encargos', '')
             
             # Converter modelo para inteiro/None/0
@@ -150,11 +175,21 @@ def agenda_mes(request):
             if modelo_id is None:
                 modelo_id = 0
             
+            # Converter horário
+            horario_obj = None
+            if horario_raw:
+                try:
+                    from datetime import datetime
+                    horario_obj = datetime.strptime(horario_raw, '%H:%M').time()
+                except (ValueError, TypeError):
+                    horario_obj = None
+            
             # Verificar se é criação ou edição
             try:
                 agenda_existente = TBITEAGENDAMES.objects.get(AGE_ITE_MES=agenda_mes_obj, AGE_ITE_DIA=dia_post)
                 # Edição
                 agenda_existente.AGE_ITE_MODELO = modelo_id
+                agenda_existente.AGE_ITE_HORARIO = horario_obj
                 agenda_existente.AGE_ITE_ENCARGOS = encargos
                 agenda_existente.save()
                 messages.success(request, 'Agenda atualizada com sucesso!')
@@ -164,6 +199,7 @@ def agenda_mes(request):
                     AGE_ITE_MES=agenda_mes_obj,
                     AGE_ITE_DIA=dia_post,
                     AGE_ITE_MODELO=modelo_id,
+                    AGE_ITE_HORARIO=horario_obj,
                     AGE_ITE_ENCARGOS=encargos
                 )
                 messages.success(request, 'Agenda criada com sucesso!')
@@ -222,6 +258,7 @@ def agenda_mes(request):
                     modelo_obj = None
             form_dia = AgendaDiaForm(initial={
                 'modelo': modelo_obj,
+                'horario': agenda_dia.AGE_ITE_HORARIO,
                 'encargos': agenda_dia.AGE_ITE_ENCARGOS
             })
         else:
@@ -249,6 +286,12 @@ def agenda_mes(request):
     import json
     modelos_json = json.dumps([{'id': m.MOD_ID, 'descricao': m.MOD_DESCRICAO} for m in modelos])
     
+    # Verificar se dia selecionado passou (se ainda não foi verificado)
+    if dia and mes and ano and not dia_passado:
+        data_dia = date(ano, mes, dia)
+        if data_dia < hoje:
+            dia_passado = True
+    
     context = {
         'form_mes': form_mes,
         'form_dia': form_dia,
@@ -268,6 +311,7 @@ def agenda_mes(request):
         'hoje': hoje,
         'primeiro_dia_mes': date(ano, mes, 1) if mes and ano else None,
         'mes_existe': agenda_mes_obj is not None if mes and ano else False,
+        'dia_passado': dia_passado,
     }
     
     return render(request, 'admin_area/tpl_agenda_mes.html', context)

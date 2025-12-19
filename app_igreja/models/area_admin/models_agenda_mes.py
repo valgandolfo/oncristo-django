@@ -43,6 +43,12 @@ class TBITEAGENDAMES(models.Model):
         blank=True,
         help_text="ID do modelo selecionado"
     )
+    AGE_ITE_HORARIO = models.TimeField(
+        verbose_name="Horário",
+        null=True,
+        blank=True,
+        help_text="Horário do dia"
+    )
     AGE_ITE_ENCARGOS = models.TextField(
         verbose_name="Encargos",
         blank=True,

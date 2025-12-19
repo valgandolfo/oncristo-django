@@ -155,6 +155,17 @@ def apontamentos_escala_missa(request):
             
             # Adicionar informação de situação (bloqueado/desbloqueado)
             item.situacao_bloqueado = not item.ITE_ESC_SITUACAO
+            
+            # Adicionar informação de janela (se houver)
+            if item.ITE_ESC_JANELA:
+                janela_map = {
+                    1: 'Todas Leituras',
+                    2: 'Diferente da escolha Anterior',
+                    3: 'Diferente das últimas duas escolhidas'
+                }
+                item.janela_descricao = janela_map.get(item.ITE_ESC_JANELA, '-')
+            else:
+                item.janela_descricao = '-'
         
         # Paginação
         paginator = Paginator(itens, 50)
@@ -197,15 +208,16 @@ def atribuir_apontamento(request, item_id):
         grupo_id = data.get('grupo_id')
         status = data.get('status')
         enviar_mensagem = data.get('enviar_mensagem', False)
-        acao_situacao = data.get('acao_situacao')  # 'bloquear' ou 'desbloquear'
+        acao_situacao = data.get('acao_situacao')  # 'bloquear', 'desbloquear' ou 'janelas'
         dia_inicial = data.get('dia_inicial')
         dia_final = data.get('dia_final')
+        janela = data.get('janela')  # 1, 2 ou 3
         
         # Validar status
         if status not in ['DEFINIDO', 'EM_ABERTO', 'RESERVADO']:
             return JsonResponse({'success': False, 'error': 'Status inválido'}, status=400)
         
-        # Processar bloqueio/desbloqueio por período se especificado
+        # Processar bloqueio/desbloqueio/janelas por período se especificado
         if acao_situacao and dia_inicial and dia_final:
             try:
                 dia_inicial_int = int(dia_inicial)
@@ -217,9 +229,6 @@ def atribuir_apontamento(request, item_id):
                 
                 if dia_inicial_int > dia_final_int:
                     return JsonResponse({'success': False, 'error': 'Dia inicial deve ser menor ou igual ao dia final'}, status=400)
-                
-                # Determinar valor da situação
-                situacao_valor = True if acao_situacao == 'desbloquear' else False
                 
                 # Buscar todos os itens do mesmo mês/ano no período especificado
                 primeiro_dia_mes = date(item.ITE_ESC_DATA.year, item.ITE_ESC_DATA.month, 1)
@@ -237,10 +246,21 @@ def atribuir_apontamento(request, item_id):
                     ITE_ESC_DATA__day__lte=dia_final_ajustado
                 )
                 
-                # Atualizar situação de todos os itens do período
-                itens_atualizados = itens_periodo.update(ITE_ESC_SITUACAO=situacao_valor)
-                
-                logger.info(f"✅ {acao_situacao.capitalize()} período: dias {dia_inicial_ajustado} a {dia_final_ajustado} - {itens_atualizados} item(ns) atualizado(s)")
+                if acao_situacao == 'janelas':
+                    # Validar valor de janela
+                    if janela not in [1, 2, 3]:
+                        return JsonResponse({'success': False, 'error': 'Valor de janela inválido. Use 1, 2 ou 3.'}, status=400)
+                    
+                    # Atualizar janela de todos os itens do período
+                    itens_atualizados = itens_periodo.update(ITE_ESC_JANELA=janela)
+                    logger.info(f"✅ Janela {janela} aplicada no período: dias {dia_inicial_ajustado} a {dia_final_ajustado} - {itens_atualizados} item(ns) atualizado(s)")
+                else:
+                    # Determinar valor da situação
+                    situacao_valor = True if acao_situacao == 'desbloquear' else False
+                    
+                    # Atualizar situação de todos os itens do período
+                    itens_atualizados = itens_periodo.update(ITE_ESC_SITUACAO=situacao_valor)
+                    logger.info(f"✅ {acao_situacao.capitalize()} período: dias {dia_inicial_ajustado} a {dia_final_ajustado} - {itens_atualizados} item(ns) atualizado(s)")
                 
             except (ValueError, TypeError) as e:
                 return JsonResponse({'success': False, 'error': f'Erro ao processar período: {str(e)}'}, status=400)

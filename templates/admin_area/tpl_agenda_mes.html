@@ -10,25 +10,25 @@
 .agenda-calendario {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
+    gap: 2px;
     background: linear-gradient(135deg, #216bda 0%, #74e3eb 100%);
-    border: 3px solid #667eea;
-    border-radius: 15px;
-    padding: 5px;
-    margin-top: 20px;
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    border: 2px solid #667eea;
+    border-radius: 10px;
+    padding: 4px;
+    margin-top: 15px;
+    box-shadow: 0 6px 14px rgba(102, 126, 234, 0.25);
 }
 
 .agenda-dia-btn {
     background: white;
-    padding: 15px 5px;
-    min-height: 80px;
-    border: 2px solid #e0e0e0;
-    border-radius: 12px;
+    padding: 10px 4px;
+    min-height: 60px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
     cursor: pointer;
     text-align: center;
-    font-weight: bold;
-    transition: all 0.3s ease;
+    font-weight: 600;
+    transition: all 0.2s ease;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -36,7 +36,7 @@
     justify-content: center;
     text-decoration: none;
     color: #333;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
 .agenda-dia-btn:hover {
@@ -84,21 +84,39 @@
     box-shadow: none;
 }
 
+.agenda-dia-btn.passado {
+    color: #777;
+    text-decoration: line-through;
+    background: #f9f9f9;
+    border-color: #e6e6e6;
+    opacity: 0.75;
+}
+
+.agenda-dia-btn.passado:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 .agenda-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 12px;
+    background: linear-gradient(135deg, #f9d5e5 0%, #f7b7d2 100%);
+    color: #7a2e4d;
+    padding: 10px 6px;
     text-align: center;
     font-weight: bold;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    font-size: 0.9em;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    font-size: 0.85em;
 }
 
 .btn-dia-numero {
-    font-size: 1.4em;
+    font-size: 1.2em;
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
+}
+
+.domingo-numero {
+    color: #c62828;
+    font-weight: 800;
 }
 
 .btn-dia-icone {
@@ -152,7 +170,7 @@
 
 .modal-header-agenda {
     padding: 25px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: near-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border-radius: 0;
 }
@@ -206,6 +224,12 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 0;
     padding: 20px;
+}
+
+/* Botão flutuante da engrenagem alinhado à esquerda */
+.cont_lista_btnadd {
+    left: 20px !important;
+    right: auto !important;
 }
 </style>
 {% endblock %}
@@ -275,7 +299,7 @@
                         </div>
                     {% endif %}
 
-7                    <!-- Formulário/Consulta de Dia (se estiver em modo inclusão/edição/consulta) -->
+                    <!-- Formulário/Consulta de Dia (se estiver em modo inclusão/edição/consulta) -->
                     {% if acao == 'incluir' or acao == 'editar' or acao == 'consultar' %}
                         {% if acao == 'consultar' and agenda_dia %}
                             <div class="form-agenda-dia">
@@ -288,6 +312,15 @@
                                         <label class="form-label fw-bold">Modelo:</label>
                                         <input type="text" class="form-control" 
                                                value="{% if modelo_dia_selecionado %}{{ modelo_dia_selecionado.MOD_DESCRICAO }}{% else %}Não informado{% endif %}" 
+                                               readonly>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold">Horário:</label>
+                                        <input type="text" class="form-control" 
+                                               value="{% if agenda_dia.AGE_ITE_HORARIO %}{{ agenda_dia.AGE_ITE_HORARIO|time:"H:i" }}{% else %}Não informado{% endif %}" 
                                                readonly>
                                     </div>
                                 </div>
@@ -327,6 +360,13 @@
                                         
                                         <div class="row mb-3">
                                             <div class="col-md-12">
+                                                <label class="form-label fw-bold">Horário:</label>
+                                                <input type="time" name="horario" id="horarioForm" class="form-control" value="{% if form_dia.horario.value %}{{ form_dia.horario.value|time:"H:i" }}{% endif %}" placeholder="HH:MM">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-12">
                                                 <label class="form-label fw-bold">Encargos:</label>
                                                 <textarea name="encargos" id="textareaEncargosForm" class="form-control" rows="5" placeholder="Os encargos serão preenchidos automaticamente ao selecionar um modelo...">{{ form_dia.encargos.value|default:"" }}</textarea>
                                             </div>
@@ -360,8 +400,8 @@
                                         {% with dia_info=agendas_mes_detalhes|get_item:dia %}
                                             <a href="#" 
                                                onclick="abrirModalDia({{ dia }}, {{ mes }}, {{ ano }}, {{ dia_info.modelo_id|default:0 }}); return false;"
-                                               class="agenda-dia-btn com-modelo {% if dia == hoje.day and mes == hoje.month and ano == hoje.year %}hoje{% endif %}">
-                                                <span class="btn-dia-numero">{{ dia }}</span>
+                                               class="agenda-dia-btn com-modelo {% if dia == hoje.day and mes == hoje.month and ano == hoje.year %}hoje{% endif %}{% if ano < hoje.year or ano == hoje.year and mes < hoje.month or ano == hoje.year and mes == hoje.month and dia < hoje.day %} passado{% endif %}">
+                                                <span class="btn-dia-numero {% if forloop.counter0 == 0 %}domingo-numero{% endif %}">{{ dia }}</span>
                                                 {% if dia_info.tem_modelo %}
                                                     <span class="btn-dia-icone" title="Modelo lançado">
                                                         <i class="fas fa-check-circle"></i>
@@ -372,8 +412,8 @@
                                     {% else %}
                                         <a href="#" 
                                            onclick="abrirModalDia({{ dia }}, {{ mes }}, {{ ano }}, 0); return false;"
-                                           class="agenda-dia-btn {% if dia == hoje.day and mes == hoje.month and ano == hoje.year %}hoje{% endif %}">
-                                            <span class="btn-dia-numero">{{ dia }}</span>
+                                           class="agenda-dia-btn {% if dia == hoje.day and mes == hoje.month and ano == hoje.year %}hoje{% endif %}{% if ano < hoje.year or ano == hoje.year and mes < hoje.month or ano == hoje.year and mes == hoje.month and dia < hoje.day %} passado{% endif %}">
+                                            <span class="btn-dia-numero {% if forloop.counter0 == 0 %}domingo-numero{% endif %}">{{ dia }}</span>
                                         </a>
                                     {% endif %}
                                 {% endif %}
@@ -430,6 +470,17 @@ function abrirModalDia(dia, mes, ano, modeloId) {
     mesAtual = mes;
     anoAtual = ano;
     
+    // Verificar se o dia passou
+    const hoje = new Date();
+    const dataDia = new Date(ano, mes - 1, dia);
+    const diaPassado = dataDia < hoje;
+    
+    // Se o dia passou, sempre abrir em modo consulta
+    if (diaPassado) {
+        abrirModalAgendaConsulta(dia, mes, ano, modeloId);
+        return;
+    }
+    
     // Se modeloId = 0 ou null, abrir em modo edição, caso contrário em consulta
     if (!modeloId || modeloId === 0) {
         abrirModalAgendaForm(dia, mes, ano, null);
@@ -450,10 +501,124 @@ function abrirModalAgendaForm(dia, mes, ano, modeloSelecionado) {
         optionsModelo += '<option value="' + modelo.id + '"' + selected + '>' + modelo.descricao + '</option>';
     });
     
-    // Buscar encargos atuais se houver modelo selecionado
+    // Buscar dados do dia via AJAX para carregar horário e encargos existentes
     let encargosAtuais = '';
+    let horarioAtual = '';
     
-    // Definir botoes conforme modeloSelecionado
+    // Fazer chamada AJAX para buscar dados do dia
+    fetch('{% url "app_igreja:agenda_mes" %}?mes=' + mes + '&ano=' + ano + '&dia=' + dia + '&acao=consultar')
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const consultaDiv = doc.querySelector('.form-agenda-dia');
+            
+            if (consultaDiv) {
+                // Buscar horário
+                const horarioInput = consultaDiv.querySelector('input[readonly]');
+                if (horarioInput && horarioInput.value && horarioInput.value !== 'Não informado') {
+                    horarioAtual = horarioInput.value;
+                }
+                
+                // Buscar encargos
+                const encargosTextarea = consultaDiv.querySelector('textarea[readonly]');
+                if (encargosTextarea && encargosTextarea.value && encargosTextarea.value !== 'Não informado') {
+                    encargosAtuais = encargosTextarea.value;
+                }
+            }
+            
+            // Definir botoes conforme modeloSelecionado
+            const footerEdicao = `
+                <button type="button" class="btn-modal-cancelar-agenda" style="flex: 1; padding: 12px; border: 1px solid #6c757d; background-color: #6c757d; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <button type="button" class="btn-modal-salvar-agenda" style="flex: 1; padding: 12px; border: 1px solid #28a745; background-color: #28a745; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                    <i class="fas fa-save me-2"></i>Gravar
+                </button>
+            `;
+            const footerSomenteCancelarLanc = `
+                <button type="button" class="btn-modal-cancelar-lancamento-agenda" style="flex: 1; padding: 12px; border: 1px solid #dc3545; background-color: #dc3545; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                    <i class="fas fa-ban me-2"></i>Cancelar Lançamento
+                </button>
+            `;
+            const footerHtml = (!modeloSelecionado || modeloSelecionado === 0 || modeloSelecionado === '0') ? footerEdicao : footerSomenteCancelarLanc;
+
+            modal.innerHTML = `
+                <div style="background-color: #fefefe; margin: 10% auto; padding: 30px; border: 1px solid #888; width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #dee2e6; padding-bottom: 15px;">
+                        <h4 style="margin: 0; font-weight: bold; color: #333;">
+                            <i class="fas fa-calendar me-2"></i>Agenda do Mês - Dia ${dia}/${mes}/${ano}
+                        </h4>
+                        <button type="button" class="btn-fechar-modal-agenda" style="background: none; border: none; font-size: 28px; font-weight: bold; color: #aaa; cursor: pointer; padding: 0; width: 35px; height: 35px; line-height: 28px;">&times;</button>
+                    </div>
+                    <form method="post" id="formAgendaDia">
+                        {% csrf_token %}
+                        <input type="hidden" name="dia" value="${dia}">
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">Modelo:</label>
+                            <select name="modelo" class="form-control" id="selectModelo" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                ${optionsModelo}
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">Horário:</label>
+                            <input type="time" name="horario" id="horarioModal" class="form-control" value="${horarioAtual}" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;" placeholder="HH:MM">
+                        </div>
+                        <div style="margin-bottom: 25px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">Encargos:</label>
+                            <textarea name="encargos" id="textareaEncargos" class="form-control" rows="5" placeholder="Os encargos serão preenchidos automaticamente ao selecionar um modelo..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">${encargosAtuais}</textarea>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; gap: 10px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+                            ${footerHtml}
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+            
+            // Event listeners
+            modal.querySelector('.btn-fechar-modal-agenda').addEventListener('click', fecharModalAgenda);
+            const btnCancelar = modal.querySelector('.btn-modal-cancelar-agenda');
+            if (btnCancelar) btnCancelar.addEventListener('click', fecharModalAgenda);
+            const btnSalvar = modal.querySelector('.btn-modal-salvar-agenda');
+            if (btnSalvar) btnSalvar.addEventListener('click', salvarAgenda);
+            const btnCancelarLanc = modal.querySelector('.btn-modal-cancelar-lancamento-agenda');
+            if (btnCancelarLanc) btnCancelarLanc.addEventListener('click', function() { cancelarLancamento(); });
+            
+            // Event listener para o select de modelo
+            const selectModelo = modal.querySelector('#selectModelo');
+            if (selectModelo) {
+                selectModelo.addEventListener('change', function() {
+                    carregarEncargosModelo(this.value);
+                });
+                
+                // Se já tiver modelo selecionado, carregar encargos
+                if (modeloSelecionado) {
+                    setTimeout(function() {
+                        carregarEncargosModelo(modeloSelecionado);
+                    }, 100);
+                }
+            }
+            
+            // Fechar ao clicar fora
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    fecharModalAgenda();
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao carregar dados:', error);
+            // Se der erro, abrir modal sem dados
+            abrirModalAgendaFormSemDados(dia, mes, ano, modeloSelecionado, optionsModelo);
+        });
+}
+
+// Função auxiliar para abrir modal sem dados (fallback)
+function abrirModalAgendaFormSemDados(dia, mes, ano, modeloSelecionado, optionsModelo) {
+    const modal = garantirModalAgenda();
+    
     const footerEdicao = `
         <button type="button" class="btn-modal-cancelar-agenda" style="flex: 1; padding: 12px; border: 1px solid #6c757d; background-color: #6c757d; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
             <i class="fas fa-times me-2"></i>Cancelar
@@ -462,12 +627,7 @@ function abrirModalAgendaForm(dia, mes, ano, modeloSelecionado) {
             <i class="fas fa-save me-2"></i>Gravar
         </button>
     `;
-    const footerSomenteCancelarLanc = `
-        <button type="button" class="btn-modal-cancelar-lancamento-agenda" style="flex: 1; padding: 12px; border: 1px solid #dc3545; background-color: #dc3545; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
-            <i class="fas fa-ban me-2"></i>Cancelar Lançamento
-        </button>
-    `;
-    const footerHtml = (!modeloSelecionado || modeloSelecionado === 0 || modeloSelecionado === '0') ? footerEdicao : footerSomenteCancelarLanc;
+    const footerHtml = (!modeloSelecionado || modeloSelecionado === 0 || modeloSelecionado === '0') ? footerEdicao : '';
 
     modal.innerHTML = `
         <div style="background-color: #fefefe; margin: 10% auto; padding: 30px; border: 1px solid #888; width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
@@ -486,9 +646,13 @@ function abrirModalAgendaForm(dia, mes, ano, modeloSelecionado) {
                         ${optionsModelo}
                     </select>
                 </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">Horário:</label>
+                    <input type="time" name="horario" id="horarioModal" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;" placeholder="HH:MM">
+                </div>
                 <div style="margin-bottom: 25px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">Encargos:</label>
-                    <textarea name="encargos" id="textareaEncargos" class="form-control" rows="5" placeholder="Os encargos serão preenchidos automaticamente ao selecionar um modelo..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">${encargosAtuais}</textarea>
+                    <textarea name="encargos" id="textareaEncargos" class="form-control" rows="5" placeholder="Os encargos serão preenchidos automaticamente ao selecionar um modelo..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;"></textarea>
                 </div>
                 <div style="display: flex; justify-content: space-between; gap: 10px; padding-top: 20px; border-top: 1px solid #dee2e6;">
                     ${footerHtml}
@@ -505,8 +669,6 @@ function abrirModalAgendaForm(dia, mes, ano, modeloSelecionado) {
     if (btnCancelar) btnCancelar.addEventListener('click', fecharModalAgenda);
     const btnSalvar = modal.querySelector('.btn-modal-salvar-agenda');
     if (btnSalvar) btnSalvar.addEventListener('click', salvarAgenda);
-    const btnCancelarLanc = modal.querySelector('.btn-modal-cancelar-lancamento-agenda');
-    if (btnCancelarLanc) btnCancelarLanc.addEventListener('click', function() { cancelarLancamento(); });
     
     // Event listener para o select de modelo
     const selectModelo = modal.querySelector('#selectModelo');
@@ -514,13 +676,6 @@ function abrirModalAgendaForm(dia, mes, ano, modeloSelecionado) {
         selectModelo.addEventListener('change', function() {
             carregarEncargosModelo(this.value);
         });
-        
-        // Se já tiver modelo selecionado, carregar encargos
-        if (modeloSelecionado) {
-            setTimeout(function() {
-                carregarEncargosModelo(modeloSelecionado);
-            }, 100);
-        }
     }
     
     // Fechar ao clicar fora
@@ -609,6 +764,13 @@ function cancelarLancamento() {
 function carregarDadosAgenda(dia, mes, ano) {
     const modal = garantirModalAgenda();
     
+    // Verificar se o dia passou
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const dataDia = new Date(ano, mes - 1, dia);
+    dataDia.setHours(0, 0, 0, 0);
+    const diaPassado = dataDia < hoje;
+    
     fetch('{% url "app_igreja:agenda_mes" %}?mes=' + mes + '&ano=' + ano + '&dia=' + dia + '&acao=consultar')
         .then(response => response.text())
         .then(html => {
@@ -628,6 +790,25 @@ function carregarDadosAgenda(dia, mes, ano) {
                 modalContent = '<p>Nenhum dado encontrado para este dia.</p>';
             }
             
+            // Se o dia passou, mostrar apenas o botão Fechar
+            let footerButtons = '';
+            if (diaPassado) {
+                footerButtons = `
+                    <button type="button" class="btn-modal-fechar-consulta" style="flex: 1; padding: 12px; border: 1px solid #6c757d; background-color: #6c757d; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                        <i class="fas fa-times me-2"></i>Fechar
+                    </button>
+                `;
+            } else {
+                footerButtons = `
+                    <button type="button" class="btn-modal-cancelar-lancamento-consulta" style="flex: 1; padding: 12px; border: 1px solid #dc3545; background-color: #dc3545; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                        <i class="fas fa-ban me-2"></i>Cancelar Lançamento
+                    </button>
+                    <button type="button" class="btn-modal-fechar-consulta" style="flex: 1; padding: 12px; border: 1px solid #6c757d; background-color: #6c757d; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                        <i class="fas fa-times me-2"></i>Fechar
+                    </button>
+                `;
+            }
+            
             modal.innerHTML = `
                 <div style="background-color: #fefefe; margin: 10% auto; padding: 30px; border: 1px solid #888; width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #dee2e6; padding-bottom: 15px;">
@@ -640,12 +821,7 @@ function carregarDadosAgenda(dia, mes, ano) {
                         ${modalContent}
                     </div>
                     <div style="display: flex; justify-content: space-between; gap: 10px; padding-top: 20px; border-top: 1px solid #dee2e6; margin-top: 20px;">
-                        <button type="button" class="btn-modal-cancelar-lancamento-consulta" style="flex: 1; padding: 12px; border: 1px solid #dc3545; background-color: #dc3545; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
-                            <i class="fas fa-ban me-2"></i>Cancelar Lançamento
-                        </button>
-                        <button type="button" class="btn-modal-fechar-consulta" style="flex: 1; padding: 12px; border: 1px solid #6c757d; background-color: #6c757d; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
-                            <i class="fas fa-times me-2"></i>Fechar
-                        </button>
+                        ${footerButtons}
                     </div>
                 </div>
             `;

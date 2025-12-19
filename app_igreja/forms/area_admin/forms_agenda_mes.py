@@ -46,6 +46,16 @@ class AgendaDiaForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     
+    horario = forms.TimeField(
+        label="Horário",
+        required=False,
+        widget=forms.TimeInput(attrs={
+            'class': 'form-control',
+            'type': 'time',
+            'placeholder': 'HH:MM'
+        })
+    )
+    
     encargos = forms.CharField(
         label="Encargos",
         required=False,

@@ -115,6 +115,12 @@ class TBITEM_ESCALA(models.Model):
         verbose_name="Função",
         help_text="ID da função do colaborador no momento da atribuição (preserva histórico)"
     )
+    ITE_ESC_JANELA = models.IntegerField(
+        blank=True,
+        null=True,
+        verbose_name="Janela",
+        help_text="Tipo de janela de leitura (1=Todas Leituras, 2=Diferente da escolha Anterior, 3=Diferente das últimas duas escolhidas)"
+    )
     
     class Meta:
         db_table = 'TBITEM_ESCALA'

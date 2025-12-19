@@ -156,14 +156,15 @@ tr.item-bloqueado:hover {
             <thead class="table-dark">
                 <tr>
                     {% block colunas_cabecalho_dashboard %}
-                    <th width="10%">Dia</th>
-                    <th width="15%">Dia Semana</th>
-                    <th width="10%">Hora</th>
-                    <th width="25%">Encargo</th>
+                    <th width="8%">Dia</th>
+                    <th width="12%">Dia Semana</th>
+                    <th width="8%">Hora</th>
+                    <th width="20%">Encargo</th>
                     <th width="15%">Colaborador</th>
                     <th width="10%">Grupo</th>
                     <th width="10%">Status</th>
-                    <th width="5%">Ação</th>
+                    <th width="5%">J</th>
+                    <th width="2%">Ação</th>
                     {% endblock %}
                 </tr>
             </thead>
@@ -171,7 +172,7 @@ tr.item-bloqueado:hover {
                 {% block linhas_tabela_dashboard %}
                 {% if sem_filtro %}
                 <tr>
-                    <td colspan="8" class="text-center text-muted py-5">
+                    <td colspan="9" class="text-center text-muted py-5">
                         <i class="fas fa-calendar-alt fa-2x mb-3"></i><br>
                         Informe o Mês e Ano para carregar a escala.
                     </td>
@@ -236,6 +237,21 @@ tr.item-bloqueado:hover {
                                    style="margin-left: 8px;"></i>
                             </div>
                         </div>
+                    </td>
+                    <td style="text-align: center;">
+                        {% if item.ITE_ESC_JANELA %}
+                            {% if item.ITE_ESC_JANELA == 1 %}
+                                <span title="Todas Leituras" style="font-weight: bold; color: #28a745;">1</span>
+                            {% elif item.ITE_ESC_JANELA == 2 %}
+                                <span title="Diferente da escolha Anterior" style="font-weight: bold; color: #ffc107;">2</span>
+                            {% elif item.ITE_ESC_JANELA == 3 %}
+                                <span title="Diferente das últimas duas escolhidas" style="font-weight: bold; color: #dc3545;">3</span>
+                            {% else %}
+                                <span>-</span>
+                            {% endif %}
+                        {% else %}
+                            <span>-</span>
+                        {% endif %}
                     </td>
                     <td>
                         <i class="fas fa-pencil-alt icone-enviar" 
@@ -775,7 +791,7 @@ function abrirModalAtribuicao(dados) {
             </div>
             <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 4px; border: 1px solid #dee2e6;">
                 <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #555;">Situação:</label>
-                <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+                <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
                     <label style="display: flex; align-items: center; cursor: pointer; font-weight: normal;">
                         <input type="radio" name="acao_situacao" value="bloquear" id="radio-bloquear" style="margin-right: 8px; cursor: pointer;">
                         <span>Bloquear</span>
@@ -784,6 +800,19 @@ function abrirModalAtribuicao(dados) {
                         <input type="radio" name="acao_situacao" value="desbloquear" id="radio-desbloquear" style="margin-right: 8px; cursor: pointer;">
                         <span>Desbloquear</span>
                     </label>
+                    <label style="display: flex; align-items: center; cursor: pointer; font-weight: normal;">
+                        <input type="radio" name="acao_situacao" value="janelas" id="radio-janelas" style="margin-right: 8px; cursor: pointer;">
+                        <span>Janelas</span>
+                    </label>
+                </div>
+                <div id="campo-janelas" class="campo-periodo" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #666; font-size: 13px;">Tipo de Janela:</label>
+                    <select id="select-janelas" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        <option value="">Selecione...</option>
+                        <option value="1">Todas Leituras</option>
+                        <option value="2">Diferente da escolha Anterior</option>
+                        <option value="3">Diferente das últimas duas escolhidas</option>
+                    </select>
                 </div>
                 <div id="campo-periodo" class="campo-periodo">
                     <div class="campos-data">
@@ -824,18 +853,26 @@ function abrirModalAtribuicao(dados) {
     // Event listeners para radio buttons de situação
     const radioBloquear = document.getElementById('radio-bloquear');
     const radioDesbloquear = document.getElementById('radio-desbloquear');
+    const radioJanelas = document.getElementById('radio-janelas');
     const campoPeriodo = document.getElementById('campo-periodo');
+    const campoJanelas = document.getElementById('campo-janelas');
     
-    function toggleCampoPeriodo() {
+    function toggleCampos() {
         if (radioBloquear.checked || radioDesbloquear.checked) {
             campoPeriodo.classList.add('visivel');
+            campoJanelas.classList.remove('visivel');
+        } else if (radioJanelas.checked) {
+            campoPeriodo.classList.add('visivel');
+            campoJanelas.classList.add('visivel');
         } else {
             campoPeriodo.classList.remove('visivel');
+            campoJanelas.classList.remove('visivel');
         }
     }
     
-    radioBloquear.addEventListener('change', toggleCampoPeriodo);
-    radioDesbloquear.addEventListener('change', toggleCampoPeriodo);
+    radioBloquear.addEventListener('change', toggleCampos);
+    radioDesbloquear.addEventListener('change', toggleCampos);
+    radioJanelas.addEventListener('change', toggleCampos);
     
     // Fechar ao clicar fora
     modal.addEventListener('click', function(e) {
@@ -878,25 +915,41 @@ function atribuirApontamento() {
                 return;
             }
             
-    // Obter valores de situação (bloquear/desbloquear)
+    // Obter valores de situação (bloquear/desbloquear/janelas)
     const radioBloquear = document.getElementById('radio-bloquear');
     const radioDesbloquear = document.getElementById('radio-desbloquear');
+    const radioJanelas = document.getElementById('radio-janelas');
+    const selectJanelas = document.getElementById('select-janelas');
     const diaInicial = document.getElementById('dia-inicial').value;
     const diaFinal = document.getElementById('dia-final').value;
     
     let acaoSituacao = null;
+    let janelaValor = null;
+    
     if (radioBloquear.checked) {
         acaoSituacao = 'bloquear';
     } else if (radioDesbloquear.checked) {
         acaoSituacao = 'desbloquear';
+    } else if (radioJanelas && radioJanelas.checked) {
+        acaoSituacao = 'janelas';
+        janelaValor = selectJanelas ? selectJanelas.value : null;
+        
+        // Validar se janela foi selecionada
+        if (!janelaValor || janelaValor === '') {
+            alert('Por favor, selecione um tipo de janela.');
+            return;
+        }
     }
     
     // Validar período se uma ação foi selecionada
     if (acaoSituacao) {
         if (!diaInicial || !diaFinal) {
-            alert('Por favor, informe o dia inicial e dia final para ' + (acaoSituacao === 'bloquear' ? 'bloquear' : 'desbloquear') + ' o período.');
-                return;
-            }
+            const acaoTexto = acaoSituacao === 'bloquear' ? 'bloquear' : 
+                            acaoSituacao === 'desbloquear' ? 'desbloquear' : 
+                            'aplicar janela';
+            alert('Por favor, informe o dia inicial e dia final para ' + acaoTexto + ' o período.');
+            return;
+        }
             
         const diaInicialInt = parseInt(diaInicial);
         const diaFinalInt = parseInt(diaFinal);
@@ -923,7 +976,8 @@ function atribuirApontamento() {
         enviar_mensagem: false,
         acao_situacao: acaoSituacao,
         dia_inicial: diaInicial || null,
-        dia_final: diaFinal || null
+        dia_final: diaFinal || null,
+        janela: janelaValor ? parseInt(janelaValor) : null
     };
     
     // Desabilitar botões durante o processamento
