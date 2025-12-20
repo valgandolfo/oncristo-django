@@ -7,7 +7,8 @@ from datetime import date, datetime, timedelta
 import calendar
 from ...models.area_admin.models_paroquias import TBPAROQUIA
 from ...models.area_admin.models_escala import TBESCALA, TBITEM_ESCALA
-from ...models.area_admin.models_modelo import TBITEM_MODELO, OCORRENCIA_DICT
+from ...models.area_admin.models_modelo import TBITEM_MODELO, OCORRENCIA_DICT, TBMODELO
+from ...models.area_admin.models_agenda_mes import TBAGENDAMES, TBITEAGENDAMES
 from ...forms.area_admin.forms_escala_mensal_missa import EscalaMensalMissaForm, EditarDescricaoEscalaMissaForm
 
 
@@ -45,6 +46,14 @@ def escala_mensal_gerar(request, mes, ano):
     """
     Gera a escala mensal baseada no modelo selecionado.
     Cria o registro master (TBESCALA) e os registros detail (TBITEM_ESCALA) para cada dia/horário/encargo.
+    
+    Nova lógica:
+    1. Verifica se TBAGENDAMES existe para o mês/ano
+    2. Para cada dia da TBAGENDAMES:
+       - Se não tiver lançamento na TBITEAGENDAMES, gera normalmente
+       - Se tiver lançamento:
+         * Se horário da agenda = horário da paróquia: substitui modelo
+         * Se horário diferente: gera missas normais + missa da agenda
     """
     try:
         # Buscar dados do formulário via GET (redirecionamento) ou POST
@@ -58,11 +67,9 @@ def escala_mensal_gerar(request, mes, ano):
             messages.error(request, error_msg)
             return redirect('app_igreja:escala_mensal_form')
         
-        from ...models.area_admin.models_modelo import TBMODELO
         modelo = get_object_or_404(TBMODELO, pk=modelo_id)
         
         # Verificar se já existe escala para este mês/ano
-        # Como ESC_MESANO é chave primária, verificar se já existe
         primeiro_dia_mes = date(ano, mes, 1)
         
         # Verificar se deve sobrepor (parâmetro do usuário)
@@ -95,6 +102,21 @@ def escala_mensal_gerar(request, mes, ano):
         except TBESCALA.DoesNotExist:
             pass  # Não existe, pode criar
         
+        # ========== NOVA LÓGICA: Verificar se TBAGENDAMES existe ==========
+        try:
+            agenda_mes = TBAGENDAMES.objects.get(AGE_MES=primeiro_dia_mes)
+        except TBAGENDAMES.DoesNotExist:
+            error_msg = 'Primeiramente é necessário gerar a agenda do mês.'
+            meses_pt = [
+                '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+            ]
+            mes_nome = meses_pt[mes]
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.GET.get('ajax') == 'true':
+                return JsonResponse({'success': False, 'message': error_msg}, status=400)
+            messages.error(request, error_msg)
+            return redirect('app_igreja:escala_mensal_form')
+        
         # Buscar configurações da paróquia
         paroquia = TBPAROQUIA.objects.first()
         if not paroquia:
@@ -125,19 +147,7 @@ def escala_mensal_gerar(request, mes, ano):
             'Sunday': 'domingo'
         }
         
-        # Mapear dias da semana em português para número (0=segunda, 6=domingo)
-        dias_semana_pt_to_num = {
-            'segunda': 0,
-            'terca': 1,
-            'quarta': 2,
-            'quinta': 3,
-            'sexta': 4,
-            'sabado': 5,
-            'domingo': 6
-        }
-        
         # Criar ou obter registro master (TBESCALA)
-        # O modelo não é gravado, apenas usado para gerar os itens
         escala_master, created = TBESCALA.objects.get_or_create(
             ESC_MESANO=primeiro_dia_mes,
             defaults={
@@ -154,84 +164,238 @@ def escala_mensal_gerar(request, mes, ano):
         if sobrepor or not created:
             TBITEM_ESCALA.objects.filter(ITE_ESC_ESCALA=escala_master).delete()
         
-        # Buscar itens do modelo
-        itens_modelo = TBITEM_MODELO.objects.filter(ITEM_MOD_MODELO=modelo)
+        # Buscar itens do modelo padrão
+        itens_modelo_padrao = TBITEM_MODELO.objects.filter(ITEM_MOD_MODELO=modelo)
         
-        if not itens_modelo.exists():
+        if not itens_modelo_padrao.exists():
             error_msg = 'O modelo selecionado não possui itens cadastrados.'
-            # Não deletar a escala master, apenas os itens
             TBITEM_ESCALA.objects.filter(ITE_ESC_ESCALA=escala_master).delete()
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.GET.get('ajax') == 'true':
                 return JsonResponse({'success': False, 'message': error_msg}, status=400)
             messages.warning(request, error_msg)
             return redirect('app_igreja:escala_mensal_form')
         
+        # Buscar todos os itens da agenda do mês
+        itens_agenda = TBITEAGENDAMES.objects.filter(AGE_ITE_MES=agenda_mes).order_by('AGE_ITE_DIA')
+        
+        # Criar dicionário para acesso rápido: dia -> item_agenda
+        agenda_por_dia = {}
+        for item_agenda in itens_agenda:
+            agenda_por_dia[item_agenda.AGE_ITE_DIA] = item_agenda
+        
         # Gerar dias do mês
         dias_mes = calendar.monthrange(ano, mes)[1]
         itens_criados = 0
         
-        # Para cada item do modelo
-        for item_modelo in itens_modelo:
-            ocorrencias = item_modelo.ocorrencias_list()
-            encargo = item_modelo.ITEM_MOD_ENCARGO
+        # Função auxiliar para converter string de horário para time
+        def str_to_time(horario_str):
+            """Converte string 'HH:MM' para time object"""
+            try:
+                if isinstance(horario_str, str):
+                    partes = horario_str.strip().split(':')
+                    if len(partes) >= 2:
+                        hora = int(partes[0])
+                        minuto = int(partes[1])
+                        return datetime.strptime(f"{hora:02d}:{minuto:02d}", "%H:%M").time()
+                elif isinstance(horario_str, datetime):
+                    return horario_str.time()
+                elif hasattr(horario_str, 'time'):
+                    return horario_str.time()
+            except (ValueError, IndexError, AttributeError):
+                pass
+            return None
+        
+        # Função auxiliar para comparar horários (ignorando segundos)
+        def horarios_iguais(horario1, horario2):
+            """Compara dois horários ignorando segundos"""
+            if not horario1 or not horario2:
+                return False
+            h1 = str_to_time(str(horario1))
+            h2 = str_to_time(str(horario2))
+            if not h1 or not h2:
+                return False
+            return h1.hour == h2.hour and h1.minute == h2.minute
+        
+        # Para cada dia do mês
+        for dia in range(1, dias_mes + 1):
+            data_escala = date(ano, mes, dia)
+            dia_semana_en = data_escala.strftime('%A')
+            dia_semana_key = dias_semana_en_to_pt.get(dia_semana_en)
             
-            # Para cada dia do mês
-            for dia in range(1, dias_mes + 1):
-                data_escala = date(ano, mes, dia)
-                dia_semana_en = data_escala.strftime('%A')
-                dia_semana_key = dias_semana_en_to_pt.get(dia_semana_en)
-                
-                if not dia_semana_key:
+            if not dia_semana_key:
+                continue
+            
+            # Verificar se há lançamento na TBITEAGENDAMES para este dia
+            item_agenda = agenda_por_dia.get(dia)
+            tem_lancamento = item_agenda and item_agenda.AGE_ITE_MODELO and item_agenda.AGE_ITE_MODELO != 0
+            
+            # Obter horários da paróquia para este dia da semana
+            horarios_do_dia = horarios_fixos.get(dia_semana_key, [])
+            
+            # Se horarios_do_dia for uma string única, converter para lista
+            if isinstance(horarios_do_dia, str):
+                horarios_do_dia = [horarios_do_dia]
+            elif not isinstance(horarios_do_dia, list):
+                horarios_do_dia = []
+            
+            # Converter strings de horário para time objects
+            horarios_do_dia_times = []
+            for horario_str in horarios_do_dia:
+                if not horario_str or not horario_str.strip():
                     continue
+                horario_time = str_to_time(horario_str)
+                if horario_time:
+                    horarios_do_dia_times.append(horario_time)
+            
+            if tem_lancamento:
+                # Há lançamento na TBITEAGENDAMES
+                modelo_agenda_id = item_agenda.AGE_ITE_MODELO
+                horario_agenda = item_agenda.AGE_ITE_HORARIO
                 
-                # Verificar se este dia deve ter este encargo
-                deve_gerar = False
-                if 'todos' in ocorrencias:
-                    deve_gerar = True
-                elif dia_semana_key in ocorrencias:
-                    deve_gerar = True
+                # Buscar itens do modelo da agenda
+                try:
+                    modelo_agenda = TBMODELO.objects.get(pk=modelo_agenda_id)
+                    itens_modelo_agenda = TBITEM_MODELO.objects.filter(ITEM_MOD_MODELO=modelo_agenda)
+                except TBMODELO.DoesNotExist:
+                    modelo_agenda = None
+                    itens_modelo_agenda = []
                 
-                if not deve_gerar:
-                    continue
+                # Verificar se o horário da agenda está nos horários da paróquia
+                horario_agenda_time = str_to_time(str(horario_agenda)) if horario_agenda else None
+                horario_agenda_esta_na_paroquia = False
                 
-                # Obter horários para este dia da semana
-                horarios_do_dia = horarios_fixos.get(dia_semana_key, [])
+                if horario_agenda_time:
+                    for horario_paroquia in horarios_do_dia_times:
+                        if horarios_iguais(horario_agenda_time, horario_paroquia):
+                            horario_agenda_esta_na_paroquia = True
+                            break
                 
-                # Se horarios_do_dia for uma string única, converter para lista
-                if isinstance(horarios_do_dia, str):
-                    horarios_do_dia = [horarios_do_dia]
-                elif not isinstance(horarios_do_dia, list):
-                    horarios_do_dia = []
-                
-                # Para cada horário cadastrado, criar um registro TBITEM_ESCALA
-                for horario_str in horarios_do_dia:
-                    if not horario_str or not horario_str.strip():
-                        continue
-                    
-                    # Converter string de horário para time
-                    try:
-                        partes = horario_str.strip().split(':')
-                        if len(partes) >= 2:
-                            hora = int(partes[0])
-                            minuto = int(partes[1])
-                            horario_time = datetime.strptime(f"{hora:02d}:{minuto:02d}", "%H:%M").time()
+                # Para cada horário da paróquia
+                for horario_paroquia in horarios_do_dia_times:
+                    # Se o horário da agenda está na paróquia E é o mesmo horário
+                    if horario_agenda_esta_na_paroquia and horarios_iguais(horario_agenda_time, horario_paroquia):
+                        # Usar TODOS os encargos do modelo da agenda para este horário
+                        if modelo_agenda and itens_modelo_agenda.exists():
+                            for item_agenda_modelo in itens_modelo_agenda:
+                                ocorrencias_agenda = item_agenda_modelo.ocorrencias_list()
+                                encargo_agenda = item_agenda_modelo.ITEM_MOD_ENCARGO
+                                
+                                # Verificar se este dia deve ter este encargo
+                                deve_gerar_agenda = False
+                                if 'todos' in ocorrencias_agenda:
+                                    deve_gerar_agenda = True
+                                elif dia_semana_key in ocorrencias_agenda:
+                                    deve_gerar_agenda = True
+                                
+                                if deve_gerar_agenda:
+                                    TBITEM_ESCALA.objects.create(
+                                        ITE_ESC_ESCALA=escala_master,
+                                        ITE_ESC_DATA=data_escala,
+                                        ITE_ESC_HORARIO=horario_paroquia,
+                                        ITE_ESC_DESCRICAO=encargo_agenda,
+                                        ITE_ESC_ENCARGO=encargo_agenda,
+                                        ITE_ESC_STATUS='EM_ABERTO',
+                                        ITE_ESC_SITUACAO=False
+                                    )
+                                    itens_criados += 1
                         else:
-                            continue
-                    except (ValueError, IndexError):
+                            # Se não tiver modelo da agenda, usar modelo padrão
+                            for item_modelo in itens_modelo_padrao:
+                                ocorrencias = item_modelo.ocorrencias_list()
+                                encargo = item_modelo.ITEM_MOD_ENCARGO
+                                
+                                deve_gerar = False
+                                if 'todos' in ocorrencias:
+                                    deve_gerar = True
+                                elif dia_semana_key in ocorrencias:
+                                    deve_gerar = True
+                                
+                                if deve_gerar:
+                                    TBITEM_ESCALA.objects.create(
+                                        ITE_ESC_ESCALA=escala_master,
+                                        ITE_ESC_DATA=data_escala,
+                                        ITE_ESC_HORARIO=horario_paroquia,
+                                        ITE_ESC_DESCRICAO=encargo,
+                                        ITE_ESC_ENCARGO=encargo,
+                                        ITE_ESC_STATUS='EM_ABERTO',
+                                        ITE_ESC_SITUACAO=False
+                                    )
+                                    itens_criados += 1
+                    else:
+                        # Horário diferente: usar modelo padrão
+                        for item_modelo in itens_modelo_padrao:
+                            ocorrencias = item_modelo.ocorrencias_list()
+                            encargo = item_modelo.ITEM_MOD_ENCARGO
+                            
+                            deve_gerar = False
+                            if 'todos' in ocorrencias:
+                                deve_gerar = True
+                            elif dia_semana_key in ocorrencias:
+                                deve_gerar = True
+                            
+                            if deve_gerar:
+                                TBITEM_ESCALA.objects.create(
+                                    ITE_ESC_ESCALA=escala_master,
+                                    ITE_ESC_DATA=data_escala,
+                                    ITE_ESC_HORARIO=horario_paroquia,
+                                    ITE_ESC_DESCRICAO=encargo,
+                                    ITE_ESC_ENCARGO=encargo,
+                                    ITE_ESC_STATUS='EM_ABERTO',
+                                    ITE_ESC_SITUACAO=False
+                                )
+                                itens_criados += 1
+                
+                # Se o horário da agenda NÃO está nos horários da paróquia, adicionar TODAS as missas da agenda
+                if not horario_agenda_esta_na_paroquia and horario_agenda_time and modelo_agenda and itens_modelo_agenda.exists():
+                    for item_agenda_modelo in itens_modelo_agenda:
+                        ocorrencias_agenda = item_agenda_modelo.ocorrencias_list()
+                        encargo_agenda = item_agenda_modelo.ITEM_MOD_ENCARGO
+                        
+                        deve_gerar_agenda = False
+                        if 'todos' in ocorrencias_agenda:
+                            deve_gerar_agenda = True
+                        elif dia_semana_key in ocorrencias_agenda:
+                            deve_gerar_agenda = True
+                        
+                        if deve_gerar_agenda:
+                            TBITEM_ESCALA.objects.create(
+                                ITE_ESC_ESCALA=escala_master,
+                                ITE_ESC_DATA=data_escala,
+                                ITE_ESC_HORARIO=horario_agenda_time,
+                                ITE_ESC_DESCRICAO=encargo_agenda,
+                                ITE_ESC_ENCARGO=encargo_agenda,
+                                ITE_ESC_STATUS='EM_ABERTO',
+                                ITE_ESC_SITUACAO=False
+                            )
+                            itens_criados += 1
+            else:
+                # Não há lançamento na TBITEAGENDAMES: gerar normalmente com modelo padrão
+                for item_modelo in itens_modelo_padrao:
+                    ocorrencias = item_modelo.ocorrencias_list()
+                    encargo = item_modelo.ITEM_MOD_ENCARGO
+                    
+                    # Verificar se este dia deve ter este encargo
+                    deve_gerar = False
+                    if 'todos' in ocorrencias:
+                        deve_gerar = True
+                    elif dia_semana_key in ocorrencias:
+                        deve_gerar = True
+                    
+                    if not deve_gerar:
                         continue
                     
-                    # Criar registro detail (TBITEM_ESCALA)
-                    # ITE_ESC_ENCARGO agora armazena a descrição do encargo (não o ID)
-                    TBITEM_ESCALA.objects.create(
-                        ITE_ESC_ESCALA=escala_master,
-                        ITE_ESC_DATA=data_escala,
-                        ITE_ESC_HORARIO=horario_time,
-                        ITE_ESC_DESCRICAO=encargo,
-                        ITE_ESC_ENCARGO=encargo,  # Descrição do encargo (do modelo)
-                        ITE_ESC_STATUS='EM_ABERTO',  # Status padrão: Em aberto
-                        ITE_ESC_SITUACAO=False  # Situação padrão: Bloqueado
-                    )
-                    itens_criados += 1
+                    # Para cada horário cadastrado, criar um registro TBITEM_ESCALA
+                    for horario_time in horarios_do_dia_times:
+                        TBITEM_ESCALA.objects.create(
+                            ITE_ESC_ESCALA=escala_master,
+                            ITE_ESC_DATA=data_escala,
+                            ITE_ESC_HORARIO=horario_time,
+                            ITE_ESC_DESCRICAO=encargo,
+                            ITE_ESC_ENCARGO=encargo,
+                            ITE_ESC_STATUS='EM_ABERTO',
+                            ITE_ESC_SITUACAO=False
+                        )
+                        itens_criados += 1
         
         # Nome do mês em português
         meses_pt = [
