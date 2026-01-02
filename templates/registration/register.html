@@ -242,7 +242,7 @@
                 {% endif %}
 
                 <!-- Formulário -->
-                <form method="post" id="registerForm">
+                <form method="post" id="registerForm" onsubmit="return lockFormButtons(this)">
                     {% csrf_token %}
                     
                     <div class="form-group">

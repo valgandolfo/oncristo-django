@@ -186,9 +186,9 @@
 {% block conteudo_detalhe %}
 <!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES -->
 {% if acao == 'incluir' or acao == 'editar' %}
-<form id="detail-form" method="post" enctype="multipart/form-data" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_mural' mural.MUR_ID %}{% else %}{% url 'app_igreja:criar_mural' %}{% endif %}">
+<form id="detail-form" method="post" enctype="multipart/form-data" onsubmit="return lockFormButtons(this)" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_mural' mural.MUR_ID %}{% else %}{% url 'app_igreja:criar_mural' %}{% endif %}">
 {% elif acao == 'excluir' %}
-<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_mural' mural.MUR_ID %}">
+<form id="detail-form" method="post" onsubmit="return lockFormButtons(this)" action="{% url 'app_igreja:excluir_mural' mural.MUR_ID %}">
 {% endif %}
 
 {% if acao == 'incluir' or acao == 'editar' %}

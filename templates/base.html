@@ -444,6 +444,40 @@
             font-size: 0.875rem;
         }
 
+        /* === ANIMAÇÃO DE CARREGAMENTO NO BOTÃO === */
+        .btn-loading {
+            position: relative !important;
+            color: transparent !important;
+            pointer-events: none !important;
+        }
+
+        .btn-loading::after {
+            content: "" !important;
+            position: absolute !important;
+            width: 20px !important;
+            height: 20px !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            margin: auto !important;
+            border: 3px solid rgba(255,255,255,0.3) !important;
+            border-radius: 50% !important;
+            border-top-color: #fff !important;
+            animation: spin-loading 0.8s linear infinite !important;
+            z-index: 2 !important;
+        }
+
+        @keyframes spin-loading {
+            to { transform: rotate(360deg); }
+        }
+
+        .disabled-btn {
+            opacity: 0.65 !important;
+            pointer-events: none !important;
+            cursor: not-allowed !important;
+        }
+
         /* =========================================== */
         /* === CORES ESPECÍFICAS POR SEÇÃO === */
         /* =========================================== */
@@ -1702,7 +1736,7 @@
 
                 {% if modo_edicao %}
                     <!-- MODO EDIÇÃO -->
-                    <form method="post" enctype="multipart/form-data">
+                    <form method="post" enctype="multipart/form-data" onsubmit="return lockFormButtons(this)">
                         {% csrf_token %}
                         {% block conteudo_edicao %}
                         <!-- Conteúdo específico de edição -->
@@ -1711,10 +1745,10 @@
                         <!-- FOOTER EDIÇÃO -->
                         <div class="card">
                             <div class="card-footer footer-personalizado text-center">
-                                <button type="button" class="btn btn-secondary me-2" onclick="cancelarEdicao()">
+                                <button type="button" class="btn btn-secondary me-2 btn-cancelar-global" onclick="cancelarEdicao()">
                                     <i class="fas fa-times me-1"></i>Cancelar
                                 </button>
-                                <button type="submit" class="btn btn-editar-personalizado">
+                                <button type="submit" class="btn btn-editar-personalizado btn-gravar-global">
                                     <i class="fas fa-save me-1"></i>Gravar
                                 </button>
                             </div>
@@ -1791,10 +1825,10 @@
                         <div class="card-footer" style="background: #17AA51;">
                             <div class="d-flex justify-content-end gap-2">
                                 <!-- [Cancelar] [Gravar] (se editar) -->
-                                <button type="button" class="btn btn-secondary" onclick="bdCancelar()">
+                                <button type="button" class="btn btn-secondary btn-cancelar-global" onclick="bdCancelar()">
                                     <i class="fas fa-times me-2"></i>Cancelar
                                 </button>
-                                <button type="button" class="btn btn-warning" onclick="bdGravar()">
+                                <button type="button" class="btn btn-warning btn-gravar-global" onclick="bdGravar(this)">
                                     <i class="fas fa-save me-2"></i>Gravar
                                 </button>
                             </div>
@@ -1804,10 +1838,10 @@
                         <div class="card-footer" style="background: #17AA51;">
                             <div class="d-flex justify-content-end gap-2">
                                 <!-- [Cancelar] [Confirmar] (se excluir) -->
-                                <button type="button" class="btn btn-secondary" onclick="bdCancelar()">
+                                <button type="button" class="btn btn-secondary btn-cancelar-global" onclick="bdCancelar()">
                                     <i class="fas fa-times me-2"></i>Cancelar
                                 </button>
-                                <button type="button" class="btn btn-danger" onclick="bdConfirmarExclusao()">
+                                <button type="button" class="btn btn-danger btn-gravar-global" onclick="bdConfirmarExclusao(this)">
                                     <i class="fas fa-check me-2"></i>Confirmar
                                 </button>
                             </div>
@@ -2179,20 +2213,58 @@
         {% endblock %}
     }
 
-    function bdGravar() {
+    // --- FUNÇÃO PARA TRAVAR BOTÕES E MOSTRAR LOADING ---
+    function lockFormButtons(formOrBtn) {
+        let form, btn;
+        
+        if (formOrBtn.tagName === 'FORM') {
+            form = formOrBtn;
+            btn = form.querySelector('.btn-gravar-global');
+        } else {
+            btn = formOrBtn;
+            form = btn.closest('form') || document.getElementById('detail-form');
+        }
+
+        // Se for um form e não for válido, não trava
+        if (form && form.checkValidity && !form.checkValidity()) {
+            if (form.reportValidity) form.reportValidity();
+            return false; // Não trava e não envia
+        }
+
+        // Travar todos os botões de ação do módulo
+        const allActionButtons = document.querySelectorAll('.btn-gravar-global, .btn-cancelar-global, .btn-editar-personalizado');
+        allActionButtons.forEach(b => {
+            b.classList.add('disabled-btn');
+            if (b.tagName === 'BUTTON') b.disabled = true;
+        });
+
+        // Adicionar animação no botão que foi clicado
+        if (btn) {
+            btn.classList.add('btn-loading');
+        }
+
+        return true;
+    }
+
+    function bdGravar(btn) {
         const form = document.getElementById('detail-form');
         if (form) { 
             console.log('Submetendo form:', form.action);
-            form.submit(); 
+            if (lockFormButtons(btn || form)) {
+                form.submit();
+            }
         } else {
             console.error('Form detail-form não encontrado');
         }
     }
 
-    function bdConfirmarExclusao() {
+    function bdConfirmarExclusao(btn) {
         if (confirm('Confirmar exclusão?')) {
             const form = document.getElementById('detail-form');
-            if (form) { form.submit(); }
+            if (form) { 
+                lockFormButtons(btn || form);
+                form.submit(); 
+            }
         }
     }
 

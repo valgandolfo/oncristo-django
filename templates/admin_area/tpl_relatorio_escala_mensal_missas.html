@@ -4,7 +4,7 @@
 {% block title %}Relatório de Escala Mensal de Missas{% endblock %}
 
 {% block filtros %}
-<form method="get" class="row g-3 align-items-end">
+<form method="get" class="row g-3 align-items-end" onsubmit="return lockFormButtons(this)">
     <div class="col-md-3">
         <label for="mes" class="form-label fw-bold">Mês:</label>
         <select name="mes" id="mes" class="form-select" required>
@@ -93,7 +93,7 @@
     </div>
     
     <div class="col-md-2">
-        <button type="submit" class="btn btn-buscar w-100">
+        <button type="submit" class="btn btn-buscar w-100 btn-gravar-global" onclick="lockFormButtons(this)">
             <i class="fas fa-search me-2"></i>
             Buscar
         </button>

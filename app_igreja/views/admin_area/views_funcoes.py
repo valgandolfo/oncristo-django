@@ -43,9 +43,8 @@ def listar_funcoes(request):
         funcoes = TBFUNCAO.objects.all().order_by('FUN_nome_funcao')
         
         # Aplicar filtros - se digitar "todos", lista todos sem filtro
-        if busca_nome and busca_nome.lower() != 'todos':
+        if busca_nome and busca_nome.lower() not in ['todos', 'todas']:
             funcoes = funcoes.filter(FUN_nome_funcao__icontains=busca_nome)
-        # Se for "todos", não aplica filtro (já está com todos os registros)
     else:
         # Queryset vazio até que o usuário faça a primeira busca
         funcoes = TBFUNCAO.objects.none()

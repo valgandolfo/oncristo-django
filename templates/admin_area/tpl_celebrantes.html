@@ -77,7 +77,6 @@
 
 <!-- === BLOCO LINHAS TABELA DASHBOARD === -->
 {% block linhas_tabela_dashboard %}
-{% if busca_realizada %}
     {% for celebrante in page_obj %}
     <tr>
         {% block linha_completa_dashboard %}
@@ -133,19 +132,10 @@
         <td colspan="5" class="text-center text-muted">
             <i class="fas fa-user-tie fa-2x mb-2"></i>
             <br>
-            Nenhum celebrante encontrado para os filtros informados.
+            Nenhum celebrante encontrado.
         </td>
     </tr>
     {% endfor %}
-{% else %}
-    <tr>
-        <td colspan="5" class="text-center text-muted">
-            <i class="fas fa-search fa-2x mb-2"></i>
-            <br>
-            Preencha os filtros acima e clique em <strong>Buscar</strong> para listar os celebrantes.
-        </td>
-    </tr>
-{% endif %}
 {% endblock %}
 
 <!-- === BLOCO MENSAGEM VAZIO DASHBOARD === -->
@@ -154,11 +144,11 @@
 {% block conteudo_detalhe %}
 <!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES -->
 {% if acao == 'incluir' or acao == 'editar' %}
-<form id="detail-form" method="post" enctype="multipart/form-data" action="{% if acao == 'editar' and celebrante %}{% url 'app_igreja:editar_celebrante' celebrante.CEL_id %}{% else %}{% url 'app_igreja:criar_celebrante' %}{% endif %}">
+<form id="detail-form" method="post" enctype="multipart/form-data" onsubmit="return lockFormButtons(this)" action="{% if acao == 'editar' and celebrante %}{% url 'app_igreja:editar_celebrante' celebrante.CEL_id %}{% else %}{% url 'app_igreja:criar_celebrante' %}{% endif %}">
 {% elif acao == 'excluir' %}
-<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_celebrante' celebrante.CEL_id %}">
-    {% endif %}
-    
+<form id="detail-form" method="post" onsubmit="return lockFormButtons(this)" action="{% url 'app_igreja:excluir_celebrante' celebrante.CEL_id %}">
+{% endif %}
+
 {% if acao == 'incluir' or acao == 'editar' %}
     {% csrf_token %}
     {% if form.non_field_errors %}

@@ -93,7 +93,6 @@
 
 <!-- === BLOCO LINHAS TABELA DASHBOARD === -->
 {% block linhas_tabela_dashboard %}
-{% if busca_realizada %}
     {% for oracao in page_obj %}
     <tr>
         {% block linha_completa_dashboard %}
@@ -144,19 +143,10 @@
         <td colspan="5" class="text-center text-muted">
             <i class="fas fa-praying-hands fa-2x mb-2"></i>
             <br>
-            Nenhum pedido de oração encontrado para os filtros informados.
+            Nenhum pedido de oração encontrado.
         </td>
     </tr>
     {% endfor %}
-{% else %}
-    <tr>
-        <td colspan="5" class="text-center text-muted">
-            <i class="fas fa-search fa-2x mb-2"></i>
-            <br>
-            Preencha os filtros acima e clique em <strong>Buscar</strong> para listar os pedidos de oração.
-        </td>
-    </tr>
-{% endif %}
 {% endblock %}
 
 <!-- === BLOCO MENSAGEM VAZIO DASHBOARD === -->
@@ -267,9 +257,9 @@ document.addEventListener('DOMContentLoaded', function() {
 {% block conteudo_detalhe %}
 <!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES -->
 {% if acao == 'incluir' or acao == 'editar' %}
-<form id="detail-form" method="post" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_oracao' oracao.id %}{% else %}{% url 'app_igreja:criar_oracao' %}{% endif %}">
+<form id="detail-form" method="post" onsubmit="return lockFormButtons(this)" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_oracao' oracao.id %}{% else %}{% url 'app_igreja:criar_oracao' %}{% endif %}">
 {% elif acao == 'excluir' %}
-<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_oracao' oracao.id %}">
+<form id="detail-form" method="post" onsubmit="return lockFormButtons(this)" action="{% url 'app_igreja:excluir_oracao' oracao.id %}">
 {% endif %}
 
 {% if acao == 'incluir' or acao == 'editar' %}

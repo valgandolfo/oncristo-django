@@ -57,17 +57,30 @@ class MasterDetailEventoListView(View):
     """
     
     def get(self, request):
-        eventos = TBEVENTO.objects.all().order_by('-EVE_DTCADASTRO')
+        # Busca e Filtros
+        busca = request.GET.get('busca', '').strip()
+        status = request.GET.get('status', '').strip()
         
-        # Busca
-        busca = request.GET.get('busca', '')
-        if busca:
-            eventos = eventos.filter(EVE_TITULO__icontains=busca)
+        # Controla se o usuário já executou uma busca (preencheu algum filtro ou navegou na paginação)
+        busca_realizada = bool(busca or status or request.GET.get('page'))
         
-        # Filtro por status
-        status = request.GET.get('status', '')
-        if status:
-            eventos = eventos.filter(EVE_STATUS=status)
+        # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
+        if busca_realizada:
+            eventos = TBEVENTO.objects.all().order_by('-EVE_DTCADASTRO')
+            
+            # Se digitar "todos" ou "todas", ignora outros filtros e traz tudo
+            if busca.lower() in ['todos', 'todas']:
+                # Mantém todos os registros sem filtros adicionais
+                pass
+            else:
+                if busca:
+                    eventos = eventos.filter(EVE_TITULO__icontains=busca)
+                
+                if status:
+                    eventos = eventos.filter(EVE_STATUS=status)
+        else:
+            # Queryset vazio até que o usuário faça a primeira busca
+            eventos = TBEVENTO.objects.none()
         
         # Paginação
         paginator = Paginator(eventos, 10)
@@ -90,6 +103,7 @@ class MasterDetailEventoListView(View):
             'model_verbose_name': 'Evento',
             'master_detail_mode': True,  # Flag para identificar modo master-detail
             'eventos_section': 'list',  # Seção: listagem
+            'busca_realizada': busca_realizada,
         }
         
         return render(request, 'admin_area/tpl_eventos.html', context)

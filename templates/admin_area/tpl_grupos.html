@@ -139,9 +139,9 @@
 {% block conteudo_detalhe %}
 <!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES -->
 {% if acao == 'incluir' or acao == 'editar' %}
-<form id="detail-form" method="post" action="{% if acao == 'editar' and grupo %}{% url 'app_igreja:editar_grupo' grupo.GRU_id %}{% else %}{% url 'app_igreja:criar_grupo' %}{% endif %}">
+<form id="detail-form" method="post" onsubmit="return lockFormButtons(this)" action="{% if acao == 'editar' and grupo %}{% url 'app_igreja:editar_grupo' grupo.GRU_id %}{% else %}{% url 'app_igreja:criar_grupo' %}{% endif %}">
 {% elif acao == 'excluir' %}
-<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_grupo' grupo.GRU_id %}">
+<form id="detail-form" method="post" onsubmit="return lockFormButtons(this)" action="{% url 'app_igreja:excluir_grupo' grupo.GRU_id %}">
 {% endif %}
 
 {% if acao == 'incluir' or acao == 'editar' %}

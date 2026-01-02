@@ -250,29 +250,33 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form[method="post"][enctype="multipart/form-data"]');
     const modalUpload = document.getElementById('modal-upload-s3');
     
-    if (form && modalUpload) {
-        const modalUploadInstance = new bootstrap.Modal(modalUpload);
+    if (form) {
+        // Integrar com o lockFormButtons do base.html
+        if (!form.hasAttribute('onsubmit')) {
+            form.setAttribute('onsubmit', 'return lockFormButtons(this)');
+        }
         
-        form.addEventListener('submit', function(e) {
-            // Verificar se há arquivos selecionados
-            const fileInputs = form.querySelectorAll('input[type="file"]');
-            let hasFiles = false;
+        if (modalUpload) {
+            const modalUploadInstance = new bootstrap.Modal(modalUpload);
             
-            fileInputs.forEach(input => {
-                if (input.files && input.files.length > 0) {
-                    hasFiles = true;
+            form.addEventListener('submit', function(e) {
+                // Verificar se há arquivos selecionados
+                const fileInputs = form.querySelectorAll('input[type="file"]');
+                let hasFiles = false;
+                
+                fileInputs.forEach(input => {
+                    if (input.files && input.files.length > 0) {
+                        hasFiles = true;
+                    }
+                });
+                
+                // Se houver arquivos selecionados, mostrar loading
+                if (hasFiles && form.checkValidity()) {
+                    // Mostrar modal de loading (além do spinner do botão)
+                    modalUploadInstance.show();
                 }
             });
-            
-            // Se houver arquivos selecionados, mostrar loading
-            if (hasFiles) {
-                // Mostrar modal de loading
-                modalUploadInstance.show();
-                
-                // O formulário continuará com o submit normal
-                // O modal será fechado automaticamente quando a página recarregar após o sucesso
-            }
-        });
+        }
     }
 });
 </script>

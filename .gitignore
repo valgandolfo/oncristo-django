@@ -39,6 +39,7 @@ db.sqlite3-journal
 .env_local
 .env_production
 .env
+.env_remote_local
 
 # IDE
 .vscode/

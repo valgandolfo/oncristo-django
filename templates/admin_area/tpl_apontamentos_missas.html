@@ -983,9 +983,8 @@ function atribuirApontamento() {
     // Desabilitar botões durante o processamento
     const btnAtribuir = document.querySelector('.btn-modal-atribuir');
     const btnCancelar = document.querySelector('.btn-modal-cancelar');
-    btnAtribuir.disabled = true;
-    btnCancelar.disabled = true;
-    btnAtribuir.textContent = 'Salvando...';
+    if (btnAtribuir && !lockFormButtons(btnAtribuir)) return;
+    if (btnCancelar) btnCancelar.disabled = true;
     
     fetch(`/app_igreja/admin-area/apontamentos-escala-missa/${dadosItemAtual.itemId}/atribuir/`, {
         method: 'POST',
@@ -1170,9 +1169,8 @@ function enviarWhatsAppApontamento() {
     
     const btnEnviar = document.querySelector('.btn-modal-enviar-whatsapp');
     const btnVoltar = document.querySelector('.btn-modal-voltar');
-    btnEnviar.disabled = true;
-    btnVoltar.disabled = true;
-    btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+    if (btnEnviar && !lockFormButtons(btnEnviar)) return;
+    if (btnVoltar) btnVoltar.disabled = true;
     
     const data = {
         grupo_id: dadosItemAtual.grupoAtual,

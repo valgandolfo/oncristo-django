@@ -13,7 +13,7 @@
 
 {% block form_content %}
 <!-- Formulário do Dizimista -->
-<form method="post" enctype="multipart/form-data" id="dizimistaForm">
+<form method="post" enctype="multipart/form-data" id="dizimistaForm" onsubmit="return lockFormButtons(this)">
     {% csrf_token %}
     
     {% if form.non_field_errors %}

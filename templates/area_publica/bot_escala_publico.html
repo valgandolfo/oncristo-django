@@ -299,7 +299,7 @@
     </div>
     
     <div class="filtros-container">
-        <form method="get" class="filtros-form">
+        <form method="get" class="filtros-form" onsubmit="return lockFormButtons(this)">
             <div class="filtro-group">
                 <label for="mes">MÊS:</label>
                 <select id="mes" name="mes" required>
@@ -325,7 +325,7 @@
             {% if telefone_url %}
                 <input type="hidden" name="telefone" value="{{ telefone_url }}">
             {% endif %}
-            <button type="submit" class="btn-buscar">
+            <button type="submit" class="btn-buscar btn-gravar-global" onclick="lockFormButtons(this)">
                 <i class="fas fa-search me-2"></i>Buscar
             </button>
         </form>
@@ -512,9 +512,8 @@
         // Desabilitar botões
         var btnSim = document.querySelector('.btn-sim');
         var btnNao = document.querySelector('.btn-nao');
-        btnSim.disabled = true;
-        btnNao.disabled = true;
-        btnSim.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processando...';
+        if (btnSim && !lockFormButtons(btnSim)) return;
+        if (btnNao) btnNao.disabled = true;
         
         // Limpar telefone antes de enviar (remover 55 se existir)
         var telefoneParaEnviar = telefoneUsuario;

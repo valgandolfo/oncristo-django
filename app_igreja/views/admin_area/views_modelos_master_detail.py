@@ -51,10 +51,15 @@ class MasterDetailModeloListView(View):
         # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
         if busca_realizada:
             modelos = TBMODELO.objects.all().order_by('-MOD_DATA_CRIACAO')
-            # Aplicar filtros - se digitar "todos", lista todos sem filtro
-            if busca and busca.lower() != 'todos':
-                modelos = modelos.filter(MOD_DESCRICAO__icontains=busca)
-            # Se for "todos", não aplica filtro (já está com todos os registros)
+            
+            # Se digitar "todos" ou "todas", ignora outros filtros e traz tudo
+            if busca.lower() in ['todos', 'todas']:
+                # Mantém todos os registros sem filtros adicionais
+                pass
+            else:
+                # Aplicar filtros normais
+                if busca:
+                    modelos = modelos.filter(MOD_DESCRICAO__icontains=busca)
         else:
             # Queryset vazio até que o usuário faça a primeira busca
             modelos = TBMODELO.objects.none()

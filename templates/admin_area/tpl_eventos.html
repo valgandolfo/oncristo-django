@@ -1503,9 +1503,9 @@ function atualizarListaItens() {
 {% if eventos_section == 'item_detail' %}
 <!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES DE ITEM -->
 {% if acao == 'incluir' or acao == 'editar' %}
-<form id="detail-form" method="post" action="{% if acao == 'editar' and item %}{% url 'app_igreja:editar_item_evento' item.ITEM_EVE_ID %}{% else %}{% url 'app_igreja:criar_item_evento' %}{% endif %}">
+<form id="detail-form" method="post" onsubmit="return lockFormButtons(this)" action="{% if acao == 'editar' and item %}{% url 'app_igreja:editar_item_evento' item.ITEM_EVE_ID %}{% else %}{% url 'app_igreja:criar_item_evento' %}{% endif %}">
 {% elif acao == 'excluir' %}
-<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_item_evento' item.ITEM_EVE_ID %}">
+<form id="detail-form" method="post" onsubmit="return lockFormButtons(this)" action="{% url 'app_igreja:excluir_item_evento' item.ITEM_EVE_ID %}">
 {% endif %}
 
 {% if acao == 'incluir' or acao == 'editar' %}
@@ -1631,11 +1631,11 @@ function atualizarListaItens() {
 {% if eventos_section == 'detail' or modo_detalhe %}
 <!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES DE EVENTO -->
 {% if acao == 'incluir' or acao == 'editar' %}
-<form id="detail-form" method="post" action="{% if acao == 'editar' and evento %}{% url 'app_igreja:editar_evento' evento.EVE_ID %}{% else %}{% url 'app_igreja:criar_evento' %}{% endif %}">
+<form id="detail-form" method="post" onsubmit="return lockFormButtons(this)" action="{% if acao == 'editar' and evento %}{% url 'app_igreja:editar_evento' evento.EVE_ID %}{% else %}{% url 'app_igreja:criar_evento' %}{% endif %}">
 {% elif acao == 'excluir' %}
-<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_evento' evento.EVE_ID %}">
-                                {% endif %}
-                                
+<form id="detail-form" method="post" onsubmit="return lockFormButtons(this)" action="{% url 'app_igreja:excluir_evento' evento.EVE_ID %}">
+{% endif %}
+
 {% if acao == 'incluir' or acao == 'editar' %}
 {% csrf_token %}
 {% if form.non_field_errors %}

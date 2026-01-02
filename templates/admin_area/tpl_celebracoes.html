@@ -334,25 +334,13 @@ function bdCancelar() {
     window.location.href = "{{ next_url }}";
 }
 
-function bdGravar() {
-    const form = document.getElementById('detail-form');
-    if (form) {
-        // Verificar se o formulário é válido antes de submeter
-        if (form.checkValidity()) {
-            form.submit();
-        } else {
-            // Se o formulário não é válido, mostrar mensagem
-            form.reportValidity();
-        }
-    } else {
-        console.error('Formulário não encontrado');
-        alert('Erro: Formulário não encontrado. Por favor, recarregue a página.');
-    }
-}
-
-function bdConfirmarExclusao() {
+function bdConfirmarExclusao(btn) {
     if (confirm('Tem certeza que deseja excluir esta celebração? Esta ação não pode ser desfeita.')) {
-        document.querySelector('form').submit();
+        const form = document.getElementById('detail-form');
+        if (form) {
+            lockFormButtons(btn || form);
+            form.submit();
+        }
     }
 }
 

@@ -29,22 +29,27 @@ def listar_celebracoes(request):
         # Query base
         celebracoes = TBCELEBRACOES.objects.all()
         
-        # Aplicar filtros
-        if busca_nome:
-            celebracoes = celebracoes.filter(
-                Q(CEL_nome_solicitante__icontains=busca_nome) |
-                Q(CEL_tipo_celebracao__icontains=busca_nome) |
-                Q(CEL_local__icontains=busca_nome)
-            )
-        
-        if filtro_status:
-            celebracoes = celebracoes.filter(CEL_status=filtro_status)
-        
-        if filtro_data_inicio:
-            celebracoes = celebracoes.filter(CEL_data_celebracao__gte=filtro_data_inicio)
-        
-        if filtro_data_fim:
-            celebracoes = celebracoes.filter(CEL_data_celebracao__lte=filtro_data_fim)
+        # Se digitar "todos" ou "todas", ignora outros filtros e traz tudo
+        if busca_nome.lower() in ['todos', 'todas']:
+            # Mantém todos os registros sem filtros adicionais
+            pass
+        else:
+            # Aplicar filtros normais
+            if busca_nome:
+                celebracoes = celebracoes.filter(
+                    Q(CEL_nome_solicitante__icontains=busca_nome) |
+                    Q(CEL_tipo_celebracao__icontains=busca_nome) |
+                    Q(CEL_local__icontains=busca_nome)
+                )
+            
+            if filtro_status:
+                celebracoes = celebracoes.filter(CEL_status=filtro_status)
+            
+            if filtro_data_inicio:
+                celebracoes = celebracoes.filter(CEL_data_celebracao__gte=filtro_data_inicio)
+            
+            if filtro_data_fim:
+                celebracoes = celebracoes.filter(CEL_data_celebracao__lte=filtro_data_fim)
         
         # Ordenação
         celebracoes = celebracoes.order_by('CEL_data_celebracao', 'CEL_horario')

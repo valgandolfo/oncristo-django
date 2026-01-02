@@ -37,7 +37,7 @@
 
 <!-- === BLOCO BUSCA DASHBOARD === -->
 {% block busca_dashboard %}
-<form method="get" class="busca-campos">
+<form method="get" class="busca-campos" onsubmit="return lockFormButtons(this)">
     <div class="campo-busca">
         <label for="busca_nome">Nome do Dizimista</label>
                     <input type="text" id="busca_nome" name="q" value="{{ query }}" placeholder="Digite o nome..." autocomplete="off">
@@ -64,6 +64,7 @@
 {% endblock %}
 
 <!-- === BLOCO LINHAS TABELA DASHBOARD === -->
+<!-- === LINHAS TABELA DASHBOARD === -->
 {% block linhas_tabela_dashboard %}
 {% if busca_realizada %}
     {% for dizimista in page_obj %}
@@ -129,9 +130,9 @@
 {% block conteudo_detalhe %}
 <!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES -->
 {% if acao == 'incluir' or acao == 'editar' %}
-<form id="detail-form" method="post" enctype="multipart/form-data" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_dizimista' dizimista.id %}{% else %}{% url 'app_igreja:criar_dizimista' %}{% endif %}">
+<form id="detail-form" method="post" enctype="multipart/form-data" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_dizimista' dizimista.id %}{% else %}{% url 'app_igreja:criar_dizimista' %}{% endif %}" onsubmit="return lockFormButtons(this)">
 {% elif acao == 'excluir' %}
-<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_dizimista' dizimista.id %}">
+<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_dizimista' dizimista.id %}" onsubmit="return lockFormButtons(this)">
 {% endif %}
 
 {% if acao == 'incluir' or acao == 'editar' %}

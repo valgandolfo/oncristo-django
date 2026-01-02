@@ -30,7 +30,12 @@ def listar_avisos(request):
     # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
     if busca_realizada:
         avisos = TBAVISO.objects.all().order_by('-AVI_data', 'AVI_titulo')
-        if busca_titulo:
+        
+        # Se digitar "todos" ou "todas", ignora filtros e traz tudo
+        if busca_titulo.lower() in ['todos', 'todas']:
+            # Mantém todos os registros
+            pass
+        elif busca_titulo:
             avisos = avisos.filter(AVI_titulo__icontains=busca_titulo)
     else:
         # Queryset vazio até que o usuário faça a primeira busca

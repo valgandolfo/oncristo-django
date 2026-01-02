@@ -123,9 +123,9 @@
 {% block conteudo_detalhe %}
 <!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES -->
 {% if acao == 'incluir' or acao == 'editar' %}
-<form id="detail-form" method="post" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_item_escala' item.ITE_ESC_ID %}{% else %}{% url 'app_igreja:criar_item_escala' %}?mes={{ mes }}&ano={{ ano }}{% endif %}">
+<form id="detail-form" method="post" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_item_escala' item.ITE_ESC_ID %}{% else %}{% url 'app_igreja:criar_item_escala' %}?mes={{ mes }}&ano={{ ano }}{% endif %}" onsubmit="return lockFormButtons(this)">
 {% elif acao == 'excluir' %}
-<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_item_escala' item.ITE_ESC_ID %}">
+<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_item_escala' item.ITE_ESC_ID %}" onsubmit="return lockFormButtons(this)">
 {% endif %}
 
 {% if acao == 'incluir' or acao == 'editar' %}

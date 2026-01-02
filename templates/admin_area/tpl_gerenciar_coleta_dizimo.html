@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <h5 style="margin: 0; font-weight: bold;">Baixa de Mensalidade</h5>
             <button type="button" onclick="fecharModalBaixa()" style="background: none; border: none; font-size: 24px; font-weight: bold; color: #aaa; cursor: pointer; padding: 0; width: 30px; height: 30px; line-height: 24px;">&times;</button>
         </div>
-        <form method="post" id="form-modal-baixa" action="{% url 'app_igreja:baixar_dizimo' %}">
+        <form method="post" id="form-modal-baixa" action="{% url 'app_igreja:baixar_dizimo' %}" onsubmit="return lockFormButtons(this)">
             {% csrf_token %}
             <input type="hidden" name="baixar_dizimo" value="1">
             <input type="hidden" name="mensalidade_id" id="mensalidade_id_baixa">
@@ -225,8 +225,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             
             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid #dee2e6; padding-top: 15px;">
-                <button type="button" class="btn btn-secondary" onclick="fecharModalBaixa()" style="padding: 8px 16px; border: 1px solid #6c757d; background-color: #6c757d; color: white; border-radius: 4px; cursor: pointer;">Cancelar</button>
-                <button type="submit" class="btn btn-success" style="padding: 8px 16px; border: 1px solid #28a745; background-color: #28a745; color: white; border-radius: 4px; cursor: pointer;">Confirmar</button>
+                <button type="button" class="btn btn-secondary btn-cancelar-global" onclick="fecharModalBaixa()" style="padding: 8px 16px; border: 1px solid #6c757d; background-color: #6c757d; color: white; border-radius: 4px; cursor: pointer;">Cancelar</button>
+                <button type="submit" class="btn btn-success btn-gravar-global" onclick="lockFormButtons(this)" style="padding: 8px 16px; border: 1px solid #28a745; background-color: #28a745; color: white; border-radius: 4px; cursor: pointer;">Confirmar</button>
             </div>
         </form>
     </div>
@@ -284,6 +284,8 @@ window.onclick = function(event) {
 
 window.cancelarBaixa = function(id) {
     if (confirm('Deseja realmente cancelar a baixa desta mensalidade?')) {
+        const btn = document.getElementById('btn_cancelar_' + id);
+        if (btn && !lockFormButtons(btn)) return;
         document.getElementById('mensalidade_id_cancelar').value = id;
         document.getElementById('form-cancelar-baixa').submit();
     }

@@ -46,20 +46,25 @@ def listar_dizimistas(request):
     if busca_realizada:
         dizimistas = TBDIZIMISTAS.objects.all()
 
-        if query:
-            dizimistas = dizimistas.filter(
-                Q(DIS_nome__icontains=query)
-                | Q(DIS_telefone__icontains=query)
-                | Q(DIS_email__icontains=query)
-                | Q(DIS_cidade__icontains=query)
-            )
+        # Se digitar "todos" ou "todas", ignora outros filtros e traz tudo
+        if query.lower() in ['todos', 'todas']:
+            # Mantém todos os registros sem filtros adicionais
+            pass
+        else:
+            if query:
+                dizimistas = dizimistas.filter(
+                    Q(DIS_nome__icontains=query)
+                    | Q(DIS_telefone__icontains=query)
+                    | Q(DIS_email__icontains=query)
+                    | Q(DIS_cidade__icontains=query)
+                )
 
-        if status_filter:
-            if status_filter == 'ativo':
-                dizimistas = dizimistas.filter(DIS_status=True)
-            elif status_filter == 'pendente':
-                dizimistas = dizimistas.filter(DIS_status=False)
-
+            if status_filter:
+                if status_filter == 'ativo':
+                    dizimistas = dizimistas.filter(DIS_status=True)
+                elif status_filter == 'pendente':
+                    dizimistas = dizimistas.filter(DIS_status=False)
+        
         # Ordenação
         dizimistas = dizimistas.order_by('DIS_nome')
     else:

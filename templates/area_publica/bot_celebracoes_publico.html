@@ -191,7 +191,7 @@
                     Buscar Minhas Celebrações
                 </h5>
                 
-                <form method="get" class="row g-3">
+                <form method="get" class="row g-3" onsubmit="return lockFormButtons(this)">
                     <div class="col-12">
                         <label for="telefone" class="form-label fw-bold">Telefone Celular</label>
                         <div class="input-group">
@@ -207,7 +207,7 @@
                                 value="{{ telefone }}"
                                 required
                             >
-                            <button type="submit" class="btn btn-buscar" style="padding: 6px 12px; font-size: 0.875rem;">
+                            <button type="submit" class="btn btn-buscar btn-gravar-global" style="padding: 6px 12px; font-size: 0.875rem;" onclick="lockFormButtons(this)">
                                 <i class="fas fa-search"></i>
                                 <span class="d-none d-sm-inline ms-1">BUSCAR</span>
                             </button>

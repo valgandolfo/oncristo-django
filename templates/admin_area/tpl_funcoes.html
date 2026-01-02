@@ -59,7 +59,6 @@
 
 <!-- === BLOCO LINHAS TABELA DASHBOARD === -->
 {% block linhas_tabela_dashboard %}
-{% if busca_realizada %}
     {% for funcao in page_obj %}
     <tr>
         {% block linha_completa_dashboard %}
@@ -99,22 +98,13 @@
     </tr>
     {% empty %}
     <tr>
-        <td colspan="3" class="text-center text-muted">
+        <td colspan="4" class="text-center text-muted">
             <i class="fas fa-briefcase fa-2x mb-2"></i>
             <br>
-            Nenhuma função encontrada para os filtros informados.
+            Nenhuma função encontrada.
         </td>
     </tr>
     {% endfor %}
-{% else %}
-    <tr>
-        <td colspan="3" class="text-center text-muted">
-            <i class="fas fa-search fa-2x mb-2"></i>
-            <br>
-            Preencha os filtros acima e clique em <strong>Buscar</strong> para listar as funções.
-        </td>
-    </tr>
-{% endif %}
 {% endblock %}
 
 <!-- === BLOCO MENSAGEM VAZIO DASHBOARD === -->
@@ -134,7 +124,7 @@
 
 {% elif acao == 'incluir' or acao == 'editar' %}
 <!-- MODO INCLUSÃO/EDIÇÃO -->
-<form method="post" id="detail-form">
+<form method="post" id="detail-form" onsubmit="return lockFormButtons(this)">
     {% csrf_token %}
     
     {% if form.non_field_errors %}
@@ -167,7 +157,7 @@
     </div>
 </div>
 
-<form method="post" id="detail-form">
+<form method="post" id="detail-form" onsubmit="return lockFormButtons(this)">
     {% csrf_token %}
 </form>
 {% endif %}

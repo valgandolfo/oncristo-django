@@ -334,7 +334,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="form-container">
-                <form method="post" id="oracaoForm">
+                <form method="post" id="oracaoForm" onsubmit="return lockFormButtons(this)">
             {% csrf_token %}
             
             {% if form.non_field_errors %}
@@ -455,13 +455,13 @@
     <div class="container">
         <div class="row g-2">
             <div class="col-6">
-                <button type="submit" form="oracaoForm" class="btn btn-submit w-100">
+                <button type="submit" form="oracaoForm" class="btn btn-submit w-100 btn-gravar-global">
                     <i class="fas fa-paper-plane me-2"></i>
                     Enviar Pedido de Oração
                 </button>
             </div>
             <div class="col-6">
-                <a href="{% url 'app_igreja:meus_pedidos_oracoes' %}" class="btn btn-secondary w-100">
+                <a href="{% url 'app_igreja:meus_pedidos_oracoes' %}" class="btn btn-secondary w-100 btn-cancelar-global">
                     <i class="fas fa-arrow-left me-2"></i>
                     Voltar/Cancelar
                 </a>

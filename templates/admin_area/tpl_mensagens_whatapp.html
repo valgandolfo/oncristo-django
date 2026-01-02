@@ -131,7 +131,7 @@
 {% block conteudo_detalhe %}
 {% if acao == 'incluir' or acao == 'editar' %}
 <!-- FORMULÁRIO DE ENVIO DE MENSAGENS -->
-<form id="detail-form" method="post" enctype="multipart/form-data" action="{% url 'app_igreja:whatsapp_enviar_mensagem' %}{% if acao == 'editar' and mensagem %}?editar={{ mensagem.WHA_id }}{% endif %}">
+<form id="detail-form" method="post" enctype="multipart/form-data" action="{% url 'app_igreja:whatsapp_enviar_mensagem' %}{% if acao == 'editar' and mensagem %}?editar={{ mensagem.WHA_id }}{% endif %}" onsubmit="return lockFormButtons(this)">
                         {% csrf_token %}
                         
     {% if form.non_field_errors %}
@@ -497,12 +497,12 @@
             <strong>Destinatário:</strong> {{ mensagem.get_WHA_destinatario_tipo_display }}<br>
             <strong>Mensagem:</strong> {{ mensagem.WHA_texto|truncatewords:20|default:"-" }}
         </div>
-        <form method="post" action="{% url 'app_igreja:whatsapp_excluir' mensagem.WHA_id %}">
+        <form method="post" action="{% url 'app_igreja:whatsapp_excluir' mensagem.WHA_id %}" onsubmit="return lockFormButtons(this)">
             {% csrf_token %}
-            <button type="submit" class="btn btn-danger">
+            <button type="submit" class="btn btn-danger btn-gravar-global" onclick="lockFormButtons(this)">
                 <i class="fas fa-trash me-1"></i>Confirmar Exclusão
             </button>
-            <a href="{% url 'app_igreja:whatsapp_list' %}" class="btn btn-secondary">
+            <a href="{% url 'app_igreja:whatsapp_list' %}" class="btn btn-secondary btn-cancelar-global">
                 <i class="fas fa-times me-1"></i>Cancelar
             </a>
         </form>
@@ -600,31 +600,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Mudar label do botão "Gravar" para "Enviar" com ícone WhatsApp
-    const btnGravar = document.querySelector('button[onclick="bdGravar()"]');
+    const btnGravar = document.querySelector('button[onclick^="bdGravar"]');
     if (btnGravar) {
         btnGravar.innerHTML = '<i class="fab fa-whatsapp me-2"></i>Enviar';
         btnGravar.classList.remove('btn-warning');
         btnGravar.classList.add('btn-success');
+        btnGravar.setAttribute('onclick', 'bdGravar(this)');
     }
     
     // Sobrescrever bdGravar para o botão de enviar
-    window.bdGravar = function() {
+    window.bdGravar = function(btn) {
         const form = document.getElementById('detail-form');
-        const btnEnviar = document.querySelector('button[onclick="bdGravar()"]'); // Usar seletor mais específico
+        const btnEnviar = btn || document.querySelector('button[onclick="bdGravar(this)"]');
         
         if (form) {
-            // Verificar se o formulário é válido antes de submeter
-            if (form.checkValidity()) {
-                if (btnEnviar) {
-                    btnEnviar.disabled = true;
-                    btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Enviando...';
-                }
+            if (lockFormButtons(btnEnviar || form)) {
                 console.log('Submetendo formulário de envio WhatsApp...');
                 form.submit();
-            } else {
-                // Se o formulário não é válido, mostrar mensagem
-                console.warn('Formulário inválido. Verificando campos...');
-                form.reportValidity();
             }
         } else {
             console.error('Formulário detail-form não encontrado.');

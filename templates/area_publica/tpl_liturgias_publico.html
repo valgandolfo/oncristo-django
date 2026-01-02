@@ -302,7 +302,7 @@
                     Filtrar Liturgias
                 </h5>
                 
-                <form method="get" class="row g-3">
+                <form method="get" class="row g-3" onsubmit="return lockFormButtons(this)">
                     <div class="col-md-4">
                         <label for="data" class="form-label fw-bold">Data</label>
                         <input type="date" 
@@ -327,7 +327,7 @@
                     </div>
                     
                     <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-buscar w-100">
+                        <button type="submit" class="btn btn-buscar w-100 btn-gravar-global" onclick="lockFormButtons(this)">
                             <i class="fas fa-search me-2"></i>
                             Buscar
                         </button>

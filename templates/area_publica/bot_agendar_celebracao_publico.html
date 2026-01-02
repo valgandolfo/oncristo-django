@@ -24,7 +24,7 @@
 {% endif %}
 
 <!-- Formulário de Celebração -->
-<form method="post" id="celebracaoForm">
+<form method="post" id="celebracaoForm" onsubmit="return lockFormButtons(this)">
     {% csrf_token %}
     
     {% if form.non_field_errors %}

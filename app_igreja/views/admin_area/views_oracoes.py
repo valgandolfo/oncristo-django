@@ -36,45 +36,48 @@ def listar_oracoes(request):
     if busca_realizada:
         oracoes = TBORACOES.objects.all()
         
-        # Aplicar filtros
-        if query:
-            oracoes = oracoes.filter(
-                Q(ORA_nome_solicitante__icontains=query) | 
-                Q(ORA_telefone_pedinte__icontains=query) |
-                Q(ORA_descricao__icontains=query)
-            )
-        
-        if status_filter:
-            oracoes = oracoes.filter(ORA_status=status_filter)
-        
-        if tipo_filter:
-            oracoes = oracoes.filter(ORA_tipo_oracao=tipo_filter)
-        
-        if ativo_filter:
-            ativo_bool = ativo_filter.lower() == 'true'
-            oracoes = oracoes.filter(ORA_ativo=ativo_bool)
-        
-        if data_inicio:
-            try:
-                data_inicio_obj = datetime.strptime(data_inicio, '%Y-%m-%d').date()
-                oracoes = oracoes.filter(ORA_data_pedido__gte=data_inicio_obj)
-            except ValueError:
-                pass
-        
-        if data_fim:
-            try:
-                data_fim_obj = datetime.strptime(data_fim, '%Y-%m-%d').date()
-                oracoes = oracoes.filter(ORA_data_pedido__lte=data_fim_obj)
-            except ValueError:
-                pass
+        # Se digitar "todos" ou "todas", ignora outros filtros e traz tudo
+        if query.lower() in ['todos', 'todas']:
+            # Mantém todos os registros sem filtros adicionais
+            pass
+        else:
+            # Aplicar filtros normais
+            if query:
+                oracoes = oracoes.filter(
+                    Q(ORA_nome_solicitante__icontains=query) | 
+                    Q(ORA_telefone_pedinte__icontains=query) |
+                    Q(ORA_descricao__icontains=query)
+                )
+            
+            if status_filter:
+                oracoes = oracoes.filter(ORA_status=status_filter)
+            
+            if tipo_filter:
+                oracoes = oracoes.filter(ORA_tipo_oracao=tipo_filter)
+            
+            if ativo_filter:
+                ativo_bool = ativo_filter.lower() == 'true'
+                oracoes = oracoes.filter(ORA_ativo=ativo_bool)
+            
+            if data_inicio:
+                try:
+                    data_inicio_obj = datetime.strptime(data_inicio, '%Y-%m-%d').date()
+                    oracoes = oracoes.filter(ORA_data_pedido__gte=data_inicio_obj)
+                except ValueError:
+                    pass
+            
+            if data_fim:
+                try:
+                    data_fim_obj = datetime.strptime(data_fim, '%Y-%m-%d').date()
+                    oracoes = oracoes.filter(ORA_data_pedido__lte=data_fim_obj)
+                except ValueError:
+                    pass
         
         # Ordenação
         oracoes = oracoes.order_by('-ORA_data_pedido', 'ORA_nome_solicitante')
     else:
         # Queryset vazio até que o usuário faça a primeira busca
         oracoes = TBORACOES.objects.none()
-    
-    # Paginação
     paginator = Paginator(oracoes, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)

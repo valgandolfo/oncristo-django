@@ -4,7 +4,7 @@
 {% block title %}Relatório de Aniversariantes{% endblock %}
 
 {% block filtros %}
-<form method="get" class="row g-3 align-items-end">
+<form method="get" class="row g-3 align-items-end" onsubmit="return lockFormButtons(this)">
     <div class="col-md-4">
         <label for="data" class="form-label fw-bold">Filtrar até:</label>
         <input type="month" 
@@ -26,7 +26,7 @@
     </div>
     
     <div class="col-md-2">
-        <button type="submit" class="btn btn-buscar w-100">
+        <button type="submit" class="btn btn-buscar w-100 btn-gravar-global" onclick="lockFormButtons(this)">
             <i class="fas fa-search me-2"></i>
             Buscar
         </button>

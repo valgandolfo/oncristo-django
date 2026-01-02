@@ -106,6 +106,37 @@
             transform: translateY(-2px);
         }
 
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+            pointer-events: none;
+        }
+
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            width: 1.2rem;
+            height: 1.2rem;
+            top: 50%;
+            left: 50%;
+            margin-top: -0.6rem;
+            margin-left: -0.6rem;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .disabled-btn {
+            opacity: 0.65;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+
         .liturgia-content {
             padding: 30px;
             max-height: 60vh;
@@ -234,7 +265,7 @@
         </div>
 
         <div class="date-selector">
-            <form class="date-form" id="dateForm">
+            <form class="date-form" id="dateForm" onsubmit="return lockFormButtons(this)">
                 <input type="date" class="date-input" id="dataLiturgia" name="data" value="{{ data_hoje }}" autocomplete="off" required>
                 <button type="submit" class="btn">Buscar Liturgia</button>
             </form>
@@ -271,6 +302,33 @@
     </div>
 
     <script>
+        function lockFormButtons(formOrBtn) {
+            let btn = formOrBtn;
+            let form = null;
+            if (formOrBtn.tagName === 'FORM') {
+                form = formOrBtn;
+                btn = form.querySelector('button[type="submit"]') || form.querySelector('input[type="submit"]');
+            } else {
+                form = btn.closest('form');
+            }
+            if (form && form.checkValidity && !form.checkValidity()) {
+                if (form.reportValidity) form.reportValidity();
+                return false;
+            }
+            if (btn) {
+                btn.classList.add('btn-loading');
+                btn.disabled = true;
+            }
+            const allActionBtns = document.querySelectorAll('.btn');
+            allActionBtns.forEach(b => {
+                if (b !== btn) {
+                    b.classList.add('disabled-btn');
+                    b.disabled = true;
+                }
+            });
+            return true;
+        }
+
         // Função para fechar a janela
         function fecharJanela() {
             // Tenta fechar como popup primeiro

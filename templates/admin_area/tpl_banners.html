@@ -106,7 +106,7 @@
         <td colspan="7" class="text-center text-muted">
             <i class="fas fa-ad fa-2x mb-2"></i>
             <br>
-            Nenhum banner encontrado para os filtros informados.
+            Nenhum banner encontrado.
         </td>
     </tr>
     {% endfor %}
@@ -127,9 +127,9 @@
 {% block conteudo_detalhe %}
 <!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES -->
 {% if acao == 'incluir' or acao == 'editar' %}
-<form id="detail-form" method="post" enctype="multipart/form-data" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_banner' banner.id %}{% else %}{% url 'app_igreja:criar_banner' %}{% endif %}">
+<form id="detail-form" method="post" enctype="multipart/form-data" onsubmit="return lockFormButtons(this)" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_banner' banner.id %}{% else %}{% url 'app_igreja:criar_banner' %}{% endif %}">
 {% elif acao == 'excluir' %}
-<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_banner' banner.id %}">
+<form id="detail-form" method="post" onsubmit="return lockFormButtons(this)" action="{% url 'app_igreja:excluir_banner' banner.id %}">
 {% endif %}
 
 {% if acao == 'incluir' or acao == 'editar' %}

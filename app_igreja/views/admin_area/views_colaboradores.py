@@ -53,20 +53,27 @@ def listar_colaboradores(request):
         busca_telefone or busca_nome or busca_apelido or busca_status or request.GET.get('page')
     )
 
+    # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
     if busca_realizada:
         colaboradores_qs = TBCOLABORADORES.objects.all()
 
-        if busca_telefone:
-            colaboradores_qs = colaboradores_qs.filter(COL_telefone__icontains=busca_telefone)
-        
-        if busca_nome:
-            colaboradores_qs = colaboradores_qs.filter(COL_nome_completo__icontains=busca_nome)
-        
-        if busca_apelido:
-            colaboradores_qs = colaboradores_qs.filter(COL_apelido__icontains=busca_apelido)
-        
-        if busca_status:
-            colaboradores_qs = colaboradores_qs.filter(COL_status=busca_status)
+        # Se digitar "todos" ou "todas" no nome, ignora outros filtros e traz tudo
+        if busca_nome.lower() in ['todos', 'todas']:
+            # Mantém todos os registros sem filtros adicionais
+            pass
+        else:
+            # Aplicar filtros normais
+            if busca_telefone:
+                colaboradores_qs = colaboradores_qs.filter(COL_telefone__icontains=busca_telefone)
+            
+            if busca_nome:
+                colaboradores_qs = colaboradores_qs.filter(COL_nome_completo__icontains=busca_nome)
+            
+            if busca_apelido:
+                colaboradores_qs = colaboradores_qs.filter(COL_apelido__icontains=busca_apelido)
+            
+            if busca_status:
+                colaboradores_qs = colaboradores_qs.filter(COL_status=busca_status)
     else:
         # Queryset vazio até que o usuário faça a primeira busca
         colaboradores_qs = TBCOLABORADORES.objects.none()

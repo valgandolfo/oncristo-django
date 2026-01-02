@@ -44,9 +44,8 @@ def listar_grupos(request):
         grupos = TBGRUPOS.objects.all().order_by('GRU_nome_grupo')
         
         # Aplicar filtros - se digitar "todos", lista todos sem filtro de nome
-        if busca_nome and busca_nome.lower() != 'todos':
+        if busca_nome and busca_nome.lower() not in ['todos', 'todas']:
             grupos = grupos.filter(GRU_nome_grupo__icontains=busca_nome)
-        # Se for "todos", não aplica filtro de nome (já está com todos os registros)
         
         if filtro_ativo != '':
             grupos = grupos.filter(GRU_ativo=bool(int(filtro_ativo)))
@@ -73,7 +72,7 @@ def listar_grupos(request):
         'grupos_ativos': grupos_ativos,
         'grupos_inativos': grupos_inativos,
         'grupos_hoje': grupos_hoje,
-        'modo_dashboard': True,  # Migrado para nova tela pai dashboard
+        'modo_dashboard': True,
         'busca_realizada': busca_realizada,
         'busca_nome': busca_nome,
         'filtro_ativo': filtro_ativo,

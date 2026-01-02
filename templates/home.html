@@ -84,7 +84,7 @@
         <div style="padding: 20px;">
             <div class="row g-3">
                 <div class="col-md-4">
-                    <img id="popup-banner-imagem" src="" alt="Banner" class="img-fluid h-100" style="object-fit: cover; min-height: 200px; width: 100%; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <img id="popup-banner-imagem" src="" alt="Banner" class="img-fluid" style="object-fit: cover; min-height: 200px; width: 100%; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 </div>
                 <div class="col-md-8">
                     <div style="padding: 20px; background: linear-gradient(135deg, #13af20 0%, #e9ecef 100%); border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); height: 100%;">
@@ -777,7 +777,7 @@ const bannerDados = [
     {
         titulo: "{{ banner.BAN_NOME_PATROCINADOR|escapejs }}",
         descricao: "{{ banner.BAN_DESCRICAO_COMERCIAL|default:''|escapejs }}",
-        imagem: "{% if banner.BAN_IMAGE %}{{ banner.BAN_IMAGE.url }}{% endif %}",
+        imagem: "{% if banner.BAN_IMAGE %}{{ banner.BAN_IMAGE.url|safe }}{% endif %}",
         link: "{{ banner.BAN_LINK|default:'#' }}",
         telefone: "{{ banner.BAN_TELEFONE|default:''|escapejs }}",
         endereco: "{{ banner.BAN_ENDERECO|default:''|escapejs }}"
@@ -799,7 +799,26 @@ function mostrarPopupBanner() {
     const info = document.getElementById('popup-banner-info');
     const link = document.getElementById('popup-banner-link');
     
-    if (img) img.src = b.imagem;
+    const imgContainer = img.parentElement;
+    const textContainer = imgContainer.nextElementSibling;
+    
+    if (img) {
+        if (b.imagem) {
+            console.log('Alterando imagem do popup para:', b.imagem);
+            img.src = b.imagem;
+            imgContainer.style.display = 'block';
+            if (textContainer) {
+                textContainer.className = 'col-md-8';
+            }
+        } else {
+            console.log('Banner sem imagem, ocultando container');
+            img.src = '';
+            imgContainer.style.display = 'none';
+            if (textContainer) {
+                textContainer.className = 'col-md-12';
+            }
+        }
+    }
     if (titulo) {
         titulo.innerHTML = '<i class="fas fa-store me-2"></i>' + b.titulo;
     }

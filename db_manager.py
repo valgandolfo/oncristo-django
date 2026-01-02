@@ -15,18 +15,39 @@ def setup_django():
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pro_igreja.settings')
     django.setup()
 
+def get_database_type():
+    """Detecta o tipo de banco de dados (sqlite ou mysql)"""
+    engine = settings.DATABASES['default']['ENGINE']
+    if 'sqlite' in engine.lower():
+        return 'sqlite'
+    elif 'mysql' in engine.lower():
+        return 'mysql'
+    else:
+        return 'unknown'
+
 def listar_tabelas():
     """Lista todas as tabelas do banco de dados"""
     print("\n" + "="*60)
     print("📋 LISTANDO TODAS AS TABELAS DO BANCO DE DADOS")
     print("="*60)
     
+    db_type = get_database_type()
+    
     with connection.cursor() as cursor:
-        # SQLite usa sqlite_master para listar tabelas
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        if db_type == 'sqlite':
+            # SQLite usa sqlite_master para listar tabelas
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+        elif db_type == 'mysql':
+            # MySQL usa INFORMATION_SCHEMA
+            cursor.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE()")
+        else:
+            # Fallback genérico
+            cursor.execute("SHOW TABLES")
+        
         tables = cursor.fetchall()
         
         print(f"📊 Total de tabelas: {len(tables)}")
+        print(f"🗄️  Tipo de banco: {db_type.upper()}")
         print("\n📋 Tabelas encontradas:")
         for i, table in enumerate(tables, 1):
             table_name = table[0]
@@ -40,24 +61,47 @@ def mostrar_estrutura_tabela(table_name):
     print(f"🏗️  ESTRUTURA DA TABELA: {table_name}")
     print("="*60)
     
+    db_type = get_database_type()
+    
     with connection.cursor() as cursor:
-        # SQLite usa PRAGMA table_info para mostrar estrutura
-        cursor.execute(f"PRAGMA table_info({table_name})")
-        columns = cursor.fetchall()
-        
-        print(f"📊 Total de campos: {len(columns)}")
-        print("\n📋 Campos da tabela:")
-        print(f"{'Campo':<20} {'Tipo':<20} {'Not Null':<10} {'Primary Key':<12} {'Default':<15}")
-        print("-" * 80)
-        
-        for column in columns:
-            field_name = column[1]
-            field_type = column[2]
-            not_null = "YES" if column[3] else "NO"
-            primary_key = "YES" if column[5] else "NO"
-            default = str(column[4]) if column[4] is not None else 'NULL'
+        if db_type == 'sqlite':
+            # SQLite usa PRAGMA table_info para mostrar estrutura
+            cursor.execute(f"PRAGMA table_info({table_name})")
+            columns = cursor.fetchall()
             
-            print(f"{field_name:<20} {field_type:<20} {not_null:<10} {primary_key:<12} {default:<15}")
+            print(f"📊 Total de campos: {len(columns)}")
+            print("\n📋 Campos da tabela:")
+            print(f"{'Campo':<20} {'Tipo':<20} {'Not Null':<10} {'Primary Key':<12} {'Default':<15}")
+            print("-" * 80)
+            
+            for column in columns:
+                field_name = column[1]
+                field_type = column[2]
+                not_null = "YES" if column[3] else "NO"
+                primary_key = "YES" if column[5] else "NO"
+                default = str(column[4]) if column[4] is not None else 'NULL'
+                
+                print(f"{field_name:<20} {field_type:<20} {not_null:<10} {primary_key:<12} {default:<15}")
+        elif db_type == 'mysql':
+            # MySQL usa DESCRIBE ou SHOW COLUMNS
+            cursor.execute(f"DESCRIBE {table_name}")
+            columns = cursor.fetchall()
+            
+            print(f"📊 Total de campos: {len(columns)}")
+            print("\n📋 Campos da tabela:")
+            print(f"{'Campo':<20} {'Tipo':<25} {'Null':<10} {'Key':<10} {'Default':<15}")
+            print("-" * 80)
+            
+            for column in columns:
+                field_name = column[0]
+                field_type = column[1]
+                null = column[2]
+                key = column[3]
+                default = str(column[4]) if column[4] is not None else 'NULL'
+                
+                print(f"{field_name:<20} {field_type:<25} {null:<10} {key:<10} {default:<15}")
+        else:
+            print("⚠️  Tipo de banco não suportado para esta operação.")
 
 def listar_registros_tabela(table_name, limit=10):
     """Lista os registros de uma tabela específica"""
@@ -79,9 +123,17 @@ def listar_registros_tabela(table_name, limit=10):
         cursor.execute(f"SELECT * FROM {table_name} LIMIT {limit}")
         records = cursor.fetchall()
         
-        # Obter nomes das colunas usando PRAGMA
-        cursor.execute(f"PRAGMA table_info({table_name})")
-        columns = [col[1] for col in cursor.fetchall()]
+        # Obter nomes das colunas
+        db_type = get_database_type()
+        if db_type == 'sqlite':
+            cursor.execute(f"PRAGMA table_info({table_name})")
+            columns = [col[1] for col in cursor.fetchall()]
+        elif db_type == 'mysql':
+            cursor.execute(f"DESCRIBE {table_name}")
+            columns = [col[0] for col in cursor.fetchall()]
+        else:
+            # Fallback: usar description do cursor
+            columns = [desc[0] for desc in cursor.description] if cursor.description else []
         
         print(f"\n📋 Primeiros {len(records)} registros:")
         print("-" * 80)
@@ -118,6 +170,74 @@ def escolher_tabela_por_numero(tabelas):
         except ValueError:
             print("❌ Digite um número válido!")
 
+def excluir_registros_tabela(table_name):
+    """Exclui todos os registros de uma tabela específica (com confirmação)"""
+    print(f"\n" + "="*60)
+    print(f"⚠️  EXCLUIR TODOS OS REGISTROS DA TABELA: {table_name}")
+    print("="*60)
+    
+    with connection.cursor() as cursor:
+        # Primeiro, contar total de registros
+        cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+        total = cursor.fetchone()[0]
+        
+        if total == 0:
+            print("ℹ️  A tabela já está vazia. Nenhum registro para excluir.")
+            return
+        
+        print(f"📊 Total de registros na tabela: {total}")
+        print(f"⚠️  ATENÇÃO: Esta operação é IRREVERSÍVEL!")
+        print(f"⚠️  Todos os {total} registros serão PERMANENTEMENTE excluídos!")
+        
+        # Primeira confirmação
+        print("\n" + "="*60)
+        confirmacao1 = input(f"⚠️  Digite 'SIM' para confirmar a exclusão de TODOS os registros: ").strip()
+        
+        if confirmacao1.upper() != 'SIM':
+            print("❌ Operação cancelada. Nenhum registro foi excluído.")
+            return
+        
+        # Segunda confirmação (dupla verificação)
+        print("\n" + "="*60)
+        print(f"⚠️  ÚLTIMA CHANCE! Esta ação não pode ser desfeita!")
+        confirmacao2 = input(f"⚠️  Digite o nome da tabela '{table_name}' para confirmar: ").strip()
+        
+        if confirmacao2 != table_name:
+            print("❌ Nome da tabela não confere. Operação cancelada.")
+            return
+        
+        # Terceira confirmação final
+        print("\n" + "="*60)
+        print(f"⚠️  CONFIRMAÇÃO FINAL!")
+        print(f"⚠️  Você está prestes a excluir {total} registros da tabela '{table_name}'")
+        confirmacao3 = input(f"⚠️  Digite 'CONFIRMAR' para prosseguir: ").strip()
+        
+        if confirmacao3.upper() != 'CONFIRMAR':
+            print("❌ Operação cancelada. Nenhum registro foi excluído.")
+            return
+        
+        # Executar exclusão
+        try:
+            print(f"\n🔄 Excluindo {total} registros...")
+            cursor.execute(f"DELETE FROM {table_name}")
+            registros_excluidos = cursor.rowcount
+            
+            # Verificar se realmente foi excluído
+            cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+            registros_restantes = cursor.fetchone()[0]
+            
+            print("="*60)
+            print(f"✅ Operação concluída com sucesso!")
+            print(f"📊 Registros excluídos: {registros_excluidos}")
+            print(f"📊 Registros restantes: {registros_restantes}")
+            print("="*60)
+            
+        except Exception as e:
+            print("="*60)
+            print(f"❌ Erro ao excluir registros: {e}")
+            print("="*60)
+            raise
+
 def menu_principal():
     """Menu principal do script"""
     while True:
@@ -128,10 +248,11 @@ def menu_principal():
         print("2. 🏗️  Ver estrutura de uma tabela")
         print("3. 📄 Listar registros de uma tabela")
         print("4. 🔍 Buscar tabelas por nome")
-        print("5. ❌ Sair")
+        print("5. 🗑️  Excluir todos os registros de uma tabela")
+        print("6. ❌ Sair")
         print("="*60)
         
-        opcao = input("\nEscolha uma opção (1-5): ").strip()
+        opcao = input("\nEscolha uma opção (1-6): ").strip()
         
         if opcao == "1":
             listar_tabelas()
@@ -160,8 +281,15 @@ def menu_principal():
             termo = input("\nDigite o termo para buscar: ").strip()
             print(f"\n🔍 Buscando tabelas que contêm '{termo}':")
             
+            db_type = get_database_type()
             with connection.cursor() as cursor:
-                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE ?", [f'%{termo}%'])
+                if db_type == 'sqlite':
+                    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE ?", [f'%{termo}%'])
+                elif db_type == 'mysql':
+                    cursor.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME LIKE %s", [f'%{termo}%'])
+                else:
+                    cursor.execute(f"SHOW TABLES LIKE '%{termo}%'")
+                
                 tables = cursor.fetchall()
                 
                 if tables:
@@ -171,11 +299,18 @@ def menu_principal():
                     print("❌ Nenhuma tabela encontrada!")
                     
         elif opcao == "5":
+            tabelas = listar_tabelas()
+            if tabelas:
+                table_name = escolher_tabela_por_numero(tabelas)
+                if table_name:
+                    excluir_registros_tabela(table_name)
+                    
+        elif opcao == "6":
             print("\n👋 Saindo do gerenciador de banco de dados...")
             break
             
         else:
-            print("❌ Opção inválida! Escolha de 1 a 5.")
+            print("❌ Opção inválida! Escolha de 1 a 6.")
 
 def main():
     """Função principal"""

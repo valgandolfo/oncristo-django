@@ -133,7 +133,7 @@
 
 <!-- FORMULÁRIO ÚNICO PARA INCLUSÃO E EDIÇÃO -->
 {% if acao == 'editar' or acao == 'incluir' %}
-<form id="detail-form" method="post" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_aviso' aviso.AVI_id %}{% else %}{% url 'app_igreja:criar_aviso' %}{% endif %}">
+<form id="detail-form" method="post" onsubmit="return lockFormButtons(this)" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_aviso' aviso.AVI_id %}{% else %}{% url 'app_igreja:criar_aviso' %}{% endif %}">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ next_url }}">
     
@@ -199,7 +199,7 @@
     </div>
 </form>
 {% elif acao == 'excluir' %}
-<form id="detail-form" method="post" action="{% url 'app_igreja:detalhar_aviso' aviso.AVI_id %}?acao=excluir">
+<form id="detail-form" method="post" onsubmit="return lockFormButtons(this)" action="{% url 'app_igreja:detalhar_aviso' aviso.AVI_id %}?acao=excluir">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ next_url }}">
     <div class="row">

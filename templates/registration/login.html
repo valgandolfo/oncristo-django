@@ -18,7 +18,7 @@
                     </div>
                     {% endif %}
 
-                    <form method="post" action="{% url 'login' %}" autocomplete="off">
+                    <form method="post" action="{% url 'login' %}" autocomplete="off" onsubmit="return lockFormButtons(this)">
                         {% csrf_token %}
                         <!-- Honeypot para enganar autocomplete -->
                         <input type="text" name="fakeusernameremembered" style="display:none" autocomplete="off">

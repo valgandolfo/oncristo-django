@@ -31,15 +31,39 @@ def listar_celebrantes(request):
     Lista todos os celebrantes com paginação
     """
     
-    # Controla se o usuário já executou uma busca (navegou na paginação)
-    busca_realizada = bool(request.GET.get('page'))
+    # Busca
+    query = request.GET.get('busca_nome', '').strip()
+    ordenacao_filter = request.GET.get('busca_ordenacao', '').strip()
+    ativo_filter = request.GET.get('filtro_ativo', '').strip()
     
-    # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro ou navegar na paginação
+    # Controla se o usuário já executou uma busca (preencheu algum filtro ou navegou na paginação)
+    busca_realizada = bool(query or ordenacao_filter or ativo_filter or request.GET.get('page'))
+    
+    # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
     if busca_realizada:
-        celebrantes = TBCELEBRANTES.objects.all().order_by('CEL_ordenacao', 'CEL_nome_celebrante')
+        celebrantes = TBCELEBRANTES.objects.all()
+        
+        # Aplicar filtros - se digitar "todos", lista todos sem filtro de nome
+        if query and query.lower() not in ['todos', 'todas']:
+            celebrantes = celebrantes.filter(CEL_nome_celebrante__icontains=query)
+        
+        # Outros filtros só aplicam se NÃO for "todos"
+        if query.lower() not in ['todos', 'todas']:
+            if ordenacao_filter:
+                celebrantes = celebrantes.filter(CEL_ordenacao=ordenacao_filter)
+                
+            if ativo_filter != '':
+                ativo_bool = ativo_filter == '1'
+                celebrantes = celebrantes.filter(CEL_ativo=ativo_bool)
+        
+        # Ordenação final
+        celebrantes = celebrantes.order_by('CEL_ordenacao', 'CEL_nome_celebrante')
     else:
         # Queryset vazio até que o usuário faça a primeira busca
         celebrantes = TBCELEBRANTES.objects.none()
+        
+    # Ordenação final
+    celebrantes = celebrantes.order_by('CEL_ordenacao', 'CEL_nome_celebrante')
     
     # Paginação
     paginator = Paginator(celebrantes, 10)  # 10 celebrantes por página
@@ -49,7 +73,10 @@ def listar_celebrantes(request):
     context = {
         'page_obj': page_obj,
         'celebrantes': page_obj,
-        'total_celebrantes': TBCELEBRANTES.objects.count() if busca_realizada else 0,
+        'query': query,
+        'ordenacao_filter': ordenacao_filter,
+        'ativo_filter': ativo_filter,
+        'total_celebrantes': TBCELEBRANTES.objects.count(),
         'modo_dashboard': True,
         'busca_realizada': busca_realizada,
     }

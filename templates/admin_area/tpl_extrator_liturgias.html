@@ -54,7 +54,7 @@
                             <h5 class="mb-0">📅 Extrair Liturgia de uma Data</h5>
                         </div>
                         <div class="card-body">
-                            <form method="post" id="form-data">
+                            <form method="post" id="form-data" onsubmit="return lockFormButtons(this)">
                                 {% csrf_token %}
                                 <input type="hidden" name="acao" value="extrair_data">
                                 
@@ -75,7 +75,7 @@
                                     </div>
                                 </div>
                                 
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="btn btn-primary btn-gravar-global" onclick="lockFormButtons(this)">
                                     <i class="fas fa-download me-2"></i>Extrair Liturgia
                                 </button>
                             </form>
@@ -88,7 +88,7 @@
                             <h5 class="mb-0">📆 Extrair Liturgias de um Período</h5>
                         </div>
                         <div class="card-body">
-                            <form method="post" id="form-periodo">
+                            <form method="post" id="form-periodo" onsubmit="return lockFormButtons(this)">
                                 {% csrf_token %}
                                 <input type="hidden" name="acao" value="extrair_periodo">
                                 
@@ -114,7 +114,7 @@
                                     <strong>Atenção:</strong> O período máximo é de 30 dias.
                                 </div>
                                 
-                                <button type="submit" class="btn btn-success">
+                                <button type="submit" class="btn btn-success btn-gravar-global" onclick="lockFormButtons(this)">
                                     <i class="fas fa-calendar-alt me-2"></i>Extrair Período
                                 </button>
                             </form>
@@ -188,6 +188,10 @@ document.getElementById('form-periodo').addEventListener('submit', function(e) {
         e.preventDefault();
         return false;
     }
+
+    // Se confirmou, chama lockFormButtons manualmente para este formulário específico que tem lógica de preventDefault
+    const btn = this.querySelector('button[type="submit"]');
+    if (btn) lockFormButtons(btn);
 });
 </script>
 {% endblock %}

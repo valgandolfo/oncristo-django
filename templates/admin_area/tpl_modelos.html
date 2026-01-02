@@ -560,9 +560,13 @@ function bdRetornar() {
     window.location.href = "{{ next_url|default:'/app_igreja/admin-area/modelos-master-detail/' }}";
 }
 
-function bdConfirmarExclusao() {
+function bdConfirmarExclusao(btn) {
     if (confirm('Tem certeza que deseja excluir o modelo "{{ modelo.MOD_DESCRICAO }}"?\n\nAtenção: Todos os itens deste modelo também serão excluídos!')) {
-        document.querySelector('#detail-form').submit();
+        const form = document.getElementById('detail-form');
+        if (form) {
+            lockFormButtons(btn || form);
+            form.submit();
+        }
     }
 }
 </script>

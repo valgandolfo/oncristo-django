@@ -28,17 +28,22 @@ def listar_murais(request):
         # Query base
         murais = TBMURAL.objects.all().order_by('-MUR_data_mural')
         
-        # Filtros
-        if busca:
-            murais = murais.filter(
-                Q(MUR_titulo_mural__icontains=busca)
-            )
-        
-        if status:
-            if status == 'ativo':
-                murais = murais.filter(MUR_ativo=True)
-            elif status == 'inativo':
-                murais = murais.filter(MUR_ativo=False)
+        # Se digitar "todos" ou "todas", ignora outros filtros e traz tudo
+        if busca.lower() in ['todos', 'todas']:
+            # Mantém todos os registros sem filtros adicionais
+            pass
+        else:
+            # Filtros normais
+            if busca:
+                murais = murais.filter(
+                    Q(MUR_titulo_mural__icontains=busca)
+                )
+            
+            if status:
+                if status == 'ativo':
+                    murais = murais.filter(MUR_ativo=True)
+                elif status == 'inativo':
+                    murais = murais.filter(MUR_ativo=False)
     else:
         # Queryset vazio até que o usuário faça a primeira busca
         murais = TBMURAL.objects.none()

@@ -106,7 +106,7 @@
                     <h4 class="mb-0">Gerar Mensalidades</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post" class="form-section" id="form-gerar-mensalidade">
+                    <form method="post" class="form-section" id="form-gerar-mensalidade" onsubmit="return lockFormButtons(this)">
                         {% csrf_token %}
                         
                         <div class="row">
@@ -150,12 +150,12 @@
                         
                         <div class="row mt-4">
                             <div class="col-md-6 text-center">
-                                <button type="submit" class="btn btn-gerar">
+                                <button type="submit" class="btn btn-gerar btn-gravar-global" onclick="lockFormButtons(this)">
                                     <i class="fas fa-check me-2"></i>Gerar
                                 </button>
                             </div>
                             <div class="col-md-6 text-center">
-                                <a href="{% url 'app_igreja:admin_area' %}" class="btn btn-cancelar">
+                                <a href="{% url 'app_igreja:admin_area' %}" class="btn btn-cancelar btn-cancelar-global">
                                     <i class="fas fa-arrow-left me-2"></i>Retornar
                                 </a>
                             </div>

@@ -129,7 +129,7 @@
 
 <!-- FORMULÁRIO ÚNICO PARA INCLUSÃO E EDIÇÃO -->
 {% if acao == 'editar' or acao == 'incluir' %}
-<form id="detail-form" method="post" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_liturgia' liturgia.LIT_id %}{% else %}{% url 'app_igreja:criar_liturgia' %}{% endif %}">
+<form id="detail-form" method="post" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_liturgia' liturgia.LIT_id %}{% else %}{% url 'app_igreja:criar_liturgia' %}{% endif %}" onsubmit="return lockFormButtons(this)">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ next_url }}">
     
@@ -216,7 +216,7 @@
     </div>
 </form>
 {% elif acao == 'excluir' %}
-<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_liturgia' liturgia.LIT_id %}">
+<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_liturgia' liturgia.LIT_id %}" onsubmit="return lockFormButtons(this)">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ next_url }}">
     <div class="row">

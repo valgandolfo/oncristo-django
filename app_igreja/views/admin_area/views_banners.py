@@ -47,27 +47,33 @@ def listar_banners(request):
     
     # Só carrega os registros no grid DEPOIS que o usuário aplicar um filtro
     if busca_realizada:
+        # Carrega os registros
         banners = TBBANNERS.objects.all()
         
-        if query:
-            banners = banners.filter(
-                Q(BAN_NOME_PATROCINADOR__icontains=query) | 
-                Q(BAN_DESCRICAO_COMERCIAL__icontains=query) |
-                Q(BAN_TELEFONE__icontains=query) |
-                Q(BAN_ENDERECO__icontains=query)
-            )
-        
-        if status_filter:
-            if status_filter == 'ativo':
-                banners = banners.filter(BAN_ORDEM__gt=0)
-            elif status_filter == 'inativo':
-                banners = banners.filter(BAN_ORDEM=0)
-        
-        # Ordenação
-        banners = banners.order_by('BAN_ORDEM', 'BAN_NOME_PATROCINADOR')
+        # Se digitar "todos" ou "todas", ignora outros filtros e traz tudo
+        if query.lower() in ['todos', 'todas']:
+            # Mantém todos os registros sem filtros adicionais
+            pass
+        else:
+            if query:
+                banners = banners.filter(
+                    Q(BAN_NOME_PATROCINADOR__icontains=query) | 
+                    Q(BAN_DESCRICAO_COMERCIAL__icontains=query) |
+                    Q(BAN_TELEFONE__icontains=query) |
+                    Q(BAN_ENDERECO__icontains=query)
+                )
+            
+            if status_filter:
+                if status_filter == 'ativo':
+                    banners = banners.filter(BAN_ORDEM__gt=0)
+                elif status_filter == 'inativo':
+                    banners = banners.filter(BAN_ORDEM=0)
     else:
         # Queryset vazio até que o usuário faça a primeira busca
         banners = TBBANNERS.objects.none()
+    
+    # Ordenação
+    banners = banners.order_by('BAN_ORDEM', 'BAN_NOME_PATROCINADOR')
     
     # Paginação
     paginator = Paginator(banners, 20)
