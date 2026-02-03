@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Configurações{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>
+                        Configurações do App
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Aqui você pode ajustar as configurações do aplicativo.
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="text-primary">
+                            <i class="fas fa-server me-2"></i>
+                            Servidor
+                        </h5>
+                        <p class="text-muted small">
+                            Configure o endereço do servidor para conectar o aplicativo.
+                        </p>
+
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="serverIp"
+                                   placeholder="Ex: 192.168.0.13 ou servidor.com">
+                            <button class="btn btn-outline-primary" type="button" onclick="saveServerIp()">
+                                <i class="fas fa-save"></i> Salvar
+                            </button>
+                        </div>
+                        <small class="text-muted">Deixe em branco para usar configuração automática.</small>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-4">
+                        <h5 class="text-primary">
+                            <i class="fas fa-print me-2"></i>
+                            Impressora
+                        </h5>
+                        <p class="text-muted small">
+                            Configure as colunas da impressora térmica.
+                        </p>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="printerColumns" class="form-label">Colunas</label>
+                                <select class="form-select" id="printerColumns">
+                                    <option value="32">32 colunas</option>
+                                    <option value="40" selected>40 colunas</option>
+                                    <option value="48">48 colunas</option>
+                                    <option value="58">58 colunas</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline-primary mt-2" type="button" onclick="savePrinterColumns()">
+                            <i class="fas fa-save"></i> Salvar Configuração
+                        </button>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-4">
+                        <h5 class="text-primary">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Sobre
+                        </h5>
+                        <p class="text-muted">
+                            Versão do aplicativo: 1.0.0<br>
+                            Projeto On Cristo - Tecnologia e Fé<br>
+                            Desenvolvido para conectar comunidades.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Carregar configurações salvas ao abrir a página
+document.addEventListener('DOMContentLoaded', function() {
+    loadServerIp();
+    loadPrinterColumns();
+});
+
+async function loadServerIp() {
+    try {
+        if (typeof ConfigGetChannel !== 'undefined') {
+            // Configurar callback para receber IP
+            window.onServerIpReceived = function(ip) {
+                document.getElementById('serverIp').value = ip;
+                delete window.onServerIpReceived;
+            };
+            ConfigGetChannel.postMessage(JSON.stringify({type: 'serverIp'}));
+        }
+    } catch (e) {
+        console.error('Erro ao carregar IP do servidor:', e);
+    }
+}
+
+async function loadPrinterColumns() {
+    try {
+        if (typeof ConfigGetChannel !== 'undefined') {
+            // Configurar callback para receber colunas
+            window.onPrinterColumnsReceived = function(columns) {
+                document.getElementById('printerColumns').value = columns;
+                delete window.onPrinterColumnsReceived;
+            };
+            ConfigGetChannel.postMessage(JSON.stringify({type: 'printerColumns'}));
+        }
+    } catch (e) {
+        console.error('Erro ao carregar colunas da impressora:', e);
+    }
+}
+
+async function saveServerIp() {
+    const ip = document.getElementById('serverIp').value.trim();
+    if (ip && typeof ConfigChannel !== 'undefined') {
+        ConfigChannel.postMessage(JSON.stringify({type: 'serverIp', value: ip}));
+        alert('IP do servidor salvo! Reinicie o app para aplicar.');
+    }
+}
+
+async function savePrinterColumns() {
+    const columns = document.getElementById('printerColumns').value;
+    if (columns && typeof ConfigChannel !== 'undefined') {
+        ConfigChannel.postMessage(JSON.stringify({type: 'printerColumns', value: columns}));
+        alert('Configuração de impressora salva!');
+    }
+}
+</script>
+{% endblock %}

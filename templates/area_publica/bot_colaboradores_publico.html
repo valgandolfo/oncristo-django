@@ -462,7 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <h4 style="color: #2c5530; margin-bottom: 15px;">Cadastro Realizado com Sucesso!</h4>
                 <p style="color: #666; margin-bottom: 25px; line-height: 1.6;">${messageText}</p>
-                <button onclick="window.location.href='/'" style="
+                <button onclick="window.location.href='{{ url_retorno|default:'/' }}'" style="
                     background-color: #2c5530;
                     color: white;
                     border: none;

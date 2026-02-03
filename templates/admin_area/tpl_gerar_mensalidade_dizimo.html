@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
 <style>
 /* CSS específico do módulo Gerar Mensalidades Dizimistas */
 
@@ -12,7 +11,7 @@
 .form-header {
     text-align: center;
     margin-bottom: 15px;
-    background: linear-gradient(135deg, #18c3f7 0%, #0d8fb8 100%);
+    background: var(--gradient-admin-blue);
     color: #9dd7f8;
     padding: 25px;
     border-radius: 10px;
@@ -42,17 +41,6 @@
     background: #f08842;
 }
 
-.card-header {
-    background: linear-gradient(135deg, #18c3f7 0%, #0d8fb8 100%);
-    color: #ffffff;
-    border-radius: 12px 12px 0 0;
-    padding: 15px 20px;
-    font-weight: 600;
-}
-
-.card-body {
-    padding: 30px;
-}
 
 .btn-gerar {
     background-color: #28a745;
@@ -106,7 +94,7 @@
                     <h4 class="mb-0">Gerar Mensalidades</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post" class="form-section" id="form-gerar-mensalidade" onsubmit="return lockFormButtons(this)">
+                    <form method="post" class="form-section" id="form-gerar-mensalidade" onsubmit="return lockFormButtonsGerarMensalidade(this);">
                         {% csrf_token %}
                         
                         <div class="row">
@@ -150,8 +138,8 @@
                         
                         <div class="row mt-4">
                             <div class="col-md-6 text-center">
-                                <button type="submit" class="btn btn-gerar btn-gravar-global" onclick="lockFormButtons(this)">
-                                    <i class="fas fa-check me-2"></i>Gerar
+                                <button type="submit" class="btn btn-gerar btn-gravar-global" id="btn-gerar-mensalidade">
+                                    <i class="fas fa-check me-2"></i><span class="btn-gerar-text">Gerar</span>
                                 </button>
                             </div>
                             <div class="col-md-6 text-center">
@@ -166,6 +154,29 @@
         </div>
     </div>
 </div>
+<script>
+(function() {
+    var enviado = false;
+    window.lockFormButtonsGerarMensalidade = function(form) {
+        if (!form || form.tagName !== 'FORM') form = document.getElementById('form-gerar-mensalidade');
+        if (!form) return true;
+        if (form.checkValidity && !form.checkValidity()) {
+            if (form.reportValidity) form.reportValidity();
+            return false;
+        }
+        if (enviado) return false;
+        enviado = true;
+        var btn = form.querySelector('#btn-gerar-mensalidade');
+        if (btn) {
+            btn.disabled = true;
+            var txt = btn.querySelector('.btn-gerar-text');
+            if (txt) txt.textContent = 'Gerando...';
+        }
+        if (typeof lockFormButtons === 'function') lockFormButtons(form);
+        return true;
+    };
+})();
+</script>
 
 <!-- MENSAGEM DE SUCESSO -->
 {% elif modo == 'sucesso_geracao' %}

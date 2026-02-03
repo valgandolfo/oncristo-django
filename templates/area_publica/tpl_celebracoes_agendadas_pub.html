@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Agendar Celebrações{% endblock %}
+
+{% block extra_css %}
+{# Estilos da tabela .celebracoes-table estão no base.html (vars: --header-bg, --header-text, --border-color, --hover-bg) #}
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="mb-3 text-center">
+                <i class="fas fa-fan me-3"></i>
+                Celebrações Agendadas
+            </h1>
+            <p class="lead mb-0 text-center">
+                Consulte suas celebrações agendadas
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Container Principal -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <!-- Container de Busca -->
+            <div class="container-busca">
+                <h5 class="mb-4">
+                    <i class="fas fa-search me-2"></i>
+                    Buscar Minhas Celebrações
+                </h5>
+                
+                <form method="get" class="row g-3">
+                    <div class="col-12">
+                        <label for="telefone" class="form-label fw-bold">Telefone Celular</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-phone"></i>
+                            </span>
+                            <input 
+                                type="text" 
+                                id="telefone" 
+                                name="telefone" 
+                                class="form-control" 
+                                placeholder="Digite seu telefone (00) 00000-0000"
+                                value="{{ telefone }}"
+                                required
+                            >
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                                <span class="d-none d-sm-inline ms-1">BUSCAR</span>
+                            </button>
+                        </div>
+                        <div class="form-text mt-2">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Digite o telefone que você usou ao agendar sua celebração
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Container de Lista -->
+            {% if resultados_encontrados %}
+            <div class="container-lista">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5>
+                        <i class="fas fa-list me-2"></i>
+                        Minhas Celebrações
+                    </h5>
+                </div>
+                
+                <table class="celebracoes-table">
+                    <thead>
+                        <tr>
+                            <th width="100px">Data</th>
+                            <th width="100px">Horário</th>
+                            <th>Celebração</th>
+                            <th width="120px">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for celebracao in celebracoes %}
+                        <tr style="cursor: pointer;" onclick="window.location.href='{% url 'app_igreja:celebracoes_agendadas_pub_detalhe' celebracao.id %}'">
+                            <td>{{ celebracao.CEL_data_celebracao|date:"d/m/Y" }}</td>
+                            <td>{{ celebracao.CEL_horario }}</td>
+                            <td>
+                                <strong>{{ celebracao.get_CEL_tipo_celebracao_display }}</strong><br>
+                                <small class="text-muted">{{ celebracao.CEL_local }}</small>
+                            </td>
+                            <td>
+                                <span class="badge {{ celebracao.status_badge_class }}">
+                                    {{ celebracao.status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% elif telefone %}
+            <div class="container-lista">
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nenhuma celebração encontrada</h5>
+                    <p class="text-muted">
+                        Não encontramos celebrações agendadas para o telefone <strong>{{ telefone }}</strong>.
+                    </p>
+                    <p class="text-muted">
+                        Verifique o número digitado ou <a href="{% url 'app_igreja:celebracoes_agendadas_pub_agendar' %}">agende uma celebração</a>.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
+
+<!-- Botão Flutuante Home -->
+<a href="{% url 'home' %}" class="fly-float-btn fly-float-btn-left d-flex align-items-center justify-content-center text-decoration-none" title="Voltar para Home">
+    <i class="fas fa-home"></i>
+</a>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscara de telefone para busca
+    var telefoneInput = document.getElementById('telefone');
+    
+    if (telefoneInput) {
+        telefoneInput.addEventListener('input', function(e) {
+            var value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                if (value.length <= 10) {
+                    value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+                } else {
+                    value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+                }
+            }
+            e.target.value = value.substring(0, 15);
+        });
+    }
+});
+</script>
+{% endblock %}
+

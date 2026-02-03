@@ -15,17 +15,6 @@ class ColaboradorForm(BaseAdminForm):
     """
     Formulário para CRUD de Colaboradores
     """
-    COL_funcao_id = forms.ChoiceField(
-        label='Função',
-        required=False,
-        choices=[('', 'Selecione uma função...')],
-        widget=forms.Select(attrs={
-            'class': 'form-control',
-            'id': 'COL_funcao_id'
-        })
-    )
-    
-    # Sobrescrever COL_funcao para ser um ChoiceField em vez de IntegerField
     COL_funcao = forms.ChoiceField(
         label='Função',
         required=False,
@@ -48,21 +37,14 @@ class ColaboradorForm(BaseAdminForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Popular choices de funções
         funcoes = TBFUNCAO.objects.all().order_by('FUN_nome_funcao')
         choices_funcoes = [('', 'Selecione uma função...')]
-        choices_funcoes.extend([(str(funcao.FUN_id), funcao.FUN_nome_funcao) for funcao in funcoes])
-        self.fields['COL_funcao_id'].choices = choices_funcoes
-
-        # Popular choices do campo COL_funcao
-        if 'COL_funcao' in self.fields:
-            self.fields['COL_funcao'].choices = choices_funcoes
-
-        # Se estiver editando, definir o valor inicial do campo COL_funcao
+        choices_funcoes.extend([(str(f.FUN_id), f.FUN_nome_funcao) for f in funcoes])
+        self.fields['COL_funcao'].choices = choices_funcoes
         if self.instance and self.instance.pk and self.instance.COL_funcao:
             self.fields['COL_funcao'].initial = str(self.instance.COL_funcao)
 
-        # Popular choices de grupos litúrgicos
+        # Grupos litúrgicos
         grupos = TBGRUPOS.objects.filter(GRU_ativo=True).order_by('GRU_nome_grupo')
         choices_grupos = [('', 'Selecione um grupo...')]
         choices_grupos.extend([(str(grupo.GRU_id), grupo.GRU_nome_grupo) for grupo in grupos])
@@ -70,14 +52,7 @@ class ColaboradorForm(BaseAdminForm):
 
         if self.instance and self.instance.pk and self.instance.COL_grupo_liturgico:
             self.fields['COL_grupo_liturgico'].initial = str(self.instance.COL_grupo_liturgico)
-    
-    def clean_COL_funcao_id(self):
-        """Converte string vazia para None"""
-        value = self.cleaned_data.get('COL_funcao_id')
-        if value == '':
-            return None
-        return value
-    
+
     def clean_COL_funcao(self):
         """Converte string vazia para None"""
         value = self.cleaned_data.get('COL_funcao')
@@ -101,24 +76,11 @@ class ColaboradorForm(BaseAdminForm):
     class Meta:
         model = TBCOLABORADORES
         fields = [
-            'COL_telefone',
-            'COL_nome_completo',
-            'COL_apelido',
-            'COL_cep',
-            'COL_endereco',
-            'COL_numero',
-            'COL_complemento',
-            'COL_bairro',
-            'COL_cidade',
-            'COL_estado',
-            'COL_data_nascimento',
-            'COL_sexo',
-            'COL_estado_civil',
-            'COL_foto',
-            'COL_status',
-            'COL_funcao_id',
-            'COL_funcao',
-            'COL_grupo_liturgico',
+            'COL_telefone', 'COL_nome_completo', 'COL_apelido',
+            'COL_cep', 'COL_endereco', 'COL_numero', 'COL_complemento',
+            'COL_bairro', 'COL_cidade', 'COL_estado',
+            'COL_data_nascimento', 'COL_sexo', 'COL_estado_civil',
+            'COL_foto', 'COL_status', 'COL_funcao', 'COL_grupo_liturgico',
         ]
         widgets = {
             'COL_telefone': forms.TextInput(attrs={

@@ -71,6 +71,13 @@ def meus_pedidos_oracoes(request):
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
     
+    # Determinar URL de retorno baseada no modo
+    from django.urls import reverse
+    if request.GET.get('modo') == 'app' or request.session.get('modo_app'):
+        url_retorno = reverse('app_igreja:app_servicos')
+    else:
+        url_retorno = reverse('home')
+
     context = {
         'paroquia': paroquia,
         'telefone': telefone,
@@ -78,6 +85,7 @@ def meus_pedidos_oracoes(request):
         'resultados_encontrados': resultados_encontrados,
         'total_encontrado': oracoes.count() if oracoes else 0,
         'acao': 'listar',  # Define a ação
+        'url_retorno': url_retorno,
     }
     
     return render(request, 'area_publica/bot_oracoes_publico.html', context)
@@ -112,6 +120,10 @@ def criar_pedido_oracao_publico(request):
             oracao.save()
             messages.success(request, 'Pedido de oração criado com sucesso!')
             
+            # Se estiver no modo app, redirecionar para a home do app
+            if request.GET.get('modo') == 'app' or request.session.get('modo_app'):
+                return redirect('app_igreja:app_servicos')
+
             # Se veio do chatbot (com telefone na URL), redirecionar para home
             if telefone_url:
                 return redirect('home')
@@ -134,12 +146,20 @@ def criar_pedido_oracao_publico(request):
     
     paroquia = TBPAROQUIA.objects.first()
     
+    # Determinar URL de retorno baseada no modo
+    from django.urls import reverse
+    if request.GET.get('modo') == 'app' or request.session.get('modo_app'):
+        url_retorno = reverse('app_igreja:app_servicos')
+    else:
+        url_retorno = reverse('home')
+
     context = {
         'form': form,
         'paroquia': paroquia,
         'acao': 'criar',  # Define a ação
         'telefone_readonly': telefone_readonly,
         'telefone_url': telefone_url,
+        'url_retorno': url_retorno,
     }
     
     return render(request, 'area_publica/bot_oracoes_publico.html', context)
@@ -152,10 +172,18 @@ def detalhar_oracao_publico(request, oracao_id):
     oracao = get_object_or_404(TBORACOES, id=oracao_id, ORA_ativo=True)
     paroquia = TBPAROQUIA.objects.first()
     
+    # Determinar URL de retorno baseada no modo
+    from django.urls import reverse
+    if request.GET.get('modo') == 'app' or request.session.get('modo_app'):
+        url_retorno = reverse('app_igreja:app_servicos')
+    else:
+        url_retorno = reverse('home')
+
     context = {
         'oracao': oracao,
         'paroquia': paroquia,
         'acao': 'consultar',  # Define a ação
+        'url_retorno': url_retorno,
     }
     
     return render(request, 'area_publica/bot_oracoes_publico.html', context)

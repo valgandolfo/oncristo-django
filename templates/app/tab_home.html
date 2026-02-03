@@ -1,0 +1,121 @@
+{% extends "app/app_base.html" %}
+{% load static %}
+
+{% block header %}
+<div class="header-app" style="background: linear-gradient(135deg, #2D0000 0%, #4A0000 100%);">
+    <div class="container d-flex justify-content-between align-items-center py-2">
+        <h1 class="mb-0">Projeto On Cristo</h1>
+        
+        <!-- Perfil Local Customizado -->
+        <div id="local-profile-container" onclick="openLocalProfileEdit()" style="cursor: pointer; display: flex; flex-direction: column; align-items: center;">
+            <div id="local-profile-img-wrapper" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid white; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;">
+                <i id="local-profile-icon" class="fas fa-user-circle" style="font-size: 1.8rem; color: white;"></i>
+                <img id="local-profile-img" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+            </div>
+            <span id="local-profile-initials" style="font-size: 0.65rem; color: rgba(255,255,255,0.8); font-weight: bold; margin-top: 2px;"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Função para atualizar o perfil com dados vindos do Flutter
+    window.onProfileDataReceived = function(profile) {
+        const img = document.getElementById('local-profile-img');
+        const icon = document.getElementById('local-profile-icon');
+        const initials = document.getElementById('local-profile-initials');
+        
+        if (profile && profile.name) {
+            // Calcular iniciais
+            const nameParts = profile.name.trim().split(' ');
+            let ini = '';
+            if (nameParts.length >= 2) {
+                ini = (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+            } else {
+                ini = nameParts[0][0].toUpperCase();
+            }
+            initials.innerText = ini;
+            
+            // Atualizar foto se existir
+            if (profile.photoPath && profile.photoPath.startsWith('data:image/')) {
+                img.src = profile.photoPath;
+                img.style.display = 'block';
+                icon.style.display = 'none';
+            } else {
+                img.style.display = 'none';
+                icon.style.display = 'block';
+            }
+        }
+    };
+
+    // Solicitar dados do perfil ao carregar
+    function loadLocalProfile() {
+        if (typeof ProfileGetChannel !== 'undefined') {
+            ProfileGetChannel.postMessage('get');
+        }
+    }
+
+    // Abrir editor de perfil no Flutter
+    function openLocalProfileEdit() {
+        if (typeof NavigationChannel !== 'undefined') {
+            NavigationChannel.postMessage('open_profile_edit');
+        } else {
+            // Fallback para debug
+            console.log('Navegação para perfil solicitada');
+        }
+    }
+
+    // Tentar carregar assim que o DOM estiver pronto
+    document.addEventListener('DOMContentLoaded', loadLocalProfile);
+    // E também após um pequeno delay para garantir que o WebView injetou os canais
+    setTimeout(loadLocalProfile, 500);
+</script>
+{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<div class="card shadow-sm border-0 mb-4" style="border-radius: 20px; overflow: hidden;">
+    <div class="card-body p-4 text-center">
+        <h4 class="fw-bold mb-1">{{ user.get_full_name|default:user.username }}</h4>
+        <p class="text-muted small">Comunidade de Fé</p>
+    </div>
+</div>
+{% endif %}
+
+<div class="mb-4">
+    <h5 class="fw-bold text-primary">
+        <i class="fas fa-church me-2"></i>
+        Paróquia: <span class="text-dark">{{ paroquia.PAR_nome_paroquia|default:"[Nome da Paróquia]" }}</span>
+    </h5>
+    <p class="lead" style="font-size: 1.1rem;">
+        <i class="fas fa-heart text-danger me-2"></i>
+        Bem-vindos à nossa comunidade de fé!
+    </p>
+</div>
+
+<div class="card shadow-sm border-0 mb-4" style="border-radius: 15px; overflow: hidden;">
+    {% if visual and visual.VIS_FOTO_PRINCIPAL %}
+        <img src="{{ visual.VIS_FOTO_PRINCIPAL.url }}" alt="Capa" class="img-fluid" style="width: 100%; height: 200px; object-fit: cover;">
+    {% else %}
+        <img src="{% static 'img/oncristo2.png' %}" alt="Capa" class="img-fluid" style="width: 100%; height: 200px; object-fit: cover;">
+    {% endif %}
+</div>
+
+<div class="card border-0 shadow-sm mb-4" style="background: #E8F5E8; border-radius: 15px;">
+    <div class="card-body p-4">
+        <p class="text-dark" style="line-height: 1.6; text-align: justify; margin: 0;">
+            Hoje, com a evolução da tecnologia, as informações estão mais fáceis de ser acessadas, distribuídas e divulgadas, 
+            mesmo que muitas dessas informações sejam questionáveis quanto à sua veracidade; isso nos coloca expostos a todo 
+            tipo de informação que nem sempre vai no caminho da legalidade, da ética e, sobretudo, no caminho do SENHOR. 
+            Foi baseado neste contexto que criamos este aplicativo que une tecnologia e fé, uma nova maneira de estarmos 
+            mais próximos aos nossos próximos.
+        </p>
+    </div>
+</div>
+
+<!-- Footer Preto no Rodapé da Página -->
+<div style="background-color: #000; color: #fff; padding: 15px 0; text-align: center; margin-top: 30px; margin-left: -20px; margin-right: -20px; margin-bottom: -20px;">
+    <p style="font-size: 0.75rem; margin: 0; opacity: 0.8;">
+        &copy; 2024 Projeto On Cristo. Todos os direitos reservados. By. V.Gandolfo
+    </p>
+</div>
+{% endblock %}

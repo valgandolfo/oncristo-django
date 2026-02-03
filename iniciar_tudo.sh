@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# 🚀 SCRIPT PARA INICIAR SERVIDOR DJANGO + NGROK AUTOMATICAMENTE
-# Autor: Assistente IA
+# 🚀 SCRIPT PARA INICIAR SERVIDOR DJANGO
 # Uso: ./iniciar_tudo.sh
 
-echo "🎯 INICIANDO SERVIDOR DJANGO + NGROK"
+echo "🎯 INICIANDO SERVIDOR DJANGO"
 echo "======================================"
 echo ""
 
@@ -102,22 +101,8 @@ if pgrep -f "manage.py runserver.*8000" > /dev/null; then
     sleep 2
 fi
 
-# Parar ngrok se estiver rodando
-if pgrep -f "ngrok" > /dev/null; then
-    print_warning "ngrok já está rodando. Parando..."
-    pkill -f ngrok
-    sleep 2
-fi
-
-# Verificar se ngrok está instalado
-if ! command -v ngrok &> /dev/null; then
-    print_error "ngrok não está instalado!"
-    print_info "Para instalar: sudo snap install ngrok"
-    print_info "Ou baixar de: https://ngrok.com/download"
-    exit 1
-fi
-
-print_status "ngrok está instalado"
+# Verificar dependências essenciais
+print_status "Verificando dependências..."
 
 # Criar diretório para logs se não existir
 mkdir -p logs
@@ -131,12 +116,6 @@ cleanup() {
     if pgrep -f "manage.py runserver.*8000" > /dev/null; then
         pkill -f "manage.py runserver.*8000"
         print_status "Servidor Django parado"
-    fi
-    
-    # Parar ngrok
-    if pgrep -f "ngrok" > /dev/null; then
-        pkill -f ngrok
-        print_status "ngrok parado"
     fi
     
     print_info "Todos os processos foram parados. Até logo!"
@@ -166,31 +145,8 @@ fi
 
 print_status "Servidor Django iniciado! (PID: $DJANGO_PID)"
 
-# Iniciar ngrok em background
-print_info "Iniciando ngrok na porta 8000..."
-ngrok http 8000 > logs/ngrok.log 2>&1 &
-NGROK_PID=$!
-
-# Aguardar ngrok iniciar
-sleep 5
-
-# Verificar se ngrok iniciou
-if ! pgrep -f "ngrok" > /dev/null; then
-    print_error "Erro ao iniciar ngrok!"
-    print_info "Verifique o log: logs/ngrok.log"
-    # Parar Django se ngrok falhou
-    pkill -f "manage.py runserver.*8000"
-    exit 1
-fi
-
-print_status "ngrok iniciado! (PID: $NGROK_PID)"
-
-# Tentar obter URL do ngrok da API
-sleep 3
-NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | grep -o '"public_url":"https://[^"]*"' | head -1 | cut -d'"' -f4)
-
 echo ""
-print_success "🎉 SERVIDOR DJANGO + NGROK INICIADOS COM SUCESSO!"
+print_success "🎉 SERVIDOR DJANGO INICIADO COM SUCESSO!"
 echo ""
 print_info "📋 INFORMAÇÕES DO SERVIDOR:"
 echo "   🌐 Local (PC): http://127.0.0.1:8000"
@@ -203,26 +159,14 @@ echo "   🏠 Home Rede: http://${IP_LOCAL}:8000/"
 echo "   ⚙️  Admin: http://${IP_LOCAL}:8000/app_igreja/admin-area/"
 echo "   🗄️  Django Admin: http://${IP_LOCAL}:8000/admin/"
 echo ""
-
-if [ -n "$NGROK_URL" ]; then
-    print_info "🌐 NGROK URL:"
-    echo "   🔗 Pública: ${NGROK_URL}"
-    echo "   📱 WhatsApp Webhook: ${NGROK_URL}/app_igreja/api/whatsapp/webhook/"
-    echo "   🧪 Teste Webhook: ${NGROK_URL}/app_igreja/api/whatsapp/test/"
-    echo ""
-    print_warning "⚠️  Configure esta URL no painel da Whapi Cloud:"
-    echo "   ${NGROK_URL}/app_igreja/api/whatsapp/webhook/"
-    echo ""
-else
-    print_warning "⚠️  Não foi possível obter a URL do ngrok automaticamente."
-    print_info "   Acesse: http://localhost:4040 para ver a URL do ngrok"
-    echo ""
-fi
+print_info "📱 URLs PARA O APP MOBILE:"
+echo "   🔌 API Base: http://${IP_LOCAL}:8000/app_igreja/api/"
+echo "   📊 Configuração: http://${IP_LOCAL}:8000/app_igreja/api/app-config/"
+echo "   🔐 Login: http://${IP_LOCAL}:8000/app_igreja/api/auth/login/"
+echo ""
 
 print_info "📊 LOGS:"
 echo "   Django: logs/django.log"
-echo "   ngrok: logs/ngrok.log"
-echo "   ngrok UI: http://localhost:4040"
 echo ""
 print_warning "⚠️  Para parar tudo, pressione Ctrl+C"
 echo ""
@@ -235,11 +179,6 @@ while true; do
         cleanup
     fi
     
-    # Verificar se ngrok ainda está rodando
-    if ! pgrep -f "ngrok" > /dev/null; then
-        print_error "ngrok parou inesperadamente!"
-        cleanup
-    fi
     
     sleep 5
 done

@@ -8,7 +8,7 @@ from .area_admin.models_funcoes import TBFUNCAO
 from .area_admin.models_grupos import TBGRUPOS
 from .area_admin.models_celebrantes import TBCELEBRANTES
 from .area_admin.models_colaboradores import TBCOLABORADORES
-from .area_admin.models_dizimistas import TBDIZIMISTAS, TBDOACAODIZIMO
+from .area_admin.models_dizimistas import TBDIZIMISTAS
 from .area_admin.models_celebracoes import TBCELEBRACOES
 from .area_admin.models_modelo import TBMODELO, TBITEM_MODELO
 

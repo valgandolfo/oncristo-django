@@ -6,6 +6,7 @@ Arquivo com views específicas para cadastro público de Dizimistas
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
@@ -80,12 +81,9 @@ def quero_ser_dizimista(request):
                     f'seu telefone {dizimista.DIS_telefone} foi registrado. '
                     f'Em breve entraremos em contato para confirmar seus dados.'
                 )
-                
-                # Se veio do chatbot (com telefone na URL), redirecionar para home
-                if telefone_url:
-                    return redirect('home')
-                
-                return redirect('app_igreja:quero_ser_dizimista')
+                # Voltar à tela anterior (mesma do botão Voltar)
+                url_retorno = reverse('app_igreja:app_servicos') if request.GET.get('modo') == 'app' or request.session.get('modo_app') else reverse('home')
+                return redirect(url_retorno)
                 
             except Exception as e:
                 messages.error(request, f'Erro ao cadastrar: {str(e)}')
@@ -105,13 +103,20 @@ def quero_ser_dizimista(request):
         
         form = DizimistaPublicoForm(initial=initial_data)
     
+    # Determinar URL de retorno baseada no modo
+    if request.GET.get('modo') == 'app' or request.session.get('modo_app'):
+        url_retorno = reverse('app_igreja:app_servicos')
+    else:
+        url_retorno = reverse('home')
+
     context = {
         'form': form,
         'titulo': 'Quero ser Dizimista',
         'subtitulo': 'Cadastre-se para contribuir com nossa paróquia',
         'paroquia': getattr(request, 'paroquia', None),
         'telefone_readonly': telefone_readonly,
-        'telefone_url': telefone_url
+        'telefone_url': telefone_url,
+        'url_retorno': url_retorno,
     }
     
     return render(request, 'area_publica/bot_dizimistas_publico.html', context)

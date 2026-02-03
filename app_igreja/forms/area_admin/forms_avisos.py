@@ -1,5 +1,8 @@
 from django import forms
+
 from ...models.area_admin.models_avisos import TBAVISO
+from .forms_commons import DateInputWidget
+
 
 class AvisoForm(forms.ModelForm):
     class Meta:
@@ -18,9 +21,8 @@ class AvisoForm(forms.ModelForm):
                 'maxlength': '255',
                 'id': 'AVI_texto'
             }),
-            'AVI_data': forms.DateInput(attrs={
+            'AVI_data': DateInputWidget(attrs={
                 'class': 'form-control',
-                'type': 'date',
                 'id': 'AVI_data'
             }),
         }

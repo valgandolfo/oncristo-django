@@ -1,0 +1,108 @@
+================================================================================
+  PASSO A PASSO - SUBIR PROJETO NO SERVIDOR DO (DigitalOcean)
+  Servidor limpo ou após ter excluído pastas/arquivos antigos
+================================================================================
+
+---- PARTE 1: NA SUA MÁQUINA LOCAL ----
+
+1. Abra o terminal na raiz do projeto (onde está manage.py).
+
+2. (Opcional) Backup local antes de subir:
+   ./backup_antes_deploy.sh
+
+3. Criar a pasta no servidor (se ainda não existir):
+   ssh root@137.184.116.197 "mkdir -p /home/oncristo"
+
+4. Subir o projeto com rsync (respeita exclusões; não sobe settings.py, .env, venv, etc.):
+   ./scripts/local_subir_para_do.sh
+
+   - Se perguntar "Executar no servidor backup + remoção ANTES do rsync?" → responda N (você já limpou).
+   - Se perguntar "Continuar com rsync (upload)?" → responda s.
+
+   Aguarde o upload terminar.
+
+---- PARTE 2: NO TERMINAL DO SERVIDOR DO ----
+
+5. Conectar no servidor:
+   ssh root@137.184.116.197
+
+6. Ir para o projeto:
+   cd /home/oncristo
+
+7. Colocar o .env_production na raiz do projeto.
+   (O rsync NÃO envia .env_production. Crie ou copie manualmente.)
+   Exemplo: nano .env_production
+   Conteúdo mínimo:
+   SECRET_KEY=sua-chave-secreta-longa
+   ALLOWED_HOSTS=oncristo.com.br,www.oncristo.com.br,137.184.116.197
+   DB_ENGINE=django.db.backends.mysql
+   DB_NAME=nome_do_banco
+   DB_USER=usuario
+   DB_PASSWORD=senha
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   SITE_URL=https://oncristo.com.br
+   (e o que mais precisar: EMAIL_*, AWS_*, WHATSAPP_*, etc.)
+
+8. Usar o settings de produção (o rsync não enviau settings.py; enviou settings.do):
+   cp pro_igreja/settings.do pro_igreja/settings.py
+
+9. Criar o venv e instalar dependências:
+   bash scripts/servidor_criar_venv_em_oncristo.sh
+   source venv/bin/activate
+   pip install -r requirements.txt
+
+10. Migrar o banco (MySQL já deve existir e estar acessível):
+    python manage.py migrate --noinput
+
+11. Coletar estáticos:
+    python manage.py collectstatic --noinput --clear
+
+12. Configurar e iniciar Gunicorn (se ainda não tiver unit do systemd):
+    - O projeto tem gunicorn_config.py em /home/oncristo (caminho já correto).
+    - Crie o unit (uma vez): 
+      sudo nano /etc/systemd/system/gunicorn_oncristo.service
+    Conteúdo sugerido:
+    [Unit]
+    Description=Gunicorn Oncristo
+    After=network.target
+
+    [Service]
+    User=root
+    Group=root
+    WorkingDirectory=/home/oncristo
+    ExecStart=/home/oncristo/venv/bin/gunicorn -c gunicorn_config.py pro_igreja.wsgi:application
+    Restart=always
+
+    [Install]
+    WantedBy=multi-user.target
+
+    Depois:
+    sudo systemctl daemon-reload
+    sudo systemctl enable gunicorn_oncristo
+    sudo systemctl start gunicorn_oncristo
+
+13. Configurar Nginx (se ainda não tiver):
+    - Ajuste o caminho no nginx para /home/oncristo (o projeto tem nginx_oncristo.conf como referência; pode ter /home/django/oncristo – troque para /home/oncristo).
+    - Recarregar nginx:
+    sudo systemctl reload nginx
+
+14. Verificar:
+    sudo systemctl status gunicorn_oncristo
+    sudo systemctl status nginx
+    Abra no navegador: https://oncristo.com.br
+
+================================================================================
+  RESUMO RÁPIDO (servidor já configurado, só atualizar código)
+================================================================================
+  Local:  ./backup_antes_deploy.sh  →  ./scripts/local_subir_para_do.sh
+  Servidor:
+    cd /home/oncristo
+    cp pro_igreja/settings.do pro_igreja/settings.py   # só se ainda não tiver
+    source venv/bin/activate
+    pip install -r requirements.txt
+    python manage.py migrate --noinput
+    python manage.py collectstatic --noinput --clear
+    sudo systemctl restart gunicorn_oncristo
+    sudo systemctl reload nginx
+================================================================================

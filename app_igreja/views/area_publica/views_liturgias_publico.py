@@ -3,7 +3,7 @@ from django.utils import timezone
 from datetime import datetime, date
 from django.db.models import Q
 
-from ...models.area_publica.models_liturgias import TBLITURGIA
+from ...models.area_admin.models_extrator_liturgias import TBLITURGIA
 from ...models.area_admin.models_paroquias import TBPAROQUIA
 
 
@@ -52,6 +52,13 @@ def liturgias_publico(request):
     # Tipos disponíveis para o filtro
     tipos_disponiveis = TBLITURGIA.TIPO_LITURGIA_CHOICES
     
+    # Determinar URL de retorno baseada no modo
+    from django.urls import reverse
+    if request.GET.get('modo') == 'app' or request.session.get('modo_app'):
+        url_retorno = reverse('app_igreja:app_info')
+    else:
+        url_retorno = reverse('home')
+
     context = {
         'paroquia': paroquia,
         'liturgias': liturgias,
@@ -59,6 +66,7 @@ def liturgias_publico(request):
         'tipos_disponiveis': tipos_disponiveis,
         'data_filtro': data_filtro_str,
         'tipo_filtro': tipo_filtro,
+        'url_retorno': url_retorno,
     }
     
     return render(request, 'area_publica/tpl_liturgias_publico.html', context)

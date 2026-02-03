@@ -44,9 +44,17 @@ def doacoes_publico(request):
             # Se houver erro na geração do QR Code, continuar sem ele
             qr_code_base64 = None
     
+    # Determinar URL de retorno baseada no modo
+    from django.urls import reverse
+    if request.GET.get('modo') == 'app' or request.session.get('modo_app'):
+        url_retorno = reverse('app_igreja:app_servicos')
+    else:
+        url_retorno = reverse('home')
+
     context = {
         'paroquia': paroquia,
         'qr_code': qr_code_base64,
+        'url_retorno': url_retorno,
     }
     
     return render(request, 'area_publica/tpl_doacoes_publico.html', context)

@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Calendário de Eventos{% endblock %}
+
+{% block extra_css %}
+{# .evento-table, .atividade-table, .btn-ver-programacao e .modal-atividades no base.html (vars: --header-bg, --header-text, --border-color, --hover-bg, --secondary-color, --primary-color, --light-color, --dark-color) #}
+<style>
+    @media (max-width: 768px) {
+        .evento-table { font-size: 0.85em; }
+        .btn-ver-programacao { padding: 4px 8px; font-size: 0.8rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="mb-3 text-center">
+                <i class="fas fa-calendar-alt me-3"></i>
+                CALENDÁRIO DE EVENTOS
+            </h1>
+            <p class="lead mb-0 text-center">
+                Programação de eventos da paróquia
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Container Principal -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <!-- Container de Busca por Período -->
+            <div class="container-busca">
+                <h5 class="mb-4">
+                    <i class="fas fa-filter me-2"></i>
+                    Filtrar Eventos
+                </h5>
+                
+                <form method="get" class="row g-3 align-items-end" id="form-busca-calendario">
+                    <div class="col-md-4">
+                        <label for="data_inicial" class="form-label fw-bold">Dt.Inicial:</label>
+                        <input type="date" 
+                               name="data_inicial" 
+                               id="data_inicial"
+                               class="form-control" 
+                               value="{{ data_inicial }}">
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="data_final" class="form-label fw-bold">Dt.Final:</label>
+                        <input type="date" 
+                               name="data_final" 
+                               id="data_final"
+                               class="form-control" 
+                               value="{{ data_final }}">
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-buscar w-100">
+                            <i class="fas fa-search me-2"></i>
+                            Buscar
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Container de Lista de Eventos -->
+            {% if data_inicial or data_final %}
+            <div class="container-lista">
+                <h5 class="mb-4">
+                    <i class="fas fa-list me-2"></i>
+                    Eventos do Período
+                </h5>
+                
+                {% if eventos %}
+                    <table class="evento-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 120px;">Data</th>
+                                <th>Título</th>
+                                <th style="width: 150px;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for evento in eventos %}
+                            <tr>
+                                <td>
+                                    {{ evento.EVE_DT_INICIAL|date:"d/m/Y" }}
+                                </td>
+                                <td>
+                                    {{ evento.EVE_TITULO }}
+                                </td>
+                                <td>
+                                    <button type="button" 
+                                            class="btn btn-ver-programacao" 
+                                            onclick="verProgramacao({{ evento.EVE_ID }})">
+                                        Ver Programação
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="text-center p-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Nenhum evento encontrado para este período.</p>
+                    </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Atividades -->
+<div id="modalAtividades" class="modal-atividades">
+    <div class="modal-content">
+        <span class="close" onclick="fecharModal()">&times;</span>
+        <h4 id="modalTitulo" class="mb-3" style="text-align: center; border-bottom: 2px solid #09788e; padding-bottom: 10px;">LISTA DE ATIVIDADES</h4>
+        <div id="modalConteudo">
+            <p class="text-muted">Carregando atividades...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Botão Flutuante HOME -->
+<a href="{{ url_retorno|default:'/' }}" class="fly-float-btn fly-float-btn-left d-flex align-items-center justify-content-center text-decoration-none" title="Voltar">
+    <i class="fas fa-home"></i>
+</a>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function verProgramacao(eventoId) {
+    // Mostrar modal
+    document.getElementById('modalAtividades').style.display = 'block';
+    document.getElementById('modalConteudo').innerHTML = '<p class="text-muted">Carregando atividades...</p>';
+    
+    // Buscar atividades via AJAX
+    fetch(`/app_igreja/calendario-eventos/${eventoId}/programacao/`)
+        .then(response => response.json())
+        .then(data => {
+            let html = '<table class="atividade-table">';
+            html += '<thead><tr><th>DATA</th><th>HORA</th><th>ATIVIDADE</th></tr></thead>';
+            html += '<tbody>';
+            
+            if (data.atividades && data.atividades.length > 0) {
+                data.atividades.forEach(function(atividade) {
+                    html += '<tr>';
+                    html += '<td>' + atividade.data + '</td>';
+                    html += '<td>' + (atividade.hora || '-') + '</td>';
+                    html += '<td>' + atividade.atividade + '</td>';
+                    html += '</tr>';
+                });
+            } else {
+                html += '<tr><td colspan="3" class="text-center text-muted">Nenhuma atividade cadastrada para este evento.</td></tr>';
+            }
+            
+            html += '</tbody></table>';
+            document.getElementById('modalTitulo').textContent = 'LISTA DE ATIVIDADES - ' + data.evento_titulo;
+            document.getElementById('modalConteudo').innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Erro ao carregar atividades:', error);
+            document.getElementById('modalConteudo').innerHTML = '<p class="text-danger">Erro ao carregar atividades. Tente novamente.</p>';
+        });
+}
+
+function fecharModal() {
+    document.getElementById('modalAtividades').style.display = 'none';
+}
+
+// Fechar modal ao clicar fora
+window.onclick = function(event) {
+    const modal = document.getElementById('modalAtividades');
+    if (event.target == modal) {
+        fecharModal();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Definir datas padrão se não houver filtro
+    const hoje = new Date().toISOString().split('T')[0];
+    if (!document.getElementById('data_inicial').value) {
+        document.getElementById('data_inicial').value = hoje;
+    }
+    if (!document.getElementById('data_final').value) {
+        // Data final = hoje + 30 dias
+        const dataFinal = new Date();
+        dataFinal.setDate(dataFinal.getDate() + 30);
+        document.getElementById('data_final').value = dataFinal.toISOString().split('T')[0];
+    }
+});
+</script>
+{% endblock %}

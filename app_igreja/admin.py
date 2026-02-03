@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models.area_admin.models_dioceses import TBDIOCESE
 from .models.area_admin.models_planos import TBPLANO
-from .models.area_publica.models_liturgias import TBLITURGIA
+from .models.area_admin.models_extrator_liturgias import TBLITURGIA
 # from .models.area_publica.models_horarios_missas import TBHORARIOMISSA
 
 # Register your models here.

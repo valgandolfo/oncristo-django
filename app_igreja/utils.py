@@ -50,3 +50,15 @@ EXTENSOES_FOTO = ['.jpg', '.jpeg', '.png', '.gif']
 MAX_WIDTH_IMAGE = 1920  # Largura máxima em pixels
 MAX_HEIGHT_IMAGE = 1080  # Altura máxima em pixels
 IMAGE_QUALITY = 85  # Qualidade JPEG (0-100)
+
+
+def reconstruir_url_com_filtros(request, nome_view, filtros_list):
+    """
+    Reconstrói URL com filtros preservados do POST (campos hidden).
+    nome_view: ex. 'app_igreja:listar_colaboradores'
+    filtros_list: ex. ['busca_telefone', 'busca_nome', 'page']
+    """
+    from django.urls import reverse
+    params = [f"{filtro}={request.POST.get(filtro, '')}" for filtro in filtros_list if request.POST.get(filtro)]
+    query_string = '&'.join(params)
+    return f"{reverse(nome_view)}?{query_string}" if query_string else reverse(nome_view)

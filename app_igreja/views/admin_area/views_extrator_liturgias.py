@@ -16,7 +16,7 @@ from django.utils import timezone
 import logging
 import re
 
-from ...models.area_publica.models_liturgias import TBLITURGIA
+from ...models.area_admin.models_extrator_liturgias import TBLITURGIA
 
 logger = logging.getLogger(__name__)
 
@@ -72,10 +72,14 @@ class ExtratorLiturgiaJoinville:
         """Extrai todas as leituras de uma página"""
         try:
             logger.info(f"Acessando URL: {url}")
+            print(f"--- [EXTRATOR] Acessando: {url}") # Debug visual
+            
             response = self.session.get(url, timeout=30)
+            print(f"--- [EXTRATOR] Status Code: {response.status_code}")
             response.raise_for_status()
             
             soup = BeautifulSoup(response.text, 'html.parser')
+            print(f"--- [EXTRATOR] HTML lido: {len(response.text)} bytes")
             
             # Estrutura do site da Arquidiocese de Joinville:
             # Usa classes: .primeira, .segunda, .salmo, .evangelho
@@ -86,27 +90,35 @@ class ExtratorLiturgiaJoinville:
             # Extrair Primeira Leitura (por classe ou ID)
             primeira_leitura = self._extrair_por_classe_id(soup, "primeira", "Primeira Leitura")
             if primeira_leitura:
+                print("--- [EXTRATOR] Primeira Leitura ENCONTRADA")
                 liturgias['Primeira Leitura'] = primeira_leitura
+            else:
+                print("--- [EXTRATOR] Primeira Leitura NÃO encontrada")
             
             # Extrair Segunda Leitura (se houver)
             segunda_leitura = self._extrair_por_classe_id(soup, "segunda", "Segunda Leitura")
             if segunda_leitura:
+                print("--- [EXTRATOR] Segunda Leitura ENCONTRADA")
                 liturgias['Segunda Leitura'] = segunda_leitura
             
             # Extrair Salmo (por classe ou ID)
             salmo = self._extrair_por_classe_id(soup, "salmo", "Salmo", "Responsório")
             if salmo:
+                print("--- [EXTRATOR] Salmo ENCONTRADO")
                 liturgias['Salmo Responsorial'] = salmo
             
             # Extrair Evangelho (por classe ou ID)
             evangelho = self._extrair_por_classe_id(soup, "evangelho", "Evangelho")
             if evangelho:
+                print("--- [EXTRATOR] Evangelho ENCONTRADO")
                 liturgias['Evangelho'] = evangelho
             
+            print(f"--- [EXTRATOR] Total itens extraídos: {len(liturgias)}")
             return liturgias
             
         except Exception as e:
             logger.error(f"Erro ao extrair liturgia: {e}")
+            print(f"--- [EXTRATOR] ERRO: {e}")
             return {}
     
     def _extrair_por_classe_id(self, soup, classe_id, titulo_principal, titulo_alternativo=None):
@@ -115,18 +127,62 @@ class ExtratorLiturgiaJoinville:
             # Método 1: Buscar por ID (#primeira, #segunda, #salmo, #evangelho)
             elemento_id = soup.find(id=classe_id)
             if elemento_id:
-                texto = elemento_id.get_text(separator='\n', strip=True)
-                # Remover o título se estiver no texto
-                texto = re.sub(rf'^{re.escape(titulo_principal)}[:\s]*', '', texto, flags=re.IGNORECASE).strip()
+                # Usar separator \n para garantir que titulos fiquem em linhas separadas de parágrafos
+                texto_bruto = elemento_id.get_text(separator='\n', strip=True)
+                
+                # Dividir em linhas
+                linhas = texto_bruto.split('\n')
+                
+                # Lista de títulos para tentar remover
+                titulos_remover = [titulo_principal]
+                if titulo_alternativo:
+                    titulos_remover.append(titulo_alternativo)
+                
+                # Verificar primeira linha
+                if linhas:
+                    primeira_linha = linhas[0].strip()
+                    # Se primeira linha contém algum dos títulos (case insensitive)
+                    if any(t.lower() in primeira_linha.lower() for t in titulos_remover):
+                        # E se a linha for relativamente curta (título + ref bíblica geralmente < 100 chars)
+                        if len(primeira_linha) < 100:
+                            linhas = linhas[1:] # Remove a primeira linha
+                
+                texto = '\n'.join(linhas).strip()
+
                 if texto and len(texto) > 50:
                     logger.info(f"✅ {titulo_principal} encontrado por ID #{classe_id}")
                     return texto
             
             # Método 2: Buscar por classe (.primeira, .segunda, .salmo, .evangelho)
             elementos_classe = soup.find_all(class_=re.compile(rf'\b{classe_id}\b', re.IGNORECASE))
+            if elementos_classe:
+                print(f"--- [EXTRATOR] Encontrados {len(elementos_classe)} elementos com classe '{classe_id}'")
+            else:
+                print(f"--- [EXTRATOR] NENHUM elemento com classe '{classe_id}'")
+
             for elemento in elementos_classe:
-                texto = elemento.get_text(separator='\n', strip=True)
-                texto = re.sub(rf'^{re.escape(titulo_principal)}[:\s]*', '', texto, flags=re.IGNORECASE).strip()
+                # Usar separator \n para garantir que titulos fiquem em linhas separadas de parágrafos
+                texto_bruto = elemento.get_text(separator='\n', strip=True)
+                
+                # Dividir em linhas
+                linhas = texto_bruto.split('\n')
+                
+                # Lista de títulos para tentar remover
+                titulos_remover = [titulo_principal]
+                if titulo_alternativo:
+                    titulos_remover.append(titulo_alternativo)
+                
+                # Verificar primeira linha
+                if linhas:
+                    primeira_linha = linhas[0].strip()
+                    # Se primeira linha contém algum dos títulos (case insensitive)
+                    if any(t.lower() in primeira_linha.lower() for t in titulos_remover):
+                        # E se a linha for relativamente curta (título + ref bíblica geralmente < 100 chars)
+                        if len(primeira_linha) < 100:
+                            linhas = linhas[1:] # Remove a primeira linha
+                
+                texto = '\n'.join(linhas).strip()
+
                 if texto and len(texto) > 50:
                     logger.info(f"✅ {titulo_principal} encontrado por classe .{classe_id}")
                     return texto
@@ -252,11 +308,13 @@ class ExtratorLiturgiaJoinville:
     def salvar_liturgias(self, data_liturgia, liturgias):
         """Salva as liturgias no banco de dados"""
         try:
+            print(f"--- [EXTRATOR] Tentando salvar liturgias para {data_liturgia}")
             # Remover liturgias existentes para esta data
             TBLITURGIA.objects.filter(LIT_DATALIT=data_liturgia).delete()
             
             # Salvar cada liturgia
             for tipo, texto in liturgias.items():
+                print(f"--- [EXTRATOR] Salvando {tipo} (len={len(texto)})")
                 TBLITURGIA.objects.create(
                     LIT_DATALIT=data_liturgia,
                     LIT_TIPOLIT=tipo,
@@ -265,56 +323,86 @@ class ExtratorLiturgiaJoinville:
                 )
             
             logger.info(f"✅ Liturgias salvas para {data_liturgia}")
+            print("--- [EXTRATOR] Salvo com SUCESSO!")
             return True
             
         except Exception as e:
             logger.error(f"Erro ao salvar liturgias: {e}")
+            print(f"--- [EXTRATOR] ERRO AO SALVAR: {e}")
             return False
     
     def extrair_por_periodo(self, data_inicio, data_fim):
-        """Extrai liturgias para um período de datas"""
+        """Extrai liturgias para um período de datas de forma paralela"""
+        import concurrent.futures
+        
+        print(f"--- [EXTRATOR] Iniciando extração PARALELA período: {data_inicio} até {data_fim}")
+        
         resultados = {
             'sucesso': 0,
             'erro': 0,
             'datas': []
         }
         
-        data_atual = data_inicio
-        while data_atual <= data_fim:
+        # Gerar lista de datas
+        datas = []
+        curr = data_inicio
+        while curr <= data_fim:
+            datas.append(curr)
+            curr += timedelta(days=1)
+            
+        # Função auxiliar para processar uma data (worker)
+        def processar_data(data_alvo):
             try:
-                url = self.construir_url(data_atual)
-                liturgias = self.extrair_liturgia_da_pagina(url, data_atual)
+                # Criar nova instância para garantir isolamento na thread
+                # Não podemos usar self.session pois requests.Session não é thread-safe para escritas simultâneas
+                # (embora leituras sejam ok, o handshake SSL pode dar conflito)
+                extrator_thread = ExtratorLiturgiaJoinville()
+                
+                url = extrator_thread.construir_url(data_alvo)
+                liturgias = extrator_thread.extrair_liturgia_da_pagina(url, data_alvo)
                 
                 if liturgias:
-                    if self.salvar_liturgias(data_atual, liturgias):
-                        resultados['sucesso'] += 1
-                        resultados['datas'].append({
-                            'data': data_atual,
-                            'status': 'sucesso',
-                            'leituras': list(liturgias.keys())
-                        })
+                    return {'data': data_alvo, 'sucesso': True, 'liturgias': liturgias}
+                else:
+                    return {'data': data_alvo, 'sucesso': False, 'status': 'erro_extrair'}
+            except Exception as exc:
+                return {'data': data_alvo, 'sucesso': False, 'status': 'erro', 'mensagem': str(exc)}
+
+        # Executar em paralelo (max 5 workers para não sobrecarregar o site destino)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            future_to_data = {executor.submit(processar_data, d): d for d in datas}
+            
+            for future in concurrent.futures.as_completed(future_to_data):
+                data = future_to_data[future]
+                try:
+                    res = future.result()
+                    
+                    if res['sucesso']:
+                        # Salvar na thread principal (aqui) para evitar problemas de Lock no SQLite
+                        if self.salvar_liturgias(res['data'], res['liturgias']):
+                            resultados['sucesso'] += 1
+                            resultados['datas'].append({
+                                'data': res['data'],
+                                'status': 'sucesso',
+                                'leituras': list(res['liturgias'].keys())
+                            })
+                        else:
+                            resultados['erro'] += 1
+                            resultados['datas'].append({
+                                'data': res['data'],
+                                'status': 'erro_salvar'
+                            })
                     else:
                         resultados['erro'] += 1
-                        resultados['datas'].append({
-                            'data': data_atual,
-                            'status': 'erro_salvar'
-                        })
-                else:
+                        resultados['datas'].append(res)
+                        
+                except Exception as exc:
                     resultados['erro'] += 1
                     resultados['datas'].append({
-                        'data': data_atual,
-                        'status': 'erro_extrair'
+                        'data': data,
+                        'status': 'erro',
+                        'mensagem': str(exc)
                     })
-            except Exception as e:
-                logger.error(f"Erro ao processar {data_atual}: {e}")
-                resultados['erro'] += 1
-                resultados['datas'].append({
-                    'data': data_atual,
-                    'status': 'erro',
-                    'mensagem': str(e)
-                })
-            
-            data_atual += timedelta(days=1)
         
         return resultados
 

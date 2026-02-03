@@ -12,7 +12,9 @@ from django.conf import settings
 
 def setup_django():
     """Configura o Django para usar as configurações do projeto"""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pro_igreja.settings')
+    # Forçar o uso de settings.local se não estiver definido
+    if not os.environ.get('DJANGO_SETTINGS_MODULE'):
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pro_igreja.settings.local')
     django.setup()
 
 def get_database_type():

@@ -4,8 +4,9 @@
 import multiprocessing
 import os
 
-# Diretório do projeto
-bind = "unix:/home/django/oncristo/gunicorn.sock"
+# Diretório do projeto (igual ao REMOTE_DIR do local_subir_para_do.sh)
+PROJECT_DIR = "/home/oncristo"
+bind = f"unix:{PROJECT_DIR}/gunicorn.sock"
 workers = multiprocessing.cpu_count() * 2 + 1
 worker_class = "sync"
 worker_connections = 1000
@@ -22,10 +23,8 @@ proc_name = "oncristo_gunicorn"
 
 # Server mechanics
 daemon = False
-pidfile = "/home/django/oncristo/gunicorn.pid"
+pidfile = f"{PROJECT_DIR}/gunicorn.pid"
 umask = 0
-user = "django"
-group = "www-data"
 tmp_upload_dir = None
 
 # SSL (se necessário)

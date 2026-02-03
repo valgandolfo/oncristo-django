@@ -5,10 +5,17 @@ from django.core.paginator import Paginator
 from django.urls import reverse
 from functools import wraps
 
-# Imports dos models e forms
 from ...models.area_admin.models_colaboradores import TBCOLABORADORES
-from ...models.area_admin.models_funcoes import TBFUNCAO
 from ...forms.area_admin.forms_colaboradores import ColaboradorForm
+from ...utils import reconstruir_url_com_filtros
+
+FILTROS_COLABORADORES = ['busca_telefone', 'busca_nome', 'busca_apelido', 'busca_status', 'page']
+
+
+def _redirect_listar_colaboradores(request):
+    """Redirect para listagem preservando filtros do POST."""
+    return redirect(reconstruir_url_com_filtros(request, 'app_igreja:listar_colaboradores', FILTROS_COLABORADORES))
+
 
 def admin_required(view_func):
     """Decorator para verificar se o usuário é administrador"""
@@ -24,17 +31,6 @@ def admin_required(view_func):
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
-def popular_choices_formulario(form):
-    """Popula os choices dos campos de função"""
-    # Popular choices de funções
-    funcoes = TBFUNCAO.objects.all().order_by('FUN_nome_funcao')
-    funcao_choices = [('', 'Selecione uma função...')]
-    for funcao in funcoes:
-        funcao_choices.append((str(funcao.FUN_id), funcao.FUN_nome_funcao))
-    form.fields['COL_funcao_id'].choices = funcao_choices
-    # Popular também o campo COL_funcao se existir
-    if 'COL_funcao' in form.fields:
-        form.fields['COL_funcao'].choices = funcao_choices
 
 @login_required
 @admin_required
@@ -117,30 +113,11 @@ def criar_colaborador(request):
         form = ColaboradorForm(request.POST, request.FILES)
         
         if form.is_valid():
-            colaborador = form.save()
-            # Reconstruir URL com filtros preservados do POST (campos hidden)
-            params = []
-            if request.POST.get('busca_telefone'):
-                params.append(f"busca_telefone={request.POST.get('busca_telefone')}")
-            if request.POST.get('busca_nome'):
-                params.append(f"busca_nome={request.POST.get('busca_nome')}")
-            if request.POST.get('busca_apelido'):
-                params.append(f"busca_apelido={request.POST.get('busca_apelido')}")
-            if request.POST.get('busca_status'):
-                params.append(f"busca_status={request.POST.get('busca_status')}")
-            if request.POST.get('page'):
-                params.append(f"page={request.POST.get('page')}")
-            
-            query_string = '&'.join(params)
-            if query_string:
-                return redirect(f"{reverse('app_igreja:listar_colaboradores')}?{query_string}")
-            return redirect('app_igreja:listar_colaboradores')
+            form.save()
+            return _redirect_listar_colaboradores(request)
     else:
         form = ColaboradorForm()
-    
-    # Popular choices dos campos de grupo e função
-    popular_choices_formulario(form)
-    
+
     next_url = request.META.get('HTTP_REFERER')
     context = {
         'form': form,
@@ -167,46 +144,14 @@ def editar_colaborador(request, colaborador_id):
         
         if form.is_valid():
             form.save()
-            # Reconstruir URL com filtros preservados do POST (campos hidden)
-            params = []
-            if request.POST.get('busca_telefone'):
-                params.append(f"busca_telefone={request.POST.get('busca_telefone')}")
-            if request.POST.get('busca_nome'):
-                params.append(f"busca_nome={request.POST.get('busca_nome')}")
-            if request.POST.get('busca_apelido'):
-                params.append(f"busca_apelido={request.POST.get('busca_apelido')}")
-            if request.POST.get('busca_status'):
-                params.append(f"busca_status={request.POST.get('busca_status')}")
-            if request.POST.get('page'):
-                params.append(f"page={request.POST.get('page')}")
-            
-            query_string = '&'.join(params)
-            if query_string:
-                return redirect(f"{reverse('app_igreja:listar_colaboradores')}?{query_string}")
-            return redirect('app_igreja:listar_colaboradores')
+            return _redirect_listar_colaboradores(request)
     else:
         form = ColaboradorForm(instance=colaborador)
-    
-    # Popular choices dos campos de grupo e função
-    popular_choices_formulario(form)
-    
-    # Buscar todas as funções para exibição
-    funcoes = TBFUNCAO.objects.all().order_by('FUN_nome_funcao')
-    
-    # Buscar função específica do colaborador se existir
-    funcao_colaborador = None
-    if colaborador.COL_funcao:
-        try:
-            funcao_colaborador = TBFUNCAO.objects.get(FUN_id=colaborador.COL_funcao)
-        except TBFUNCAO.DoesNotExist:
-            pass
-    
+
     next_url = request.META.get('HTTP_REFERER')
     context = {
         'form': form,
         'colaborador': colaborador,
-        'funcoes': funcoes,
-        'funcao_colaborador': funcao_colaborador,
         'titulo': f'Editar Colaborador: {colaborador.COL_nome_completo}',
         # novo padrão PAI-filho
         'acao': 'editar',
@@ -224,22 +169,8 @@ def detalhar_colaborador(request, colaborador_id):
     Mostra detalhes de um colaborador
     """
     colaborador = get_object_or_404(TBCOLABORADORES, COL_id=colaborador_id)
-    
-    # Buscar todas as funções para exibição
-    funcoes = TBFUNCAO.objects.all().order_by('FUN_nome_funcao')
-    
-    # Buscar função específica do colaborador se existir
-    funcao_colaborador = None
-    if colaborador.COL_funcao:
-        try:
-            funcao_colaborador = TBFUNCAO.objects.get(FUN_id=colaborador.COL_funcao)
-        except TBFUNCAO.DoesNotExist:
-            pass
-    
     context = {
         'colaborador': colaborador,
-        'funcoes': funcoes,
-        'funcao_colaborador': funcao_colaborador,
         'titulo': f'Detalhes do Colaborador: {colaborador.COL_nome_completo}',
         # compat atual
         'modo_detalhes': True,
@@ -261,24 +192,8 @@ def excluir_colaborador(request, colaborador_id):
     
     if request.method == 'POST':
         colaborador.delete()
-        # Reconstruir URL com filtros preservados do POST (campos hidden)
-        params = []
-        if request.POST.get('busca_telefone'):
-            params.append(f"busca_telefone={request.POST.get('busca_telefone')}")
-        if request.POST.get('busca_nome'):
-            params.append(f"busca_nome={request.POST.get('busca_nome')}")
-        if request.POST.get('busca_apelido'):
-            params.append(f"busca_apelido={request.POST.get('busca_apelido')}")
-        if request.POST.get('busca_status'):
-            params.append(f"busca_status={request.POST.get('busca_status')}")
-        if request.POST.get('page'):
-            params.append(f"page={request.POST.get('page')}")
-        
-        query_string = '&'.join(params)
-        if query_string:
-            return redirect(f"{reverse('app_igreja:listar_colaboradores')}?{query_string}")
-        return redirect('app_igreja:listar_colaboradores')
-    
+        return _redirect_listar_colaboradores(request)
+
     next_url = request.META.get('HTTP_REFERER')
     context = {
         'colaborador': colaborador,

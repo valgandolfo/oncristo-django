@@ -10,99 +10,7 @@
         padding: 0;  /* Remove padding padrão da seção hero */
     }
     
-    /* === HERO CONTENT (Cabeçalho) === */
-    .hero-content {
-        border: 1px solid #ef55b2;  
-        border-radius: 15px;
-        padding: 16px 32px;           /* Espaçamento interno: 16px vertical, 32px horizontal */
-        background: #ecee81;          /* Cor de fundo amarelo claro */
-        display: block;
-        text-align: center;
-        margin: 10px auto 0 auto;     /* Margem superior 10px, centralizado horizontalmente */
-        max-width: 920px;             /* Largura máxima 920px */
-    }
     
-    /* === CONTAINER DE BUSCA === 
-       Container onde o usuário busca liturgias por data e tipo
-       Cor: azul claro (rgb 105, 233, 242) */
-    .container-busca {
-        border: 1px solid #ef55b2;  
-        background: rgb(105, 233, 242);    /* Cor de fundo azul claro */
-        padding: 40px;                      /* Espaçamento interno 40px todos os lados */
-        border-radius: 15px;                /* Bordas arredondadas 15px */
-        box-shadow: 0 4px 6px rgba(20, 214, 235, 0.1);  /* Sombra do container */
-        margin: 10px;                       /* Margem 10px */
-    }
-    
-    /* === CONTAINER DE LISTA ===*/   
-    .container-lista {
-        border: 1px solid #ef55b2;  
-        background: rgb(168, 239, 139);    /* Cor de fundo verde claro */
-        padding: 20px;                      /* Espaçamento interno 20px */
-        border-radius: 15px;                /* Bordas arredondadas 15px */
-        box-shadow: 0 4px 6px #ef55b2;      /* Sombra com cor rosa */
-        margin-top: 20px;                   /* Margem superior 20px */
-    }
-    
-    /* === CARDS DE LITURGIAS === */
-    .liturgia-card {
-        border: 2px solid #09788e;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        background: white;
-        overflow: hidden;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .liturgia-card-header {
-        background: #09788e;
-        color: white;
-        padding: 15px 20px;
-        font-weight: 600;
-        font-size: 1.1em;
-        text-align: center;
-        border-bottom: 2px solid #09788e;
-    }
-    
-    .liturgia-card-body {
-        padding: 20px;
-        color: #495057;
-        line-height: 1.8;
-        text-align: justify;
-    }
-    
-    /* === TABELA DE LITURGIAS (Desktop) === */
-    .liturgia-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    
-    .liturgia-table thead {
-        background: #09788e;
-        color: white;
-    }
-    
-    .liturgia-table th {
-        padding: 12px;
-        text-align: left;
-        font-weight: 600;
-        border: 1px solid #fff;
-    }
-    
-    .liturgia-table tbody tr {
-        border-bottom: 1px solid #c8c8dc;
-    }
-    
-    .liturgia-table tbody tr:hover {
-        background: #f8f9fa;
-    }
-    
-    .liturgia-table td {
-        padding: 12px;
-        border: 1px solid #c8c8dc;
-        word-wrap: break-word;
-        word-break: break-word;
-    }
     
     .liturgia-data-cell {
         color: #6c757d;
@@ -119,157 +27,11 @@
         color: #495057;
     }
     
-    /* === BADGE DE TIPO === */
-    .badge-tipo {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.85em;
-        font-weight: 500;
-    }
     
-    .badge-primeira-leitura {
-        background: #e3f2fd;
-        color: #1976d2;
-    }
     
-    .badge-segunda-leitura {
-        background: #f3e5f5;
-        color: #7b1fa2;
-    }
-    
-    .badge-salmo {
-        background: #fff3e0;
-        color: #e65100;
-    }
-    
-    .badge-evangelho {
-        background: #e8f5e9;
-        color: #388e3c;
-    }
-    
-    .badge-outros {
-        background: #fafafa;
-        color: #424242;
-    }
-    
-    /* === BOTÃO DE BUSCA === */
-    .btn-buscar {
-        background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%);
-        border: none;
-        color: white;
-        padding: 12px 30px;
-        border-radius: 8px;
-        font-weight: 500;
-        transition: all 0.3s;
-    }
-    
-    .btn-buscar:hover {
-        background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
-    }
-    
-    /* === BOTÃO FLUTUANTE === */
-    .fly-float-btn {
-        position: fixed;
-        bottom: 30px;
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, #16ab2a 0%, #ace9b8 100%);
-        border-radius: 50%;
-        color: white;
-        font-size: 24px;
-        box-shadow: 0 4px 15px rgba(10, 202, 138, 0.4);
-        z-index: 1000;
-        transition: all 0.3s;
-    }
-    
-    /* Botão do lado esquerdo */
-    .fly-float-btn-left {
-        left: 30px;
-    }
-    
-    .fly-float-btn:hover {
-        transform: scale(1.1);
-        box-shadow: 0 6px 20px rgba(10, 202, 138, 0.6);
-    }
-    
-    /* === GRUPO POR DATA === */
-    .grupo-data {
-        margin-bottom: 30px;
-        padding: 15px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .grupo-data-header {
-        font-size: 1.2em;
-        font-weight: 600;
-        color: #09788e;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #09788e;
-    }
     
     /* === RESPONSIVO === */
     @media (max-width: 768px) {
-        .hero-content {
-            margin: 10px;
-            padding: 12px 16px;
-        }
-        
-        .container-busca {
-            padding: 20px;
-        }
-        
-        .container-lista {
-            padding: 15px;
-        }
-        
-        .fly-float-btn {
-            width: 50px;
-            height: 50px;
-            font-size: 20px;
-            bottom: 20px;
-        }
-        
-        .fly-float-btn-left {
-            left: 20px;
-        }
-        
-        /* Ocultar tabela no mobile */
-        .liturgia-table {
-            display: none;
-        }
-        
-        /* Mostrar cards no mobile */
-        .liturgia-cards-container {
-            display: block;
-        }
-        
-        .liturgia-card-header {
-            font-size: 1em;
-            padding: 12px 15px;
-        }
-        
-        .liturgia-card-body {
-            padding: 15px;
-            font-size: 0.95em;
-        }
-    }
-    
-    /* Desktop: ocultar cards, mostrar tabela */
-    @media (min-width: 769px) {
-        .liturgia-cards-container {
-            display: none;
-        }
-        
-        .liturgia-table {
-            display: table;
-        }
-    }
 </style>
 {% endblock %}
 
@@ -327,7 +89,7 @@
                     </div>
                     
                     <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-buscar w-100 btn-gravar-global" onclick="lockFormButtons(this)">
+                        <button type="submit" class="btn btn-buscar w-100 btn-gravar-global">
                             <i class="fas fa-search me-2"></i>
                             Buscar
                         </button>
@@ -424,7 +186,7 @@
 </div>
 
 <!-- Botão Flutuante HOME -->
-<a href="{% url 'home' %}" class="fly-float-btn fly-float-btn-left d-flex align-items-center justify-content-center text-decoration-none" title="Voltar para Home">
+<a href="{{ url_retorno|default:'/' }}" class="fly-float-btn fly-float-btn-left d-flex align-items-center justify-content-center text-decoration-none" title="Voltar">
     <i class="fas fa-home"></i>
 </a>
 

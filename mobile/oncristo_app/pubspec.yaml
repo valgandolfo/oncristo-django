@@ -1,0 +1,67 @@
+name: oncristo_app
+description: "Aplicativo Oficial On Cristo - Tecnologia e Fé"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Autenticação biométrica
+  local_auth: ^2.1.6
+  
+  # HTTP requests
+  http: ^1.1.0
+  
+  # Armazenamento local
+  shared_preferences: ^2.2.2
+
+  # Compartilhar texto/links
+  share_plus: ^7.2.1
+
+  # Selecionar arquivos (multi-plataforma)
+  file_selector: ^1.0.3
+  
+  # Gerenciamento de estado
+  provider: ^6.1.1
+  
+  # Seleção de imagens e câmera
+  image_picker: ^1.0.7
+  
+  # Parser HTTP (para multipart/form-data)
+  http_parser: ^4.0.2
+
+  # Acesso a diretórios do sistema
+  path_provider: ^2.1.1
+  intl: ^0.20.2
+  path: ^1.8.3
+  uuid: ^4.2.1
+  
+  # Downloads e Uploads em background (Motor do Google Fotos)
+  background_downloader: ^8.1.0
+  
+  # WebView para carregar páginas Django responsivas
+  webview_flutter: ^4.4.2
+
+  # JSON
+  # json_serializable já incluído no Flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.10.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/allmedias_icon.png
+
+# Configuration to generate native app icons from the asset above
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/allmedias_icon.png"

@@ -1,16 +1,36 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.core.paginator import Paginator
-from django.db.models import Q, Count
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.urls import reverse
+import logging
 from datetime import datetime
 from functools import wraps
 
-from ...models.area_admin.models_dizimistas import TBDIZIMISTAS, TBDOACAODIZIMO
-from ...forms.area_admin.forms_dizimistas import DizimistaForm, DoacaoDizimoForm
+import requests
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import Q, Count
+from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+
+from ...forms.area_admin.forms_dizimistas import DizimistaForm
+from ...models.area_admin.models_dizimistas import TBDIZIMISTAS
+
+logger = logging.getLogger(__name__)
+
+
+def _redirect_gerenciar_dizimistas(post_data):
+    """Monta redirect para gerenciar_dizimistas preservando q, status e page do POST."""
+    params = []
+    if post_data.get('q'):
+        params.append(f"q={post_data.get('q')}")
+    if post_data.get('status'):
+        params.append(f"status={post_data.get('status')}")
+    if post_data.get('page'):
+        params.append(f"page={post_data.get('page')}")
+    query_string = '&'.join(params)
+    if query_string:
+        return redirect(f"{reverse('app_igreja:gerenciar_dizimistas')}?{query_string}")
+    return redirect('app_igreja:gerenciar_dizimistas')
 
 def admin_required(view_func):
     """Decorator para verificar se o usuário é administrador"""
@@ -30,7 +50,7 @@ def admin_required(view_func):
 
 @login_required
 @admin_required
-def listar_dizimistas(request):
+def gerenciar_dizimistas(request):
     """
     Lista todos os dizimistas com paginação
     """
@@ -46,26 +66,21 @@ def listar_dizimistas(request):
     if busca_realizada:
         dizimistas = TBDIZIMISTAS.objects.all()
 
-        # Se digitar "todos" ou "todas", ignora outros filtros e traz tudo
-        if query.lower() in ['todos', 'todas']:
-            # Mantém todos os registros sem filtros adicionais
-            pass
-        else:
-            if query:
-                dizimistas = dizimistas.filter(
-                    Q(DIS_nome__icontains=query)
-                    | Q(DIS_telefone__icontains=query)
-                    | Q(DIS_email__icontains=query)
-                    | Q(DIS_cidade__icontains=query)
-                )
+        # Texto "todos/todas" não aplica filtro de busca; caso contrário filtra por nome, telefone, email, cidade
+        if query and query.lower() not in ('todos', 'todas'):
+            dizimistas = dizimistas.filter(
+                Q(DIS_nome__icontains=query)
+                | Q(DIS_telefone__icontains=query)
+                | Q(DIS_email__icontains=query)
+                | Q(DIS_cidade__icontains=query)
+            )
 
-            if status_filter:
-                if status_filter == 'ativo':
-                    dizimistas = dizimistas.filter(DIS_status=True)
-                elif status_filter == 'pendente':
-                    dizimistas = dizimistas.filter(DIS_status=False)
-        
-        # Ordenação
+        if status_filter:
+            if status_filter == 'ativo':
+                dizimistas = dizimistas.filter(DIS_status=True)
+            elif status_filter == 'pendente':
+                dizimistas = dizimistas.filter(DIS_status=False)
+
         dizimistas = dizimistas.order_by('DIS_nome')
     else:
         # Queryset vazio até que o usuário faça a primeira busca
@@ -106,26 +121,14 @@ def criar_dizimista(request):
         form = DizimistaForm(request.POST, request.FILES)
         
         if form.is_valid():
-            dizimista = form.save()
-            # Reconstruir URL com filtros preservados do POST (campos hidden)
-            params = []
-            if request.POST.get('q'):
-                params.append(f"q={request.POST.get('q')}")
-            if request.POST.get('status'):
-                params.append(f"status={request.POST.get('status')}")
-            if request.POST.get('page'):
-                params.append(f"page={request.POST.get('page')}")
-            
-            query_string = '&'.join(params)
-            if query_string:
-                return redirect(f"{reverse('app_igreja:listar_dizimistas')}?{query_string}")
-            return redirect('app_igreja:listar_dizimistas')
+            form.save()
+            return _redirect_gerenciar_dizimistas(request.POST)
         else:
             messages.error(request, 'Erro ao cadastrar dizimista. Verifique os dados.')
     else:
         form = DizimistaForm()
     
-    next_url = request.META.get('HTTP_REFERER') or reverse('app_igreja:listar_dizimistas')
+    next_url = request.META.get('HTTP_REFERER') or reverse('app_igreja:gerenciar_dizimistas')
     context = {
         'form': form,
         'acao': 'incluir',
@@ -172,25 +175,13 @@ def editar_dizimista(request, dizimista_id):
         
         if form.is_valid():
             form.save()
-            # Reconstruir URL com filtros preservados do POST (campos hidden)
-            params = []
-            if request.POST.get('q'):
-                params.append(f"q={request.POST.get('q')}")
-            if request.POST.get('status'):
-                params.append(f"status={request.POST.get('status')}")
-            if request.POST.get('page'):
-                params.append(f"page={request.POST.get('page')}")
-            
-            query_string = '&'.join(params)
-            if query_string:
-                return redirect(f"{reverse('app_igreja:listar_dizimistas')}?{query_string}")
-            return redirect('app_igreja:listar_dizimistas')
+            return _redirect_gerenciar_dizimistas(request.POST)
         else:
             messages.error(request, 'Erro ao atualizar dizimista. Verifique os campos.')
     else:
         form = DizimistaForm(instance=dizimista)
     
-    next_url = request.META.get('HTTP_REFERER') or reverse('app_igreja:listar_dizimistas')
+    next_url = request.META.get('HTTP_REFERER') or reverse('app_igreja:gerenciar_dizimistas')
     context = {
         'form': form,
         'dizimista': dizimista,
@@ -213,21 +204,9 @@ def excluir_dizimista(request, dizimista_id):
     
     if request.method == 'POST':
         dizimista.delete()
-        # Reconstruir URL com filtros preservados do POST (campos hidden)
-        params = []
-        if request.POST.get('q'):
-            params.append(f"q={request.POST.get('q')}")
-        if request.POST.get('status'):
-            params.append(f"status={request.POST.get('status')}")
-        if request.POST.get('page'):
-            params.append(f"page={request.POST.get('page')}")
-        
-        query_string = '&'.join(params)
-        if query_string:
-            return redirect(f"{reverse('app_igreja:listar_dizimistas')}?{query_string}")
-        return redirect('app_igreja:listar_dizimistas')
+        return _redirect_gerenciar_dizimistas(request.POST)
     
-    next_url = request.META.get('HTTP_REFERER') or reverse('app_igreja:listar_dizimistas')
+    next_url = request.META.get('HTTP_REFERER') or reverse('app_igreja:gerenciar_dizimistas')
     context = {
         'dizimista': dizimista,
         'acao': 'excluir',
@@ -252,7 +231,7 @@ def dashboard_dizimistas(request):
     
     # Dizimistas por cidade
     dizimistas_por_cidade = TBDIZIMISTAS.objects.values('DIS_cidade').annotate(
-        count=Count('DIS_id')
+        count=Count('id')
     ).order_by('-count')[:5]
     
     # Dizimistas por sexo
@@ -281,21 +260,12 @@ def dashboard_dizimistas(request):
 
 @csrf_exempt
 def api_cep(request, cep):
-    """API para buscar CEP"""
-    import logging
-    
-    logger = logging.getLogger(__name__)
-    
+    """API para buscar CEP (ViaCEP)."""
     try:
-        # Limpar CEP (remover caracteres não numéricos)
         cep_limpo = ''.join(filter(str.isdigit, cep))
-        
         if len(cep_limpo) != 8:
             return JsonResponse({'error': 'CEP inválido'}, status=400)
-        
-        # Tentar buscar via ViaCEP
-        import requests
-        
+
         url = f'https://viacep.com.br/ws/{cep_limpo}/json/'
         response = requests.get(url, timeout=5)
         
@@ -314,5 +284,5 @@ def api_cep(request, cep):
         return JsonResponse({'error': 'CEP não encontrado'}, status=404)
         
     except Exception as e:
-        logger.error(f'Erro ao buscar CEP {cep}: {str(e)}')
+        logger.exception('Erro ao buscar CEP %s: %s', cep, e)
         return JsonResponse({'error': 'Erro interno do servidor'}, status=500)

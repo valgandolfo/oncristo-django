@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
 <style>
     .imagem-preview {
         max-width: 300px;
@@ -63,7 +62,7 @@
                         <div class="col-md-6">
                             <div class="imagem-container">
                                 <div class="mb-3">
-                                    <label class="form-label">Foto de Capa:</label>
+                                    <label class="form-label">Foto da Paróquia:</label>
                                     {{ form.VIS_FOTO_CAPA }}
                                     {% if form.VIS_FOTO_CAPA.errors %}
                                         <div class="text-danger">{{ form.VIS_FOTO_CAPA.errors }}</div>
@@ -161,7 +160,7 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="imagem-container">
-                        <p><strong>Foto de Capa:</strong></p>
+                        <p><strong>Foto da Paróquia:</strong></p>
                         {% if visual.VIS_FOTO_CAPA %}
                             <img src="{{ visual.VIS_FOTO_CAPA.url }}" alt="Foto de Capa" class="imagem-preview">
                         {% else %}

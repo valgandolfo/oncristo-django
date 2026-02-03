@@ -5,8 +5,8 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from functools import wraps
 
-from ...models.area_publica.models_liturgias import TBLITURGIA
-from ...forms.area_admin.forms_liturgias import LiturgiaForm
+from ...models.area_admin.models_extrator_liturgias import TBLITURGIA
+from ...forms.area_admin.forms_extrator_liturgias import LiturgiaForm
 
 def admin_required(view_func):
     @wraps(view_func)

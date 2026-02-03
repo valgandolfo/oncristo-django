@@ -48,12 +48,13 @@ fi
 
 cd ${PROJECT_DIR}
 
-# 1. Fazer backup antes de atualizar
+# 1. Backup antes de atualizar (código + .env_production se existir)
 print_step "1. Fazendo backup do código atual..."
-BACKUP_DIR="${PROJECT_DIR}/backup_$(date +%Y%m%d_%H%M%S)"
+BACKUP_DIR="${PROJECT_DIR}/backups"
 mkdir -p ${BACKUP_DIR}
-tar --exclude='venv' --exclude='.git' --exclude='__pycache__' --exclude='*.pyc' --exclude='staticfiles' --exclude='media' -czf ${BACKUP_DIR}/codigo_fonte.tar.gz . 2>/dev/null || true
-print_info "Backup criado em: ${BACKUP_DIR}"
+BACKUP_ARCHIVE="${BACKUP_DIR}/backup_$(date +%Y%m%d_%H%M%S).tar.gz"
+tar --exclude='venv' --exclude='.git' --exclude='__pycache__' --exclude='*.pyc' --exclude='staticfiles' --exclude='media' -czf "${BACKUP_ARCHIVE}" . 2>/dev/null || true
+print_info "Backup criado: ${BACKUP_ARCHIVE}"
 
 # 2. Atualizar código do GitHub
 print_step "2. Atualizando código do GitHub..."

@@ -12,7 +12,6 @@
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
 <style>
 /* CSS específico do módulo Modelos */
 .panel-container_estatistica {
@@ -28,10 +27,7 @@
     --cor-texto: #ffffff;
 }
 
-/* Classes específicas usam as genéricas do base.html */
-.cabecalho-modelo {
-    /* Herda de .cabecalho-master-detail do base.html */
-}
+/* === ESTILOS ESPECÍFICOS DO MÓDULO MODELOS === */
 
 /* Badge específico de ocorrências */
 .badge-ocorrencia {
@@ -41,65 +37,6 @@
     padding: 4px 12px;
     font-size: 0.8rem;
     font-weight: 600;
-}
-
-/* Confirmação de exclusão */
-.confirmacao-exclusao-container {
-    background: #f2cc78;
-    border-radius: 10px;
-    padding: 15px;
-    margin-top: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.confirmacao-exclusao-content {
-    text-align: center;
-}
-
-.confirmacao-exclusao-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 15px;
-}
-
-.btn-cancelar-exclusao {
-    background: #6c757d;
-    color: white;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.btn-cancelar-exclusao:hover {
-    background: #5a6268;
-    color: white;
-    text-decoration: none;
-}
-
-.btn-confirmar-exclusao {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.btn-confirmar-exclusao:hover {
-    background: #c82333;
 }
 {% endif %}
 </style>

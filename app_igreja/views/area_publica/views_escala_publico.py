@@ -133,6 +133,13 @@ def escala_publico(request):
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ]
     
+    # Determinar URL de retorno baseada no modo
+    from django.urls import reverse
+    if request.GET.get('modo') == 'app' or request.session.get('modo_app'):
+        url_retorno = reverse('app_igreja:app_info')
+    else:
+        url_retorno = reverse('home')
+
     context = {
         'itens': itens,
         'mes': mes_atual,
@@ -142,6 +149,7 @@ def escala_publico(request):
         'colaborador_logado': colaborador_logado,
         'colaborador_nome': colaborador_nome,
         'telefone_url': telefone_url,
+        'url_retorno': url_retorno,
     }
     
     return render(request, 'area_publica/bot_escala_publico.html', context)

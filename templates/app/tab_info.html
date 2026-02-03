@@ -1,0 +1,69 @@
+{% extends "app/app_base.html" %}
+
+{% block header %}
+<div class="header-app">
+    <div class="d-flex align-items-center px-3 py-2">
+        <span style="font-size: 1.5rem; margin-right: 12px;">📖</span>
+        <h1 class="mb-0 text-start">Projeto On Cristo</h1>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-4">Informações</h4>
+
+<a href="/app_igreja/contatos/?modo=app" class="card-menu">
+    <div class="menu-icon-container bg-green">
+        <i class="fas fa-phone-alt"></i>
+    </div>
+    <div class="menu-text">
+        <p class="menu-title">Contatos</p>
+        <p class="menu-subtitle">Fale Conosco</p>
+    </div>
+    <i class="fas fa-chevron-right text-muted small"></i>
+</a>
+
+<a href="/app_igreja/horarios-missas/?modo=app" class="card-menu">
+    <div class="menu-icon-container bg-blue">
+        <i class="fas fa-church"></i>
+    </div>
+    <div class="menu-text">
+        <p class="menu-title">Horário de Missa</p>
+        <p class="menu-subtitle">Horários e Celebrações</p>
+    </div>
+    <i class="fas fa-chevron-right text-muted small"></i>
+</a>
+
+<a href="/app_igreja/liturgia-diaria/?modo=app" class="card-menu">
+    <div class="menu-icon-container bg-info">
+        <i class="fas fa-bible"></i>
+    </div>
+    <div class="menu-text">
+        <p class="menu-title">Liturgia Diária</p>
+        <p class="menu-subtitle">Fonte de Vida</p>
+    </div>
+    <i class="fas fa-chevron-right text-muted small"></i>
+</a>
+
+<a href="{% url 'app_igreja:aniversariantes_publico' %}?modo=app" class="card-menu">
+    <div class="menu-icon-container bg-pink">
+        <i class="fas fa-birthday-cake"></i>
+    </div>
+    <div class="menu-text">
+        <p class="menu-title">Aniversariantes do Mês</p>
+        <p class="menu-subtitle">Envie felicitações</p>
+    </div>
+    <i class="fas fa-chevron-right text-muted small"></i>
+</a>
+
+<a href="{% url 'app_igreja:calendario_eventos_publico' %}?modo=app" class="card-menu">
+    <div class="menu-icon-container bg-warning">
+        <i class="fas fa-calendar-alt"></i>
+    </div>
+    <div class="menu-text">
+        <p class="menu-title">Calendário de Eventos</p>
+        <p class="menu-subtitle">Programação da Paróquia</p>
+    </div>
+    <i class="fas fa-chevron-right text-muted small"></i>
+</a>
+{% endblock %}

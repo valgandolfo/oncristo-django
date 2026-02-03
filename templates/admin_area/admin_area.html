@@ -230,31 +230,31 @@
                 <div class="card-body body-cadastros">
                     <div class="list-group list-group-flush">
                         <!-- MÓDULO: Diocese - Carrega views_diocese.py -->
-                        <a href="{% url 'app_igreja:diocese_detail' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <a href="{% url 'app_igreja:diocese_crud_unico' %}" class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="fas fa-church me-3 text-primary"></i>
                             <span class="fw-bold">Diocese</span>
                         </a>
                         
                         <!-- MÓDULO: Paróquia - Carrega views_paroquia.py -->
-                        <a href="{% url 'app_igreja:paroquia_generic' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <a href="{% url 'app_igreja:paroquia_crud_unico' %}" class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="fas fa-church me-3 text-success"></i>
                             <span class="fw-bold">Paróquia</span>
                         </a>
                         
                         <!-- MÓDULO: Grupos Litúrgicos - Carrega views_grupos.py -->
-                        <a href="{% url 'app_igreja:listar_grupos' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <a href="{% url 'app_igreja:grupos_crud_mais' %}" class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="fas fa-users me-3 text-warning"></i>
                             <span class="fw-bold">Grupos Litúrgicos</span>
                         </a>
                         
                         <!-- MÓDULO: Funções - Carrega views_funcoes.py -->
-                        <a href="{% url 'app_igreja:listar_funcoes' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <a href="{% url 'app_igreja:funcoes_crud_mais' %}" class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="fas fa-user-tag me-3 text-warning"></i>
                             <span class="fw-bold">Funções</span>
                         </a>
                         
                         <!-- MÓDULO: Celebrantes - Carrega views_celebrantes.py -->
-                        <a href="{% url 'app_igreja:listar_celebrantes' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <a href="{% url 'app_igreja:celebrantes_crud_mais' %}" class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="fas fa-cross me-3 text-primary"></i>
                             <span class="fw-bold">Celebrantes</span>
                         </a>
@@ -272,7 +272,7 @@
                         </a>
                         
                         <!-- MÓDULO: Dizimistas - Carrega views_dizimistas.py -->
-                        <a href="{% url 'app_igreja:listar_dizimistas' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <a href="{% url 'app_igreja:gerenciar_dizimistas' %}" class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="fas fa-hand-holding-usd me-3 text-success"></i>
                             <span class="fw-bold">Dizimistas</span>
                         </a>

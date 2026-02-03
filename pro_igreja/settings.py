@@ -1,86 +1,41 @@
-from pathlib import Path
 import os
+import socket
+from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables based on environment
-DJANGO_ENV = os.getenv('DJANGO_ENV', 'development')
-if DJANGO_ENV == 'production':
-    load_dotenv('.env_production')
-else:
-    load_dotenv('.env_local')
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# --- 1. CAMINHOS E AMBIENTE ---
+# O BASE_DIR sobe 2 níveis (de pro_igreja/ para a raiz oncristo.local)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Carregar variáveis de ambiente do .env_local
+load_dotenv(BASE_DIR / '.env_local')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
+print("--- CARREGANDO SETTINGS UNIFICADAS (ONCRISTO) ---")
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-p^jvx3o%fns*))l(5bmtn^3+=_w5iz!dd^-6+pdhog__p23+d9')
+# --- 2. SEGURANÇA ---
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key-12345')
+DEBUG = True
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+# Hosts e Domínios
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.0.13', '10.0.2.2', 'oncristo.com.br', '.oncristo.com.br']
 
-# ALLOWED_HOSTS - Configuração baseada no ambiente
-if DJANGO_ENV == 'production':
-    # Produção: usar variável de ambiente ou lista específica
-    allowed_hosts_str = os.getenv('ALLOWED_HOSTS', '')
-    if allowed_hosts_str:
-        ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(',')]
-    else:
-        ALLOWED_HOSTS = []  # Deve ser configurado no .env_production
-else:
-    # Desenvolvimento: aceita conexões da rede local
-    ALLOWED_HOSTS = [
-        'localhost',
-        '127.0.0.1',
-        '0.0.0.0',        # Bind address
-        '192.168.0.12',   # IP servidor anterior
-        '192.168.0.13',   # IP servidor atual
-        '192.168.0.111',  # IP servidor alternativo
-        '192.168.0.10',   # IP celular atual
-        '192.168.0.102',  # IP celular anterior
-        '*',              # Permite qualquer host em desenvolvimento (DEBUG=True)
-        '.local',
-    ]
+# Adicionar IP da rede local automaticamente para testes mobile
+try:
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    if local_ip not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(local_ip)
+except:
+    pass
 
-# CSRF Trusted Origins - Para permitir requisições do ngrok e outros serviços externos
-if DJANGO_ENV == 'production':
-    # Produção: usar variável de ambiente ou lista específica
-    csrf_origins_str = os.getenv('CSRF_TRUSTED_ORIGINS', '')
-    if csrf_origins_str:
-        CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_str.split(',')]
-    else:
-        CSRF_TRUSTED_ORIGINS = []
-else:
-    # Desenvolvimento: permite ngrok e domínios locais
-    CSRF_TRUSTED_ORIGINS = [
-        'http://localhost:8000',
-        'http://127.0.0.1:8000',
-        'https://localhost:8000',
-        'https://127.0.0.1:8000',
-        # URL atual do ngrok (será atualizada dinamicamente se possível)
-        'https://shera-unculpable-nonresponsively.ngrok-free.dev',
-    ]
-    # Adicionar outras URLs do ngrok se disponíveis (obtidas via API do ngrok)
-    try:
-        import urllib.request
-        import json
-        ngrok_url = 'http://127.0.0.1:4040/api/tunnels'
-        with urllib.request.urlopen(ngrok_url, timeout=1) as response:
-            data = json.loads(response.read().decode())
-            tunnels = data.get('tunnels', [])
-            for tunnel in tunnels:
-                public_url = tunnel.get('public_url', '')
-                if public_url and public_url not in CSRF_TRUSTED_ORIGINS:
-                    CSRF_TRUSTED_ORIGINS.append(public_url)
-    except Exception as e:
-        pass  # Ignora erros ao obter URL do ngrok
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://10.0.2.2:8000',
+    'https://oncristo.com.br',
+]
 
-
-# Application definition
-
+# --- 3. DEFINIÇÃO DA APLICAÇÃO ---
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -88,8 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'widget_tweaks',  # Para customização de widgets de formulário
-    'app_igreja',  # App principal
+    'widget_tweaks',
+    'app_igreja',
 ]
 
 MIDDLEWARE = [
@@ -107,7 +62,7 @@ ROOT_URLCONF = 'pro_igreja.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # Configurar pasta templates
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -122,167 +77,92 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'pro_igreja.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+# --- 4. BANCO DE DADOS (DINÂMICO) ---
+# Se não houver nada no .env_local, assume SQLite
+DB_ENGINE = os.getenv('DB_ENGINE', 'django.db.backends.sqlite3')
+DB_NAME = os.getenv('DB_NAME', 'db.sqlite3')
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME': os.getenv('DB_NAME', BASE_DIR / 'db.sqlite3'),
-        'USER': os.getenv('DB_USER', ''),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', ''),
-        'PORT': os.getenv('DB_PORT', ''),
+        'ENGINE': DB_ENGINE,
+        # Se for SQLite, usa o caminho do arquivo. Se for MySQL, usa apenas o nome da base.
+        'NAME': BASE_DIR / DB_NAME if 'sqlite' in DB_ENGINE else DB_NAME,
     }
 }
 
-# Configurar SSL para MySQL (Digital Ocean requer SSL)
-if DATABASES['default']['ENGINE'] == 'django.db.backends.mysql':
-    DATABASES['default']['OPTIONS'] = {
-        'ssl': {
-            'ca': None,  # Digital Ocean usa certificado padrão
-            'check_hostname': False,  # Desabilitar verificação de hostname
-        },
-        'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        'charset': 'utf8mb4',
-    }
+# Configurações extras para MySQL (apenas se DB_ENGINE for mysql)
+if 'mysql' in DB_ENGINE:
+    DATABASES['default']['USER'] = os.getenv('DB_USER', 'root')
+    DATABASES['default']['PASSWORD'] = os.getenv('DB_PASSWORD', '')
+    DATABASES['default']['HOST'] = os.getenv('DB_HOST', '127.0.0.1')
+    DATABASES['default']['PORT'] = os.getenv('DB_PORT', '3306')
 
+# --- 5. ARMAZENAMENTO (WASABI ou LOCAL) ---
+# Use mídia local se USE_LOCAL_MEDIA=1 ou se credenciais S3 não estiverem definidas (evita 403 em dev).
+USE_LOCAL_MEDIA = os.getenv('USE_LOCAL_MEDIA', '').lower() in ('1', 'true', 'yes')
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
+USE_S3 = bool(AWS_ACCESS_KEY_ID and AWS_STORAGE_BUCKET_NAME) and not USE_LOCAL_MEDIA
 
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
+AWS_S3_ENDPOINT_URL = f'https://s3.{AWS_S3_REGION_NAME}.wasabisys.com'
+AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+AWS_S3_FILE_OVERWRITE = False
+AWS_S3_VERIFY = True
+AWS_S3_USE_SSL = True
+AWS_QUERYSTRING_AUTH = True
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_S3_URL_PROTOCOL = 'https:'
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    } if USE_S3 else {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {"location": BASE_DIR / "media", "base_url": "/media/"},
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
+}
 
-# Autenticação customizada - permite login por email ou username
-AUTHENTICATION_BACKENDS = [
-    'app_igreja.backends.EmailBackend',  # Backend customizado (permite login por email)
-    'django.contrib.auth.backends.ModelBackend',  # Backend padrão (fallback)
-]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
-
-LANGUAGE_CODE = 'pt-br'
-
-TIME_ZONE = 'America/Sao_Paulo'
-
-USE_I18N = True
-
-USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
+# --- 6. ARQUIVOS ESTÁTICOS E MÍDIA ---
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Configuração de armazenamento de arquivos
-# Opções: 'local', 'aws', 'backblaze', 'wasabi', 'cloudflare', 'digitalocean'
-STORAGE_PROVIDER = os.getenv('STORAGE_PROVIDER', 'local').lower()
-
-if STORAGE_PROVIDER != 'local':
-    # Configurações comuns para serviços S3-compatible
-    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
-    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')
-    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', '')
-    AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
-    AWS_DEFAULT_ACL = None  # Removido para evitar erro de ACL
-    AWS_S3_OBJECT_PARAMETERS = {
-        'CacheControl': 'max-age=86400',
-    }
-    AWS_S3_FILE_OVERWRITE = False
-    AWS_S3_VERIFY = True
-    AWS_S3_USE_SSL = True
-    
-    # Configurações específicas por provedor
-    if STORAGE_PROVIDER == 'aws':
-        # Amazon S3
-        AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
-        AWS_S3_ENDPOINT_URL = None  # Usa endpoint padrão da AWS
-        AWS_S3_USE_SSE = True
-        AWS_S3_ENCRYPTION = True
-        
-    elif STORAGE_PROVIDER == 'backblaze':
-        # Backblaze B2 (S3-compatible)
-        AWS_S3_ENDPOINT_URL = f'https://s3.{AWS_S3_REGION_NAME}.backblazeb2.com'
-        AWS_S3_CUSTOM_DOMAIN = None
-        AWS_S3_USE_SSE = False
-        AWS_S3_ENCRYPTION = False
-        
-    elif STORAGE_PROVIDER == 'wasabi':
-        # Wasabi (S3-compatible)
-        AWS_S3_ENDPOINT_URL = f'https://s3.{AWS_S3_REGION_NAME}.wasabisys.com'
-        AWS_S3_CUSTOM_DOMAIN = None
-        AWS_S3_USE_SSE = False
-        AWS_S3_ENCRYPTION = False
-        
-    elif STORAGE_PROVIDER == 'cloudflare':
-        # Cloudflare R2 (S3-compatible)
-        AWS_S3_ENDPOINT_URL = f'https://{os.getenv("CLOUDFLARE_ACCOUNT_ID", "")}.r2.cloudflarestorage.com'
-        AWS_S3_CUSTOM_DOMAIN = None
-        AWS_S3_USE_SSE = False
-        AWS_S3_ENCRYPTION = False
-        
-    elif STORAGE_PROVIDER == 'digitalocean':
-        # DigitalOcean Spaces (S3-compatible)
-        AWS_S3_ENDPOINT_URL = f'https://{AWS_S3_REGION_NAME}.digitaloceanspaces.com'
-        AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.{AWS_S3_REGION_NAME}.digitaloceanspaces.com'
-        AWS_S3_USE_SSE = False
-        AWS_S3_ENCRYPTION = False
-    
-    # Use S3-compatible storage
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    
-else:
-    # Usar armazenamento local (FileSystemStorage padrão do Django)
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
+# --- 7. INTERNACIONALIZAÇÃO ---
+LANGUAGE_CODE = 'pt-br'
+TIME_ZONE = 'America/Sao_Paulo'
+USE_I18N = True
+USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Login/Logout URLs
+# --- 8. AUTENTICAÇÃO E EMAIL ---
+AUTHENTICATION_BACKENDS = [
+    'app_igreja.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/app_igreja/admin-area/'
 LOGOUT_REDIRECT_URL = '/'
 
-# Configurações de Sessão - Timeout de Inatividade por Segurança
-# Timeout de 30 minutos (1800 segundos) para área administrativa
-SESSION_COOKIE_AGE = 1800  # 30 minutos em segundos
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expira ao fechar o navegador
-SESSION_SAVE_EVERY_REQUEST = True  # Atualiza sessão a cada requisição (detecta atividade)
-SESSION_COOKIE_SECURE = DJANGO_ENV == 'production'  # HTTPS apenas em produção
-SESSION_COOKIE_HTTPONLY = True  # Previne acesso via JavaScript (XSS)
-SESSION_COOKIE_SAMESITE = 'Lax'  # Proteção CSRF
-# Email configuration
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+
+# --- 9. CONFIGURAÇÕES DE DESENVOLVIMENTO ---
+X_FRAME_OPTIONS = 'ALLOWALL'
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SILENCED_SYSTEM_CHECKS = ['security.W019']

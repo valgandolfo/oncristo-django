@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Aniversariantes do Mês{% endblock %}
+
+{% block extra_css %}
+{# .aniversario-table, células e .badge-tipo/.badge-dizimista/.badge-colaborador no base.html (vars: --header-bg, --header-text, --border-color, --hover-bg, --dark-color, --secondary-color, --text-muted) #}
+<style>
+    .hero-section { padding: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="mb-3 text-center">
+                <i class="fas fa-birthday-cake me-3"></i>
+                Aniversariantes do Mês
+            </h1>
+            <p class="lead mb-0 text-center">
+                Celebre conosco os aniversários da nossa comunidade
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Container Principal -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <!-- Container de Busca por Data e Tipo -->
+            <div class="container-busca">
+                <h5 class="mb-4">
+                    <i class="fas fa-search me-2"></i>
+                    Filtrar Aniversariantes
+                </h5>
+                
+                <form method="get" class="row g-3 align-items-end" id="form-busca-aniversariantes">
+                    <div class="col-md-4">
+                        <label for="data" class="form-label fw-bold">Filtrar até:</label>
+                        <input type="month" 
+                               name="data" 
+                               id="data"
+                               class="form-control" 
+                               value="{{ data_filtro }}">
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="tipo" class="form-label fw-bold">Tipo:</label>
+                        <select name="tipo" 
+                                id="tipo"
+                                class="form-select">
+                            <option value="TODOS" {% if tipo_filtro == 'TODOS' %}selected{% endif %}>Todos</option>
+                            <option value="DIZIMISTA" {% if tipo_filtro == 'DIZIMISTA' %}selected{% endif %}>Dizimista</option>
+                            <option value="COLABORADOR" {% if tipo_filtro == 'COLABORADOR' %}selected{% endif %}>Colaborador</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-buscar w-100">
+                            <i class="fas fa-search me-2"></i>
+                            Buscar
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Container de Lista de Aniversariantes (só aparece após busca) -->
+            {% if busca_realizada|default:False %}
+            <div class="container-lista">
+                <h5 class="mb-4">
+                    <i class="fas fa-list me-2"></i>
+                    {% if total_encontrado > 0 %}
+                        {{ total_encontrado }} Aniversariante{{ total_encontrado|pluralize }} Encontrado{{ total_encontrado|pluralize }}
+                    {% else %}
+                        Nenhum Aniversariante Encontrado
+                    {% endif %}
+                </h5>
+                
+                {% if aniversariantes %}
+                    <table class="aniversario-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50%;">Nome</th>
+                                <th style="width: 25%;">Data Aniversário</th>
+                                <th style="width: 25%;">Tipo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pessoa in aniversariantes %}
+                            <tr>
+                                <td class="aniversario-nome-cell">
+                                    <i class="fas fa-user me-2"></i>
+                                    {{ pessoa.nome }}
+                                </td>
+                                <td class="aniversario-data-cell">
+                                    <i class="fas fa-calendar me-2"></i>
+                                    {{ pessoa.data_aniversario|date:"d/m/Y" }}
+                                </td>
+                                <td class="aniversario-tipo-cell">
+                                    {% if pessoa.tipo == 'Dizimista' %}
+                                        <span class="badge-tipo badge-dizimista">
+                                            {{ pessoa.tipo }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge-tipo badge-colaborador">
+                                            {{ pessoa.tipo }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="text-center p-4">
+                        <i class="fas fa-birthday-cake fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Nenhum aniversariante encontrado para os filtros selecionados.</p>
+                    </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <!-- Mensagem inicial -->
+            <div class="container-lista" style="display: flex; align-items: center; justify-content: center; min-height: 200px;">
+                <div class="text-center p-4">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Preencha os filtros e clique em "Buscar" para visualizar os aniversariantes.</p>
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
+
+<!-- Botão Flutuante HOME -->
+<a href="{{ url_retorno|default:'/' }}" class="fly-float-btn fly-float-btn-left d-flex align-items-center justify-content-center text-decoration-none" title="Voltar">
+    <i class="fas fa-home"></i>
+</a>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Definir mês atual como padrão se não houver filtro
+    const dataInput = document.getElementById('data');
+    if (dataInput && !dataInput.value) {
+        const hoje = new Date();
+        const mesAno = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
+        dataInput.value = mesAno;
+    }
+});
+</script>
+{% endblock %}

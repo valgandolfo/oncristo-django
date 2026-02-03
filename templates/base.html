@@ -37,15 +37,64 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.3">
+    <!-- Estilos unificados no bloco <style> abaixo (sem CSS externo) -->
     {% block extra_css %}{% endblock %}
     <style>
+        /* ==========================================================================
+           ESTILOS UNIFICADOS - On Cristo
+           Única fonte: variáveis, layout, componentes, CRUD e relatórios.
+           ========================================================================== */
+
+        /* --- Variáveis globais (tema, componentes, CRUD, relatórios) --- */
+        :root {
+            /* Cores gerais (Bootstrap-like) */
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #0dcaf0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --border-radius: 15px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            /* Configurações visuais (CRUD / formulários admin) */
+            --cor-info-basicas-header: #0dcaf0;
+            --cor-info-basicas-body: #6cdcf9;
+            --cor-dados-bancarios-header: #20c997;
+            --cor-dados-bancarios-body: #51dc99;
+            --cor-horarios-fixos-header: #6f42c1;
+            --cor-horarios-fixos-body: #c684f5;
+            --cor-info-complementares-header: #fd7e14;
+            --cor-info-complementares-body: #ffc107;
+            --cor-configuracoes-header: #6c757d;
+            --cor-configuracoes-body: #e9ecef;
+            --cor-footer-fundo: #F7D672;
+            --cor-botao-editar-fundo: #e5a50a;
+            --cor-botao-editar-texto: #000000;
+            --cor-botao-editar-fundo-hover: #d49208;
+            --cor-botao-editar-texto-hover: #000000;
+            --cor-botao-editar-fundo-active: #bf8206;
+            --cor-botao-editar-texto-active: #000000;
+            --cor-botao-editar-fundo-focus: #e5a50a;
+            --cor-botao-editar-texto-focus: #000000;
+            /* Relatórios (PDF e listagens) */
+            --header-bg: #09788e;
+            --header-text: white;
+            --border-color: #c8c8dc;
+            --hover-bg: #f8f9fa;
+            --text-muted: #666;
+            --border-light: #ddd;
+            --even-row-bg: #f9f9f9;
+        }
+
         /* =========================================== */
         /* === ESTILOS BÁSICOS GLOBAIS === */
+        /* Body: fundo e tipografia da página inteira */
         /* =========================================== */
         body {
-            background-color: #f8f9fa;       /* COR: Fundo cinza claro da página */
+            background: #e9c1d3 !important;  /* COR: Fundo da página (sobrescreve style.css) */
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .card {
@@ -58,6 +107,210 @@
         }
         .alert {
             border-radius: 10px;
+        }
+
+        /* Transições e hover de .card e .btn (complementam os blocos acima) */
+        .card {
+            transition: var(--transition);
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .card-header {
+            border-bottom: none;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* =========================================== */
+        /* === IMAGEM CATEDRAL NO HEADER === */
+        /* Container e imagem da catedral no topo */
+        /* =========================================== */
+        .header-catedral-container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            height: 100%;
+        }
+        .header-catedral {
+            max-width: 120px;
+            max-height: 80px;
+            width: auto;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: var(--transition);
+            border: 2px solid rgba(255,255,255,0.3);
+            object-fit: cover;
+        }
+        .header-catedral:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            border-color: rgba(255,255,255,0.5);
+        }
+        @media (max-width: 992px) {
+            .header-catedral { max-width: 100px; max-height: 70px; }
+        }
+        @media (max-width: 768px) {
+            .header-catedral { max-width: 80px; max-height: 60px; margin-top: 0.5rem; }
+            .header-catedral-container { justify-content: center; }
+        }
+        
+        /* =========================================== */
+        /* === LISTA DE ITENS E ÍCONES === */
+        /* list-group-item, ícones Font Awesome por contexto */
+        /* =========================================== */
+        .list-group-item {
+            border: none;
+            border-radius: 8px !important;
+            margin-bottom: 5px;
+            transition: var(--transition);
+        }
+        .list-group-item:hover {
+            background-color: var(--light-color);
+            transform: translateX(5px);
+        }
+        .fa-2x { transition: var(--transition); }
+        .list-group-item:hover .fa-2x { transform: scale(1.1); }
+        .fas, .far, .fab, .fal { transition: all 0.3s ease; }
+        .fas:hover, .far:hover, .fab:hover, .fal:hover {
+            transform: scale(1.1);
+            filter: brightness(1.1);
+        }
+        /* Cores por ícone (church, pray, cross, heart, users, calendar, etc.) */
+        .fa-church { color: #8B0000; }
+        .fa-pray { color: #228B22; }
+        .fa-cross { color: #FFD700; }
+        .fa-heart { color: #DC143C; }
+        .fa-users { color: #4169E1; }
+        .fa-calendar-alt { color: #32CD32; }
+        .fa-microphone { color: #FF8C00; }
+        .fa-cog { color: #696969; }
+        .icon-glow { text-shadow: 0 0 10px currentColor; }
+        .icon-pulse { animation: iconPulse 2s infinite; }
+        @keyframes iconPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* =========================================== */
+        /* === NAVBAR, FOOTER GLOBAL, MODAL === */
+        /* =========================================== */
+        .bg-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%) !important;
+        }
+        .navbar { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); }
+        .navbar-brand { font-weight: bold; font-size: 1.5rem; }
+        footer {
+            background: linear-gradient(135deg, var(--dark-color) 0%, #343a40 100%) !important;
+            margin-top: 0;
+            border-radius: 0;
+            color: #88d4e3 !important;
+        }
+        footer h5, footer p, footer a { color: #ffffff !important; }
+        footer a:hover { color: #ffc107 !important; transform: scale(1.2); }
+        .modal-content {
+            border-radius: var(--border-radius);
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .modal-header {
+            border-bottom: none;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+        
+        /* =========================================== */
+        /* === HOME: SEÇÃO PRINCIPAL E CARDS POR TIPO === */
+        /* main-content-section (fundo marrom), card-agenda, card-servicos, etc. */
+        /* =========================================== */
+        .main-content-section {
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #8B4513 100%) !important;
+            padding: 2rem 0 !important;
+            margin: 0 !important;
+            min-height: calc(100vh - 300px) !important;
+            position: relative !important;
+            z-index: 1 !important;
+            border-radius: 0 0 20px 20px !important;
+        }
+        .main-content-section .container { background: transparent; }
+        .main-content-section .card {
+            background: rgba(144, 209, 219, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .main-content-section .card:hover {
+            background: rgb(127, 229, 233);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        .card-agenda {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 50%, #fdcb6e 100%) !important;
+        }
+        .card-servicos {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 50%, #b1dfbb 100%) !important;
+        }
+        .card-datas-comemorativas {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 50%, #f1b0b7 100%) !important;
+        }
+        .card-mural {
+            background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 50%, #c6c8ca 100%) !important;
+        }
+        .card-informacoes {
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 50%, #abdde5 100%) !important;
+        }
+        .card-funcionalidades {
+            background: linear-gradient(135deg, #d6d8db 0%, #c6c8ca 50%, #b6b8ba 100%) !important;
+        }
+        @media (max-width: 768px) {
+            .main-content-section { padding: 1.5rem 0; min-height: calc(100vh - 250px); }
+        }
+        
+        /* =========================================== */
+        /* === MURAL E SCROLLBAR === */
+        /* =========================================== */
+        .card-header.bg-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important;
+        }
+        .mural-placeholder {
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .mural-placeholder i { opacity: 0.5; transition: var(--transition); }
+        .mural-placeholder:hover i { opacity: 0.8; transform: scale(1.1); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0056b3; }
+        
+        /* Animação de entrada para cards */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card { animation: fadeInUp 0.6s ease-out; }
+        
+        /* Utilitários: cores rosa, botões outline */
+        .bg-pink { background-color: #e91e63; }
+        .text-pink { color: #e91e63; }
+        .btn-outline-success:hover {
+            background-color: #25d366;
+            border-color: #25d366;
+            color: white;
+        }
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
         }
         
         /* =========================================== */
@@ -499,13 +752,561 @@
             color: white !important;
         }
 
-        /* COR: Backgrounds azuis específicos (DUPLICADOS - REMOVER) */
+        /* COR: Backgrounds azuis específicos para corpo do card */
         .info-basicas-bg {
             background: #1e84bf !important; /* COR: Azul específico para info básicas */
             color: #000000 !important;
         }
 
-   
+        /* =========================================== */
+        /* === CONFIGURAÇÕES VISUAIS (CRUD / FORMULÁRIOS ADMIN) === */
+        /* Cores por seção de card, campos estreitos, overrides por JS */
+        /* =========================================== */
+        .bg-info-complementares {
+            background-color: var(--cor-info-complementares-header, #fd7e14) !important;
+            color: white !important;
+        }
+        .bg-info-complementares h5 { color: white !important; }
+        .card-body.info-complementares-bg {
+            background-color: var(--cor-info-complementares-body, #ffc107) !important;
+        }
+        .bg-configuracoes {
+            background-color: var(--cor-configuracoes-header, #6c757d) !important;
+            color: white !important;
+        }
+        .bg-configuracoes h5 { color: white !important; }
+        .card-body.configuracoes-bg {
+            background-color: var(--cor-configuracoes-body, #e9ecef) !important;
+        }
+        .card-body.info-basicas-bg {
+            background-color: var(--cor-info-basicas-body, #6cdcf9) !important;
+        }
+        /* Campos de entrada mais estreitos (endereço, etc.) */
+        .endereco-campo, .campo-estreito { max-width: 200px; }
+        /* Overrides de cor via JS para personalização dinâmica */
+        .color-override-info-basicas-header { --cor-info-basicas-header: cyan !important; }
+        .color-override-info-basicas-body { --cor-info-basicas-body: lightcyan !important; }
+        .color-override-dados-bancarios-header { --cor-dados-bancarios-header: green !important; }
+        .color-override-dados-bancarios-body { --cor-dados-bancarios-body: lightgreen !important; }
+        .color-override-horarios-fixos-header { --cor-horarios-fixos-header: purple !important; }
+        @media (max-width: 768px) {
+            .card-body.info-basicas-bg,
+            .card-body.dados-bancarios-bg,
+            .card-body.horarios-fixos-bg,
+            .card-body.info-complementares-bg,
+            .card-body.configuracoes-bg { padding: 1rem; }
+            .campo-estreito { max-width: 100%; }
+        }
+
+        /* =========================================== */
+        /* === RELATÓRIOS (PDF E LISTAGENS) === */
+        /* Cores de cabeçalho e status (em aberto, reservado, definido) */
+        /* =========================================== */
+        .status-em-aberto {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .status-reservado {
+            background-color: #17a2b8;
+            color: #fff;
+        }
+        .status-definido {
+            background-color: #28a745;
+            color: #fff;
+        }
+        /* Tabela celebrações agendadas (usa vars de relatório: --header-bg, --header-text, --border-color, --hover-bg) */
+        .celebracoes-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .celebracoes-table thead {
+            background: var(--header-bg);
+            color: var(--header-text);
+        }
+        .celebracoes-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #fff;
+        }
+        .celebracoes-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .celebracoes-table tbody tr:hover {
+            background: var(--hover-bg);
+        }
+        .celebracoes-table td {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+        /* Tabela avisos paróquia (mesmas vars: --header-bg, --header-text, --border-color, --hover-bg, --secondary-color, --dark-color, --text-muted) */
+        .aviso-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .aviso-table thead {
+            background: var(--header-bg);
+            color: var(--header-text);
+        }
+        .aviso-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #fff;
+        }
+        .aviso-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .aviso-table tbody tr:hover {
+            background: var(--hover-bg);
+        }
+        .aviso-table td {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+        .aviso-data-cell {
+            color: var(--secondary-color);
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        .aviso-titulo-cell {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        .aviso-texto-cell {
+            color: var(--text-muted);
+        }
+        /* Tabela calendário eventos (vars: --header-bg, --header-text, --border-color, --hover-bg) */
+        .evento-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .evento-table thead {
+            background: var(--header-bg);
+            color: var(--header-text);
+        }
+        .evento-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #fff;
+        }
+        .evento-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .evento-table tbody tr:hover {
+            background: var(--hover-bg);
+        }
+        .evento-table td {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+        /* Tabela atividades do evento (thead: --secondary-color, --header-text, --border-color) */
+        .atividade-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .atividade-table thead {
+            background: var(--secondary-color);
+            color: var(--header-text);
+        }
+        .atividade-table th {
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #fff;
+            font-size: 0.9em;
+        }
+        .atividade-table td {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9em;
+        }
+        /* Botão ver programação (--primary-color) */
+        .btn-ver-programacao {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        .btn-ver-programacao:hover {
+            background: linear-gradient(135deg, #0056b3 0%, var(--primary-color) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+        }
+        /* Modal atividades (--light-color, --border-color, --secondary-color, --dark-color) */
+        .modal-atividades {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-atividades .modal-content {
+            background-color: var(--light-color);
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-atividades .close {
+            color: var(--secondary-color);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-atividades .close:hover,
+        .modal-atividades .close:focus {
+            color: var(--dark-color);
+        }
+        /* Tabela aniversariantes (vars: --header-bg, --header-text, --border-color, --hover-bg, --dark-color, --secondary-color, --text-muted) */
+        .aniversario-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .aniversario-table thead {
+            background: var(--header-bg);
+            color: var(--header-text);
+        }
+        .aniversario-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #fff;
+        }
+        .aniversario-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .aniversario-table tbody tr:hover {
+            background: var(--hover-bg);
+        }
+        .aniversario-table td {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+        .aniversario-nome-cell {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        .aniversario-data-cell {
+            color: var(--secondary-color);
+            white-space: nowrap;
+        }
+        .aniversario-tipo-cell {
+            color: var(--text-muted);
+        }
+        .badge-tipo {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .badge-dizimista {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-colaborador {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        /* === ESCALA DE MISSAS (tema verde: #2c5530, #3ea548, #1e3a21; vars: --light-color, --danger-color, --success-color, --secondary-color) === */
+        .escala-container {
+            max-width: 100%;
+            margin: 10px auto;
+            padding: 10px;
+        }
+        .escala-header {
+            background: linear-gradient(135deg, #2c5530 0%, #3ea548 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .escala-header h1 { margin: 0; font-size: 2rem; }
+        .filtros-container {
+            background: var(--light-color);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+        .filtros-form { display: flex; gap: 15px; align-items: end; flex-wrap: wrap; }
+        .filtro-group { flex: 1; min-width: 150px; }
+        .filtro-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #2c5530; }
+        .filtro-group select,
+        .filtro-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .tabela-escala {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow-x: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 0.9rem;
+        }
+        .tabela-escala thead { background: #2c5530; color: white; }
+        .tabela-escala th {
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 2px solid #1e3a21;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        .tabela-escala td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 0.85rem;
+        }
+        .tabela-escala tbody tr:hover { background-color: var(--hover-bg); }
+        .tabela-escala tbody tr.item-bloqueado {
+            background-color: #f8d7da !important;
+            opacity: 0.7;
+        }
+        .tabela-escala tbody tr.item-bloqueado td { color: #721c24; }
+        .tabela-escala tbody tr.item-bloqueado:hover { background-color: #f5c6cb !important; }
+        .icone-bloqueado { color: var(--danger-color); font-size: 1.5rem; cursor: not-allowed; }
+        .icone-pessoa { color: var(--success-color); font-size: 1.5rem; cursor: pointer; transition: transform 0.2s; }
+        .icone-pessoa:hover { transform: scale(1.2); color: #1e7e34; }
+        .icone-x { color: var(--danger-color); font-size: 1.5rem; }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        .modal-overlay .modal-content h3 { color: #2c5530; margin-bottom: 20px; }
+        .modal-overlay .modal-info {
+            background: var(--light-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: left;
+        }
+        .modal-overlay .modal-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+        .btn-modal {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-sim { background-color: var(--success-color); color: white; }
+        .btn-sim:hover { background-color: #1e7e34; }
+        .btn-nao { background-color: var(--secondary-color); color: white; }
+        .btn-nao:hover { background-color: #5a6268; }
+        .mensagem-sucesso {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border: 1px solid #c3e6cb;
+        }
+        .btn-home-flutuante {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #2c5530;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 9999;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-home-flutuante:hover { background-color: #1e3a21; transform: scale(1.1); }
+        @media (max-width: 768px) {
+            .escala-container { padding: 5px; }
+            .tabela-escala { font-size: 0.75rem; }
+            .tabela-escala th, .tabela-escala td { padding: 8px 5px; font-size: 0.75rem; }
+            .modal-overlay .modal-content { padding: 20px; max-width: 95%; }
+            .btn-home-flutuante { width: 50px; height: 50px; font-size: 1.2rem; bottom: 15px; right: 15px; }
+        }
+        /* === PEDIDOS DE ORAÇÃO (bot_oracoes_publico: tema verde/teal #014a2c, #07adce, #04855c; vars: --border-color, --dark-color, --light-color) === */
+        .detail-field {
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 0;
+        }
+        .detail-field:last-child { border-bottom: none; }
+        .detail-label {
+            font-weight: 600;
+            color: #edf0f3;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .detail-value {
+            font-size: 1.1em;
+            color: var(--dark-color);
+            margin-top: 5px;
+            background: #ffffff;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+        .detail-value-box {
+            background: var(--light-color);
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 150px;
+        }
+        .input-readonly-bg { background-color: var(--light-color) !important; }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .form-container.oracoes {
+            padding: 32px;
+            background: #07adce;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(239, 85, 178, 0.3);
+            margin: 10px auto 0 auto;
+        }
+        .footer-container.oracoes {
+            border-radius: 8px;
+            padding: 16px 32px;
+            background: #04855c;
+            display: block;
+            text-align: center;
+            margin: 8px auto 0 auto;
+            max-width: 920px;
+        }
+        .footer-container.oracoes .btn-submit {
+            background-color: #014a2c !important;
+            border-color: #f6f3f3 !important;
+            color: white !important;
+            padding: 16px 48px;
+            font-size: 18px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(2, 26, 5, 0.3);
+        }
+        .footer-container.oracoes .btn-submit:hover {
+            background-color: #036c38 !important;
+            border-color: #035b2c !important;
+            color: white !important;
+        }
+        .btn-submit.oracoes {
+            background-color: #014a2c !important;
+            border-color: #f6f3f3 !important;
+            color: white !important;
+        }
+        .btn-submit.oracoes:hover {
+            background-color: #036c38 !important;
+            border-color: #035b2c !important;
+            color: white !important;
+        }
+        @media (max-width: 768px) {
+            .footer-container.oracoes .row { flex-direction: column; }
+            .footer-container.oracoes .col-6 { width: 100%; }
+        }
+        /* === BASE FORM PÚBLICO (base_form_publico.html: hero, footer, botão Cadastrar) === */
+        /* Cores: botão #2c5530, hero #dea4de/#270115, footer #3ea548 – altere aqui para mudar em todos os forms que estendem base_form_publico */
+        .btn-submit {
+            background-color: #2c5530 !important;
+            border-color: #2c5530 !important;
+            color: white !important;
+        }
+        .btn-submit:hover {
+            background-color: #1e3a21 !important;
+            border-color: #1e3a21 !important;
+            color: white !important;
+        }
+        .base-form-publico .hero-content,
+        .hero-content {
+            border: 1px solid #270115;
+            border-radius: 8px;
+            padding: 1rem 2rem;
+            background: #dea4de;
+            display: block;
+            text-align: center;
+            margin: 1rem auto 0 auto;
+            max-width: 920px;
+        }
+        .hero-section .container { max-width: 1000px; margin: 0 auto; }
+        .footer-container {
+            border-radius: 8px;
+            padding: 1rem 2rem;
+            background: #3ea548;
+            display: block;
+            text-align: center;
+            margin: 0.5rem auto 0 auto;
+            max-width: 920px;
+        }
+        .footer-container .btn-submit {
+            padding: 1rem 3rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(2, 26, 5, 0.4);
+        }
+        .hero-section h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .hero-section .lead { font-size: 1rem; margin-bottom: 0; }
+        /* Fundo dos containers do cadastro dizimista (Dados Pessoais e Endereço) – altere aqui as cores */
+        .card-body-dados-pessoais {
+            background-color: #86d4db;
+        }
+        .card-body-endereco {
+            background-color: #86d4db;
+        }
+        @media (max-width: 768px) {
+            .footer-container .row { flex-direction: column; }
+            .footer-container .col-6 { width: 100%; }
+        }
+
         /* =========================================== */
         /* === PAINÉIS COLAPSÁVEIS DASHBOARD === */
         /* =========================================== */
@@ -1627,9 +2428,541 @@
                 justify-content: center;
             }
         }
+
+        /* =========================================== */
+        /* === BOTÕES FLUTUANTES GLOBAIS === */
+        /* =========================================== */
+        .fly-float-btn {
+            position: fixed;
+            bottom: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #16ab2a 0%, #ace9b8 100%);
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(10, 202, 138, 0.4);
+            z-index: 1000;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        
+        /* Posicionamento esquerdo */
+        .fly-float-btn-left {
+            left: 30px;
+        }
+        
+        /* Posicionamento direito */
+        .fly-float-btn-right {
+            right: 30px;
+        }
+        
+        .fly-float-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(10, 202, 138, 0.6);
+            color: white;
+            text-decoration: none;
+        }
+        
+        /* Responsivo para botões flutuantes */
+        @media (max-width: 768px) {
+            .fly-float-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+                bottom: 20px;
+            }
+            
+            .fly-float-btn-left {
+                left: 20px;
+            }
+            
+            .fly-float-btn-right {
+                right: 20px;
+            }
+        }
+
+        /* =========================================== */
+        /* === BOTÕES DE BUSCA GLOBAIS === */
+        /* =========================================== */
+        .btn-buscar {
+            background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-buscar:hover {
+            background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
+            color: white;
+        }
+        
+        /* Variação compacta para espaços menores */
+        .btn-buscar-compact {
+            padding: 6px 12px;
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+        
+        /* Responsivo para botões de busca */
+        @media (max-width: 768px) {
+            .btn-buscar {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .btn-buscar-compact {
+                padding: 8px 16px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* =========================================== */
+        /* === DESIGN SYSTEM ÁREA PÚBLICA === */
+        /* =========================================== */
+        
+        /* === CORES PADRONIZADAS === */
+        :root {
+            --cor-borda-principal: #ef55b2;
+            --cor-hero-bg: #ecee81;          /* Amarelo claro do cabeçalho */
+            --cor-busca-bg: rgb(105, 233, 242);  /* Azul claro do container de busca */
+            --cor-lista-bg: rgb(168, 239, 139);  /* Verde claro do container de lista */
+            --sombra-padrao: 0 4px 6px rgba(20, 214, 235, 0.1);
+            --sombra-rosa: 0 4px 6px #ef55b2;
+            --border-radius-padrao: 15px;
+            --espacamento-interno: 40px;
+            --espacamento-interno-hero: 16px 32px;
+        }
+        
+        /* === SEÇÕES HERO (Cabeçalhos) === */
+        .hero-section {
+            padding: 0;
+        }
+        
+        .hero-content {
+            border: 1px solid var(--cor-borda-principal);
+            border-radius: var(--border-radius-padrao);
+            padding: var(--espacamento-interno-hero);
+            background: var(--cor-hero-bg);
+            display: block;
+            text-align: center;
+            margin: 10px auto 0 auto;
+            max-width: 920px;
+        }
+        
+        /* === CONTAINERS DE CONTEÚDO === */
+        .container-busca {
+            border: 1px solid var(--cor-borda-principal);
+            background: var(--cor-busca-bg);
+            padding: var(--espacamento-interno);
+            border-radius: var(--border-radius-padrao);
+            box-shadow: var(--sombra-padrao);
+            margin: 10px;
+        }
+        
+        .container-lista {
+            border: 1px solid var(--cor-borda-principal);
+            background: var(--cor-lista-bg);
+            padding: 20px;
+            border-radius: var(--border-radius-padrao);
+            box-shadow: var(--sombra-rosa);
+            margin-top: 20px;
+        }
+        
+        .container-conteudo {
+            border: 1px solid var(--cor-borda-principal);
+            background: rgb(255, 255, 255);
+            padding: 30px;
+            border-radius: var(--border-radius-padrao);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin: 20px auto;
+            max-width: 920px;
+        }
+        
+        /* === CARDS DE DADOS === */
+        .liturgia-card, .evento-card, .celebracao-card {
+            border: 2px solid #09788e;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background: white;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .liturgia-card-header, .evento-card-header, .celebracao-card-header {
+            background: #09788e;
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 1.1em;
+            text-align: center;
+            border-bottom: 2px solid #09788e;
+        }
+        
+        .liturgia-card-body, .evento-card-body, .celebracao-card-body {
+            padding: 20px;
+            color: #495057;
+            line-height: 1.8;
+            text-align: justify;
+        }
+        
+        /* === TABELAS PADRONIZADAS === */
+        .liturgia-table, .evento-table, .celebracao-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .liturgia-table thead, .evento-table thead, .celebracao-table thead {
+            background: #09788e;
+            color: white;
+        }
+        
+        .liturgia-table th, .evento-table th, .celebracao-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #fff;
+        }
+        
+        .liturgia-table tbody tr, .evento-table tbody tr, .celebracao-table tbody tr {
+            border-bottom: 1px solid #c8c8dc;
+        }
+        
+        .liturgia-table tbody tr:hover, .evento-table tbody tr:hover, .celebracao-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .liturgia-table td, .evento-table td, .celebracao-table td {
+            padding: 12px;
+            border: 1px solid #c8c8dc;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+        
+        /* === BADGES PADRONIZADOS === */
+        .badge-tipo {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        .badge-primeira-leitura { background: #e3f2fd; color: #1976d2; }
+        .badge-segunda-leitura { background: #f3e5f5; color: #7b1fa2; }
+        .badge-salmo { background: #fff3e0; color: #e65100; }
+        .badge-evangelho { background: #e8f5e9; color: #388e3c; }
+        .badge-outros { background: #fafafa; color: #424242; }
+        
+        /* === GRUPOS POR DATA === */
+        .grupo-data {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .grupo-data-header {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #09788e;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #09788e;
+        }
+        
+        /* === RESPONSIVO PARA ÁREA PÚBLICA === */
+        @media (max-width: 768px) {
+            .hero-content {
+                margin: 10px;
+                padding: 12px 16px;
+            }
+            
+            .container-busca {
+                padding: 20px;
+            }
+            
+            .container-lista {
+                padding: 15px;
+            }
+            
+            .container-conteudo {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            /* Ocultar tabelas no mobile */
+            .liturgia-table, .evento-table, .celebracao-table {
+                display: none;
+            }
+            
+            /* Mostrar cards no mobile */
+            .liturgia-cards-container, .evento-cards-container, .celebracao-cards-container {
+                display: block;
+            }
+            
+            .liturgia-card-header, .evento-card-header, .celebracao-card-header {
+                font-size: 1em;
+                padding: 12px 15px;
+            }
+            
+            .liturgia-card-body, .evento-card-body, .celebracao-card-body {
+                padding: 15px;
+                font-size: 0.95em;
+            }
+        }
+        
+        /* Desktop: ocultar cards, mostrar tabela */
+        @media (min-width: 769px) {
+            .liturgia-cards-container, .evento-cards-container, .celebracao-cards-container {
+                display: none;
+            }
+            
+            .liturgia-table, .evento-table, .celebracao-table {
+                display: table;
+            }
+        }
+
+        /* =========================================== */
+        /* === DESIGN SYSTEM ÁREA ADMINISTRATIVA === */
+        /* =========================================== */
+        
+        /* === CORES PADRONIZADAS ADMIN === */
+        :root {
+            --cor-admin-primary: #18c3f7;
+            --cor-admin-primary-dark: #0d8fb8;
+            --cor-admin-success: #28a745;
+            --cor-admin-warning: #ffc107;
+            --cor-admin-danger: #dc3545;
+            --cor-admin-info: #17a2b8;
+            --gradient-admin-blue: linear-gradient(135deg, #18c3f7 0%, #0d8fb8 100%);
+            --gradient-admin-agenda: linear-gradient(135deg, #216bda 0%, #74e3eb 100%);
+            --gradient-admin-success: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            --gradient-admin-danger: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            --gradient-admin-warning: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        }
+        
+        /* === BOTÕES FLUTUANTES ADMIN === */
+        .btn-engrenagem-suspenso {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #940347 0%, #ecedee 100%);
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(229, 233, 4, 0.4);
+            z-index: 1000;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        
+        .btn-engrenagem-suspenso:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(229, 233, 4, 0.6);
+            color: white;
+            text-decoration: none;
+        }
+        
+        /* === CARDS PADRONIZADOS ADMIN === */
+        .card-admin {
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .card-header-admin {
+            background: var(--gradient-admin-blue);
+            color: white;
+            border-radius: 12px 12px 0 0;
+            padding: 15px 20px;
+            font-weight: 600;
+            border: none;
+        }
+        
+        .card-body-admin {
+            padding: 30px;
+            background: white;
+        }
+        
+        /* === CONTAINERS ADMIN === */
+        .container-header-relatorio {
+            border: 1px solid #ef55b2;
+            border-radius: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .container-filtros {
+            border: 1px solid #ef55b2;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .container-grid {
+            border: 1px solid #ef55b2;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .container-botoes-acao {
+            margin-top: 20px;
+            padding: 20px;
+            background: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        /* === BOTÕES ADMIN PADRONIZADOS === */
+        .btn-admin-primary {
+            background: var(--gradient-admin-blue);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-admin-primary:hover {
+            background: linear-gradient(135deg, #0d8fb8 0%, #18c3f7 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(24, 195, 247, 0.3);
+            color: white;
+        }
+        
+        .btn-admin-success {
+            background: var(--gradient-admin-success);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-admin-success:hover {
+            background: linear-gradient(135deg, #1e7e34 0%, #28a745 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+            color: white;
+        }
+        
+        .btn-admin-danger {
+            background: var(--gradient-admin-danger);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-admin-danger:hover {
+            background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+            color: white;
+        }
+        
+        /* === MODAIS ADMIN PADRONIZADOS === */
+        .modal-admin {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content-admin {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border: none;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header-admin {
+            background: var(--gradient-admin-blue);
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            font-weight: 600;
+        }
+        
+        .modal-body-admin {
+            padding: 20px;
+        }
+        
+        .modal-footer-admin {
+            padding: 15px 20px;
+            border-top: 1px solid #ddd;
+            text-align: right;
+        }
+        
+        /* === RESPONSIVO ADMIN === */
+        @media (max-width: 768px) {
+            .btn-engrenagem-suspenso {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+                bottom: 20px;
+                right: 20px;
+            }
+            
+            .container-header-relatorio,
+            .container-filtros,
+            .container-grid {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            .card-header-admin,
+            .card-body-admin {
+                padding: 15px;
+            }
+            
+            .modal-content-admin {
+                width: 95%;
+                margin: 10% auto;
+            }
+        }
     </style>
 </head>
 <body>
+    {% if not request.GET.modo == 'app' %}
     <!-- Header estilo index.html com degradê vinho elaborado -->
     <div class="header">
         <div class="container">
@@ -1681,6 +3014,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
     {% if messages and not modo_edicao and not modo_visualizacao %}
     <div class="container mt-3">
@@ -2124,6 +3458,7 @@
     {% endif %}
 
     
+    {% if not request.GET.modo == 'app' %}
     <!-- Footer -->
     <footer class="bg-dark text-white text-center py-4 mt-5">
         <div class="container">
@@ -2147,9 +3482,10 @@
                 </div>
             </div>
             <hr class="my-3">
-            <p class="mb-0">&copy; 2024 Projeto On Crist. Todos os direitos reservados. By. V.Gandolfo</p>
+            <p class="mb-0">&copy; 2024 Projeto On Crist. Todos os direitos reservados. By. V.Gandolfo - V.3.4</p>
         </div>
     </footer>
+    {% endif %}
 
     <!-- Bootstrap JS and Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

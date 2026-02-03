@@ -4,6 +4,18 @@
     <meta charset="UTF-8">
     <title>Relatório de Escala Mensal de Missas</title>
     <style>
+        /* Cores de relatório (unificadas com base.html) */
+        :root {
+            --header-bg: #09788e;
+            --header-text: white;
+            --border-color: #c8c8dc;
+            --hover-bg: #f8f9fa;
+            --text-muted: #666;
+            --even-row-bg: #f9f9f9;
+        }
+        .status-em-aberto { background-color: #ffc107; color: #000; }
+        .status-reservado { background-color: #17a2b8; color: #fff; }
+        .status-definido { background-color: #28a745; color: #fff; }
         @page {
             size: A4 landscape;
             margin: 1.5cm;
@@ -44,8 +56,8 @@
         }
         
         table thead {
-            background-color: #09788e;
-            color: white;
+            background-color: var(--header-bg);
+            color: var(--header-text);
         }
         
         table th {
@@ -58,20 +70,20 @@
         
         table td {
             padding: 5px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-light);
             font-size: 8pt;
         }
         
         table tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
+            background-color: var(--even-row-bg);
         }
         
         .footer {
             margin-top: 15px;
             text-align: center;
             font-size: 7pt;
-            color: #666;
-            border-top: 1px solid #ddd;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-light);
             padding-top: 8px;
         }
     </style>

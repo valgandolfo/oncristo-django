@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
 <style>
 /* CSS específico do módulo Colaboradores - se necessário */
 .panel-container_estatistica {
@@ -197,8 +196,8 @@
         <div class="mb-3"><label class="form-label fw-bold">Função</label>
             {% if acao == 'incluir' or acao == 'editar' %}{{ form.COL_funcao }}{% if form.COL_funcao.errors %}<div class="text-danger small">{% for error in form.COL_funcao.errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
             {% else %}
-                {% if funcao_colaborador %}
-                    <input type="text" class="form-control" value="{{ funcao_colaborador.FUN_nome_funcao }}" readonly>
+                {% if colaborador.funcao_obj %}
+                    <input type="text" class="form-control" value="{{ colaborador.funcao_obj.FUN_nome_funcao }}" readonly>
                 {% else %}
                     <input type="text" class="form-control" value="Não informado" readonly>
                 {% endif %}

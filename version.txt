@@ -1,0 +1,3 @@
+v1.3.7
+Deploy Date: 2026-01-23
+Changes: Perfil local, Rodapé Home, Correções de Redirecionamento App, Correção Webhook WhatsApp (Missing ENV vars), Guia Deploy Ubuntu 25.04.

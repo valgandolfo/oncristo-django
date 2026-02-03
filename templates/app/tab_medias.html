@@ -1,0 +1,64 @@
+{% extends "app/app_base.html" %}
+
+{% block header %}
+<div class="header-app">
+    <div class="d-flex align-items-center px-3 py-2">
+        <span style="font-size: 1.5rem; margin-right: 12px;">📖</span>
+        <h1 class="mb-0 text-start">Projeto On Cristo</h1>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-4">Medias</h4>
+
+<a href="/app_igreja/mural/0/?modo=app" class="card-menu">
+    <div class="menu-icon-container bg-purple">
+        <i class="fas fa-images"></i>
+    </div>
+    <div class="menu-text">
+        <p class="menu-title">Mural</p>
+        <p class="menu-subtitle">Fotos da nossa paróquia</p>
+    </div>
+    <i class="fas fa-chevron-right text-muted small"></i>
+</a>
+
+{% if paroquia.PAR_url_youtube %}
+<a href="{{ paroquia.PAR_url_youtube }}" target="_blank" class="card-menu">
+    <div class="menu-icon-container bg-youtube">
+        <i class="fab fa-youtube"></i>
+    </div>
+    <div class="menu-text">
+        <p class="menu-title">YouTube</p>
+        <p class="menu-subtitle">Missas ao vivo</p>
+    </div>
+    <i class="fas fa-external-link-alt text-muted small"></i>
+</a>
+{% endif %}
+
+{% if paroquia.PAR_url_facebook %}
+<a href="{{ paroquia.PAR_url_facebook }}" target="_blank" class="card-menu">
+    <div class="menu-icon-container bg-facebook">
+        <i class="fab fa-facebook-f"></i>
+    </div>
+    <div class="menu-text">
+        <p class="menu-title">Facebook</p>
+        <p class="menu-subtitle">Nossa Página</p>
+    </div>
+    <i class="fas fa-external-link-alt text-muted small"></i>
+</a>
+{% endif %}
+
+{% if paroquia.PAR_url_instagram %}
+<a href="{{ paroquia.PAR_url_instagram }}" target="_blank" class="card-menu">
+    <div class="menu-icon-container bg-instagram">
+        <i class="fab fa-instagram"></i>
+    </div>
+    <div class="menu-text">
+        <p class="menu-title">Instagram</p>
+        <p class="menu-subtitle">Siga-nos</p>
+    </div>
+    <i class="fas fa-external-link-alt text-muted small"></i>
+</a>
+{% endif %}
+{% endblock %}

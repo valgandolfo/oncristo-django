@@ -5,7 +5,7 @@ Arquivo com formulários específicos para Dizimistas
 
 from django import forms
 from django.core.exceptions import ValidationError
-from ...models.area_admin.models_dizimistas import TBDIZIMISTAS, TBDOACAODIZIMO
+from ...models.area_admin.models_dizimistas import TBDIZIMISTAS
 from .forms_commons import BaseAdminForm, DateInputWidget
 
 
@@ -143,86 +143,3 @@ class DizimistaForm(BaseAdminForm):
         if valor and valor <= 0:
             raise ValidationError("O valor deve ser maior que zero.")
         return valor
-
-
-class DoacaoDizimoForm(forms.ModelForm):
-    """Formulário para cadastro de doações/dízimos"""
-    
-    class Meta:
-        model = TBDOACAODIZIMO
-        fields = [
-            'dizimista', 'tipo', 'valor', 'data_vencimento', 
-            'status', 'data_recebimento', 'forma_pagamento', 'observacoes', 'ativo'
-        ]
-        widgets = {
-            'dizimista': forms.Select(attrs={
-                'class': 'form-control',
-                'id': 'dizimista'
-            }),
-            'tipo': forms.Select(attrs={
-                'class': 'form-control',
-                'id': 'tipo'
-            }),
-            'valor': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': '0.00',
-                'step': '0.01',
-                'min': '0',
-                'id': 'valor'
-            }),
-            'data_vencimento': DateInputWidget(attrs={
-                'class': 'form-control',
-                'id': 'data_vencimento'
-            }),
-            'status': forms.Select(attrs={
-                'class': 'form-control',
-                'id': 'status'
-            }),
-            'data_recebimento': DateInputWidget(attrs={
-                'class': 'form-control',
-                'id': 'data_recebimento'
-            }),
-            'forma_pagamento': forms.Select(attrs={
-                'class': 'form-control',
-                'id': 'forma_pagamento'
-            }),
-            'observacoes': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': '3',
-                'placeholder': 'Observações sobre a doação...',
-                'id': 'observacoes'
-            }),
-            'ativo': forms.CheckboxInput(attrs={
-                'class': 'form-check-input',
-                'id': 'ativo'
-            }),
-        }
-        labels = {
-            'dizimista': 'Dizimista',
-            'tipo': 'Tipo de Doação',
-            'valor': 'Valor',
-            'data_vencimento': 'Data de Vencimento',
-            'status': 'Status',
-            'data_recebimento': 'Data de Recebimento',
-            'forma_pagamento': 'Forma de Pagamento',
-            'observacoes': 'Observações',
-            'ativo': 'Ativo'
-        }
-    
-    def clean_valor(self):
-        """Validação do valor"""
-        valor = self.cleaned_data.get('valor')
-        if valor and valor <= 0:
-            raise ValidationError("O valor deve ser maior que zero.")
-        return valor
-    
-    def clean_data_recebimento(self):
-        """Validação da data de recebimento"""
-        data_recebimento = self.cleaned_data.get('data_recebimento')
-        data_vencimento = self.cleaned_data.get('data_vencimento')
-        
-        if data_recebimento and data_vencimento:
-            if data_recebimento < data_vencimento:
-                raise ValidationError("A data de recebimento não pode ser anterior à data de vencimento.")
-        
-        return data_recebimento

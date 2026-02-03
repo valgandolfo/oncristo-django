@@ -1,24 +1,38 @@
+# --- NÚCLEO DO SISTEMA (DJANGO) ---
+Django==5.0.3
 asgiref==3.10.0
-beautifulsoup4==4.12.3
+sqlparse==0.5.3
+python-dotenv==1.0.1
+
+# --- BANCO DE DADOS E CONECTORES ---
+mysqlclient==2.2.0
+
+# --- ARMAZENAMENTO E NUVEM (WASABI/S3) ---
+django-storages==1.14.2
 boto3==1.34.0
 botocore==1.34.162
-Django==5.0.3
-django-storages==1.14.2
-gunicorn==21.2.0
-jmespath==1.0.1
-mysqlclient==2.2.0
-packaging==25.0
-pillow==10.4.0
-PyMySQL==1.1.1
-python-dateutil==2.9.0.post0
-python-dotenv==1.0.1
-qrcode==8.2
-requests==2.31.0
-lxml>=5.3.0
 s3transfer==0.9.0
-six==1.17.0
-sqlparse==0.5.3
-urllib3==2.5.0
+jmespath==1.0.1
+
+# --- PROCESSAMENTO DE IMAGENS E MÍDIA ---
+pillow==10.4.0
+qrcode==8.2
+
+# --- SERVIDOR DE PRODUÇÃO E ESTÁTICOS ---
+gunicorn==21.2.0
 whitenoise==6.6.0
-django-widget-tweaks==1.5.0
+
+# --- RELATÓRIOS, PDF E SCRAPING ---
 weasyprint==62.3
+beautifulsoup4==4.12.3
+lxml>=5.3.0
+
+# --- FORMULÁRIOS E UI ---
+django-widget-tweaks==1.5.0
+
+# --- UTILITÁRIOS E DEPENDECIAS DE REDE ---
+requests==2.31.0
+urllib3==2.5.0
+python-dateutil==2.9.0.post0
+packaging==25.0
+six==1.17.0

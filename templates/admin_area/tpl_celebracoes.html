@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
 <style>
 /* CSS específico do módulo Celebrações - se necessário */
 .panel-container_estatistica {
@@ -143,9 +142,9 @@ Clique em "Nova Celebração" para agendar uma celebração via WhatsApp.
 {% block conteudo_detalhe %}
 <!-- FORMULÁRIO GENÉRICO PARA TODAS AS AÇÕES -->
 {% if acao == 'incluir' or acao == 'editar' %}
-<form id="detail-form" method="post" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_celebracao' celebracao.id %}{% else %}{% url 'app_igreja:criar_celebracao' %}{% endif %}">
+<form id="detail-form" method="post" action="{% if acao == 'editar' %}{% url 'app_igreja:editar_celebracao' celebracao.id %}{% else %}{% url 'app_igreja:criar_celebracao' %}{% endif %}" onsubmit="return lockFormButtons(this)">
 {% elif acao == 'excluir' %}
-<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_celebracao' celebracao.id %}">
+<form id="detail-form" method="post" action="{% url 'app_igreja:excluir_celebracao' celebracao.id %}" onsubmit="return lockFormButtons(this)">
 {% endif %}
 
 {% if acao == 'incluir' or acao == 'editar' %}
@@ -348,21 +347,15 @@ function bdRetornar() {
     window.location.href = "{{ next_url }}";
 }
 
-// Inicializar máscaras usando a função centralizada
+// Inicializar máscaras e comportamentos (defensivo: funções podem não existir em todos os contextos)
 document.addEventListener('DOMContentLoaded', function() {
-    inicializarMascaras({
-        campos: {
-            telefone: 'CEL_telefone'
-        }
-    });
-    
-    // Converter email para lowercase automaticamente
-    const emailInput = encontrarCampo('CEL_email');
+    if (typeof inicializarMascaras === 'function') {
+        inicializarMascaras({ campos: { telefone: 'CEL_telefone' } });
+    }
+    var emailInput = typeof encontrarCampo === 'function' ? encontrarCampo('CEL_email') : null;
     if (emailInput) {
         emailInput.addEventListener('blur', function(e) {
-            if (e.target.value) {
-                e.target.value = e.target.value.toLowerCase().trim();
-            }
+            if (e.target.value) e.target.value = e.target.value.toLowerCase().trim();
         });
     }
 });

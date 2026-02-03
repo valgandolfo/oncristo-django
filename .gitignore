@@ -10,7 +10,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/ - REMOVIDO: precisamos acessar arquivos Flutter/Dart
 lib64/
 parts/
 sdist/
@@ -50,6 +50,7 @@ db.sqlite3-journal
 .DS_Store
 
 # Arquivos de backup
+backups/
 *.bak
 *.backup
 *.sql
@@ -102,3 +103,12 @@ criar_*.sh
 # Arquivos de cookies
 cookies.txt
 
+# Arquivos de teste do ngrok
+ngrok.log
+
+# Arquivos de teste do curl
+curl.log
+
+# banco de dados local (não versionar)
+db.sqlite3
+db.sqlite3-journal  

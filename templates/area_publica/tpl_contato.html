@@ -453,44 +453,8 @@
         font-size: 2rem;
     }
     
-    /* === BOTÃO FLUTUANTE === */
-    .fly-float-btn {
-        position: fixed;
-        bottom: 30px;
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, #16ab2a 0%, #ace9b8 100%);
-        border-radius: 50%;
-        color: white;
-        font-size: 24px;
-        box-shadow: 0 4px 15px rgba(10, 202, 138, 0.4);
-        z-index: 1000;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .fly-float-btn-left {
-        left: 30px;
-    }
-    
-    .fly-float-btn:hover {
-        transform: scale(1.1);
-        box-shadow: 0 6px 20px rgba(10, 202, 138, 0.6);
-    }
     
     @media (max-width: 768px) {
-        .fly-float-btn {
-            width: 50px;
-            height: 50px;
-            font-size: 20px;
-            bottom: 20px;
-        }
-        
-        .fly-float-btn-left {
-            left: 20px;
-        }
         
         .address-item {
             flex-direction: column;
@@ -720,7 +684,7 @@
 </div>
 
 <!-- Botão Flutuante HOME -->
-<a href="{% url 'home' %}" class="fly-float-btn fly-float-btn-left d-flex align-items-center justify-content-center text-decoration-none" title="Voltar para Home">
+<a href="{{ url_retorno|default:'/' }}" class="fly-float-btn fly-float-btn-left d-flex align-items-center justify-content-center text-decoration-none" title="Voltar">
     <i class="fas fa-home"></i>
 </a>
 {% endblock %}

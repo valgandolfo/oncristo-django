@@ -5,13 +5,31 @@
 {% block title %}Agenda do Mês{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/configuracoes-visuais.css' %}">
 <style>
+/* === MODAL E CALENDÁRIO === */
+.modal-agenda {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+}
+.modal-agenda.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .agenda-calendario {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 2px;
-    background: linear-gradient(135deg, #216bda 0%, #74e3eb 100%);
+    background: var(--gradient-admin-agenda);
     border: 2px solid #667eea;
     border-radius: 10px;
     padding: 4px;
@@ -130,26 +148,6 @@
     50% { opacity: 0.7; }
 }
 
-/* Modal */
-.modal-agenda {
-    display: none;
-    position: fixed;
-    z-index: 1050;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.6);
-    backdrop-filter: blur(5px);
-}
-
-.modal-agenda.show {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .modal-content-agenda {
     background-color: #fefefe;
     margin: auto;
@@ -170,7 +168,7 @@
 
 .modal-header-agenda {
     padding: 25px;
-    background: near-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border-radius: 0;
 }
@@ -458,10 +456,20 @@ function garantirModalAgenda() {
         modal = document.createElement('div');
         modal.id = 'modalAgenda';
         modal.className = 'modal-agenda';
-        modal.style.cssText = 'display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);';
         document.body.appendChild(modal);
     }
     return modal;
+}
+
+// Utilitárias para controlar modais
+function mostrarModal(modalId) {
+    const modal = document.getElementById(modalId) || garantirModalAgenda();
+    modal.style.display = 'block';
+}
+
+function ocultarModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.style.display = 'none';
 }
 
 // Função para abrir modal verificando se AGE_ITE_MODELO = 0
@@ -575,7 +583,7 @@ function abrirModalAgendaForm(dia, mes, ano, modeloSelecionado) {
                 </div>
             `;
             
-            modal.style.display = 'block';
+            mostrarModal('modalAgenda');
             
             // Event listeners
             modal.querySelector('.btn-fechar-modal-agenda').addEventListener('click', fecharModalAgenda);
@@ -695,7 +703,7 @@ function abrirModalAgendaConsulta(dia, mes, ano, modeloId) {
 function fecharModalAgenda() {
     const modal = document.getElementById('modalAgenda');
     if (modal) {
-        modal.style.display = 'none';
+        ocultarModal('modalAgenda');
     }
     diaAtual = null;
     mesAtual = null;
@@ -832,7 +840,7 @@ function carregarDadosAgenda(dia, mes, ano) {
                 </div>
             `;
             
-            modal.style.display = 'block';
+            mostrarModal('modalAgenda');
             
             // Event listeners
             modal.querySelector('.btn-fechar-modal-agenda').addEventListener('click', fecharModalAgenda);

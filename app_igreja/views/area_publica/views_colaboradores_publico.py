@@ -5,6 +5,7 @@ Views para cadastro público de colaboradores usando telefone como chave
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, Http404
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 import requests
@@ -96,6 +97,10 @@ def quero_ser_colaborador(request):
                     f'seu telefone {colaborador.COL_telefone} foi registrado. '
                     f'Em breve entraremos em contato para confirmar seus dados.'
                 )
+                # Se estiver no modo app, redirecionar para a home do app
+                if request.GET.get('modo') == 'app' or request.session.get('modo_app'):
+                    return redirect('app_igreja:app_servicos')
+
                 # Redirecionar para a home (raiz do app)
                 return redirect('/')
                 
@@ -117,18 +122,22 @@ def quero_ser_colaborador(request):
         
         form = ColaboradorPublicoForm(initial=initial_data)
     
+    # Determinar URL de retorno baseada no modo
+    if request.GET.get('modo') == 'app' or request.session.get('modo_app'):
+        url_retorno = reverse('app_igreja:app_servicos')
+    else:
+        url_retorno = reverse('home')
+
     context = {
         'form': form,
         'titulo': 'Quero ser Colaborador',
         'subtitulo': 'Cadastre-se para colaborar com nossa paróquia',
         'paroquia': getattr(request, 'paroquia', None),
         'telefone_readonly': telefone_readonly,
-        'telefone_url': telefone_url
+        'telefone_url': telefone_url,
+        'url_retorno': url_retorno,
     }
-    
-    # Usar template específico para WhatsApp se vier telefone via URL
-    template = 'area_publica/bot_colaboradores_publico.html' if telefone_readonly else 'area_publica/tpl_colaboradores_publico.html'
-    return render(request, template, context)
+    return render(request, 'area_publica/bot_colaboradores_publico.html', context)
 
 
 def cadastro_colaborador_publico(request, telefone):
@@ -160,12 +169,17 @@ def cadastro_colaborador_publico(request, telefone):
             instance.save()
             
             messages.success(request, 'Dados salvos com sucesso!')
-            return render(request, 'area_publica/tpl_colaboradores_publico.html', {
+            url_retorno = reverse('app_igreja:app_servicos') if request.GET.get('modo') == 'app' or request.session.get('modo_app') else reverse('home')
+            return render(request, 'area_publica/bot_colaboradores_publico.html', {
                 'form': form,
                 'colaborador': instance,
                 'telefone': formatar_telefone(telefone_limpo),
                 'telefone_limpo': telefone_limpo,
-                'sucesso': True
+                'telefone_readonly': True,
+                'telefone_url': formatar_telefone(telefone_limpo),
+                'paroquia': getattr(request, 'paroquia', None),
+                'url_retorno': url_retorno,
+                'sucesso': True,
             })
         else:
             messages.error(request, 'Erro ao salvar dados. Verifique os campos.')
@@ -174,15 +188,24 @@ def cadastro_colaborador_publico(request, telefone):
         # Define o telefone no formulário
         form.fields['COL_telefone'].initial = formatar_telefone(telefone_limpo)
     
+    # Determinar URL de retorno baseada no modo
+    if request.GET.get('modo') == 'app' or request.session.get('modo_app'):
+        url_retorno = reverse('app_igreja:app_servicos')
+    else:
+        url_retorno = reverse('home')
+
     context = {
         'form': form,
         'colaborador': colaborador,
         'telefone': formatar_telefone(telefone_limpo),
         'telefone_limpo': telefone_limpo,
+        'telefone_readonly': True,
+        'telefone_url': formatar_telefone(telefone_limpo),
+        'paroquia': getattr(request, 'paroquia', None),
         'status': colaborador.COL_status if colaborador else None,
+        'url_retorno': url_retorno,
     }
-    
-    return render(request, 'area_publica/tpl_colaboradores_publico.html', context)
+    return render(request, 'area_publica/bot_colaboradores_publico.html', context)
 
 
 @require_http_methods(["GET"])

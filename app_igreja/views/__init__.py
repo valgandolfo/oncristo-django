@@ -1,8 +1,8 @@
 # ==================== IMPORTAÇÕES DOS VIEWS ====================
 # Importações das views específicas da área administrativa
 from .admin_area.views_admin_area import admin_area
-from .admin_area.views_dioceses import *
-from .admin_area.views_paroquias import paroquia_generic_view
+from .admin_area.views_dioceses import diocese_crud_unico
+from .admin_area.views_paroquias import paroquia_crud_unico
 from .admin_area.views_visual import visual_generic_view
 from .admin_area.views_relatorios import *
 from .admin_area.views_celebracoes import *
@@ -12,7 +12,7 @@ from .admin_area.views_celebracoes import *
 # - diocese_detail()
 
 # Views de Paróquias:
-# - paroquia_generic_view()
+# - paroquia_crud_unico()
 
 # Views de Relatórios:
 # - (a serem implementadas)

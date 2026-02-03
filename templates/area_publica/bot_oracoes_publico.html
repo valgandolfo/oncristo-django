@@ -13,203 +13,9 @@
 {% endblock %}
 
 {% block extra_css %}
+{# .detail-field, .detail-label, .detail-value, .form-container.oracoes, .footer-container.oracoes, .btn-submit.oracoes no base.html (tema #07adce, #04855c, #014a2c; vars: --border-color, --dark-color, --light-color) #}
 <style>
-    /* === ESTILOS PARA LISTAGEM === */
-    .hero-section {
-        padding: 0;  /* Remove padding padrão da seção hero */
-    }
-    
-    /* === HERO CONTENT (Cabeçalho) ===
-       Container do cabeçalho que aparece nas telas de criar e consultar
-       Cor: azul claro (#37c8e5) - igual ao dizimista
-       Borda: rosa-ey (#ef55b2)
-       Largura máxima: 920px (padronizado com dizimista) */
-    .hero-content {
-        border: 1px solid #ef55b2;  
-        border-radius: 15px;
-        padding: 16px 32px;           /* Espaçamento interno: 16px vertical, 32px horizontal */
-        background: #09788e;          /* Cor de fundo azul claro */
-        display: block;
-        text-align: center;
-        margin: 10px auto 0 auto;     /* Margem superior 20px, centralizado horizontalmente */
-        max-width: 920px;             /* Largura máxima 920px (igual dizimista) */
-    }
-    
-    /* === CONTAINER DE BUSCA === 
-       Container onde o usuário digita o telefone para buscar seus pedidos
-       Cor: azul claro (rgb 105, 233, 242) */
-    .container-busca {
-        border: 1px solid #ef55b2;  
-        background: rgb(105, 233, 242);    /* Cor de fundo azul claro */
-        padding: 40px;                      /* Espaçamento interno 40px todos os lados */
-        border-radius: 15px;                /* Bordas arredondadas 15px */
-        box-shadow: 0 4px 6px rgba(20, 214, 235, 0.1);  /* Sombra do container */
-        margin: 10px;                /* Espaço inferior 50px */
-    }
-    
-    /* === CONTAINER DE LISTA ===
-       Container que exibe a lista de pedidos encontrados na busca
-       Cor: verde claro (rgb 168, 239, 139)
-       Borda: rosa (#ef55b2)
-       Sombra: rosa com transparência */
-    .container-lista {
-        border: 1px solid #ef55b2;  
-        background: rgb(168, 239, 139);    /* Cor de fundo verde claro */
-        padding: 20px;                      /* Espaçamento interno 20px */
-        border-radius: 15px;                /* Bordas arredondadas 15px */
-        box-shadow: 0 4px 6px #ef55b2;      /* Sombra com cor rosa */
-        margin-top: 20px;                   /* Margem superior 20px */
-    }
-    
-    /* === CAMPOS DE DETALHE ===
-       Campos usados na visualização de detalhes do pedido */
-    .detail-field {
-        border-bottom: 1px solid #c8c8dc;
-        padding: 15px 0;
-    }
-    
-    .detail-field:last-child {
-        border-bottom: none;
-    }
-    
-    .detail-label {
-        font-weight: 600;
-        color: #edf0f3;
-        font-size: 0.9em;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .detail-value {
-        font-size: 1.1em;
-        color: #212529;
-        margin-top: 5px;
-        background: #ffffff;
-        padding: 8px 12px;
-        border-radius: 4px;
-    }
-    
-    .btn-buscar {
-        background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%);
-        border: none;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 8px;
-        font-weight: 500;
-        font-size: 0.875rem;
-        transition: all 0.3s;
-        white-space: nowrap;
-    }
-    
-    .btn-buscar:hover {
-        background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
-    }
-    
-    @media (max-width: 576px) {
-        .btn-buscar {
-            padding: 6px 10px;
-            font-size: 0.8rem;
-        }
-    }
-    
-    .status-badge {
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.85em;
-        font-weight: 500;
-    }
-    
-    .fly-float-btn {
-        position: fixed;
-        bottom: 30px;
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, #16ab2a 0%, #ace9b8 100%);
-        border-radius: 50%;
-        color: white;
-        font-size: 24px;
-        box-shadow: 0 4px 15px rgba(10, 202, 138, 0.4);
-        z-index: 1000;
-        transition: all 0.3s;
-    }
-    
-    /* Botão do lado direito */
-    .fly-float-btn-right {
-        right: 30px;
-    }
-    
-    /* Botão do lado esquerdo */
-    .fly-float-btn-left {
-        left: 30px;
-    }
-    
-    .fly-float-btn:hover {
-        transform: scale(1.1);
-        box-shadow: 0 6px 20px rgba(10, 202, 138, 0.6);
-    }
-    
-    /* === ESTILOS PARA FORMULÁRIO DE CRIAÇÃO (igual dizimista) === */
-    .btn-submit {
-        background-color: #014a2c !important;
-        border-color: #f6f3f3 !important;
-        color: white !important;
-    }
-    
-    .btn-submit:hover {
-        background-color: #036c38 !important;
-        border-color: #035b2c !important;
-        color: white !important;
-    }
-    
-    /* === CONTAINER DO FORMULÁRIO ===
-       Container principal que envolve os formulários (criar e consultar) */
-    .form-container {
-        padding: 32px;
-        background: #07adce;
-        border-radius: 8px;
-        box-shadow: 2 4px 6px #ef55b2;
-        margin: 10+px auto 0 auto;        
-    }
-    
-    .footer-container {
-        border-radius: 8px;
-        padding: 16px 32px;
-        background: #04855c;
-        display: block;
-        text-align: center;
-        margin: 8px auto 0 auto;
-        max-width: 920px;        
-    }
-    
-    .footer-container .btn-submit {
-        padding: 16px 48px;
-        font-size: 18px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px #021a05;  
-    }
-    
-    @media (max-width: 768px) {
-        .fly-float-btn {
-            width: 50px;
-            height: 50px;
-            font-size: 20px;
-            bottom: 20px;
-        }
-        .fly-float-btn-left {
-            left: 20px;
-        }
-        .fly-float-btn-right {
-            right: 20px;
-        }
-        .footer-container .row {
-            flex-direction: column;
-        }
-        .footer-container .col-6 {
-            width: 100%;
-        }
-    }
+    .hero-section { padding: 0; }
 </style>
 {% endblock %}
 
@@ -233,7 +39,7 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            <div class="form-container">
+            <div class="form-container oracoes">
         
         <div class="row">
             <div class="col-md-6">
@@ -303,7 +109,7 @@
                         Descrição do Pedido
                     </div>
                     <div class="detail-value mt-3">
-                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; min-height: 150px;">
+                        <div class="detail-value-box">
                             {{ oracao.ORA_descricao|linebreaks }}
                         </div>
                     </div>
@@ -333,7 +139,7 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            <div class="form-container">
+            <div class="form-container oracoes">
                 <form method="post" id="oracaoForm" onsubmit="return lockFormButtons(this)">
             {% csrf_token %}
             
@@ -372,7 +178,7 @@
                                        class="form-control" 
                                        id="id_ORA_telefone_pedinte" 
                                        readonly 
-                                       style="background-color: #e9ecef;">
+                                       class="input-readonly-bg">
                             {% else %}
                                 <input type="text" 
                                        name="ORA_telefone_pedinte" 
@@ -380,7 +186,7 @@
                                        class="form-control" 
                                        id="id_ORA_telefone_pedinte" 
                                        readonly 
-                                       style="background-color: #e9ecef;">
+                                       class="input-readonly-bg">
                             {% endif %}
                             <small class="text-muted">Telefone identificado automaticamente via WhatsApp</small>
                         {% else %}
@@ -451,11 +257,11 @@
 </div>
 
 <!-- Footer Container para os Botões (estilo dizimista) -->
-<div class="footer-container">
+<div class="footer-container oracoes">
     <div class="container">
         <div class="row g-2">
             <div class="col-6">
-                <button type="submit" form="oracaoForm" class="btn btn-submit w-100 btn-gravar-global">
+                <button type="submit" form="oracaoForm" class="btn btn-submit oracoes w-100 btn-gravar-global">
                     <i class="fas fa-paper-plane me-2"></i>
                     Enviar Pedido de Oração
                 </button>
@@ -512,7 +318,7 @@
                         value="{{ telefone }}"
                         required
                     >
-                    <button type="submit" class="btn btn-buscar" style="padding: 6px 12px; font-size: 0.875rem;">
+                    <button type="submit" class="btn btn-buscar btn-buscar-compact">
                         <i class="fas fa-search"></i>
                         <span class="d-none d-sm-inline ms-1">BUSCAR</span>
                     </button>
@@ -625,7 +431,7 @@
 </a>
 {% else %}
 <!-- Botões para quando está na lista -->
-<a href="{% url 'home' %}" class="fly-float-btn fly-float-btn-left d-flex align-items-center justify-content-center text-decoration-none" title="Voltar para Home">
+<a href="{{ url_retorno|default:'/' }}" class="fly-float-btn fly-float-btn-left d-flex align-items-center justify-content-center text-decoration-none" title="Voltar">
     <i class="fas fa-home"></i>
 </a>
 {% if user.is_authenticated %}

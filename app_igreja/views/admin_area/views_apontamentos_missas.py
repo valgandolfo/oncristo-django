@@ -1,196 +1,166 @@
-"""
-==================== VIEWS DE APONTAMENTOS ESCALA MISSA ====================
-Views para apontar grupos e status nos itens da escala
-"""
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.core.paginator import Paginator
-from django.db.models import Q
-from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
-from datetime import date
-from calendar import monthrange
+"""Apontamentos da escala de missas: listar itens e atribuir grupo/status (admin)."""
 import json
 import logging
+import re
+import time
+from calendar import monthrange
+from datetime import date
+from functools import wraps
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.core.paginator import Paginator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 from ...models.area_admin.models_escala import TBESCALA, TBITEM_ESCALA
 from ...models.area_admin.models_colaboradores import TBCOLABORADORES
 from ...models.area_admin.models_grupos import TBGRUPOS
-from ...models.area_admin.models_paroquias import TBPAROQUIA
 
 logger = logging.getLogger(__name__)
 
+URL_APONTAMENTOS_ESCALA_MISSA = 'app_igreja:apontamentos_escala_missa'
+MESES_PT = [
+    '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+]
+DIAS_SEMANA_PT = {
+    0: 'Segunda-feira', 1: 'Terça-feira', 2: 'Quarta-feira', 3: 'Quinta-feira',
+    4: 'Sexta-feira', 5: 'Sábado', 6: 'Domingo',
+}
+JANELA_MAP = {1: 'Todas Leituras', 2: 'Diferente da escolha Anterior', 3: 'Diferente das últimas duas escolhidas'}
+STATUS_VALIDOS = {'DEFINIDO', 'EM_ABERTO', 'RESERVADO'}
+
 
 def admin_required(view_func):
-    """Decorator para verificar se o usuário é administrador"""
-    from functools import wraps
-    
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect('login')
-        
-        if not request.user.is_superuser:
+        if not (request.user.is_superuser or request.user.is_staff):
             messages.error(request, 'Acesso negado. Apenas administradores podem acessar esta área.')
-            return redirect('home')
-        
+            return redirect('app_igreja:admin_area')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+
+
+def _redirect_apontamentos():
+    return redirect(URL_APONTAMENTOS_ESCALA_MISSA)
+
+
+def _primeiro_dia(mes, ano):
+    return date(ano, mes, 1) if mes and ano else None
+
+
+def _parse_mes_ano(mes_str, ano_str):
+    if not mes_str or not ano_str:
+        return None, None
+    try:
+        mes, ano = int(mes_str), int(ano_str)
+        if 1 <= mes <= 12 and 2000 <= ano <= 2100:
+            return mes, ano
+    except ValueError:
+        pass
+    return None, None
+
+
+def _enrich_item_apontamento(item):
+    """Atribui dia_semana_nome, colaborador_*, grupo_nome, situacao_bloqueado e janela_descricao ao item."""
+    item.dia_semana_nome = DIAS_SEMANA_PT.get(item.ITE_ESC_DATA.weekday(), '')
+    if item.ITE_ESC_COLABORADOR:
+        try:
+            col = TBCOLABORADORES.objects.get(COL_id=item.ITE_ESC_COLABORADOR)
+            item.colaborador_nome = col.COL_nome_completo
+            item.colaborador_telefone = col.COL_telefone
+            item.colaborador_email = getattr(col, 'COL_email', None)
+        except TBCOLABORADORES.DoesNotExist:
+            item.colaborador_nome = '-'
+            item.colaborador_telefone = None
+            item.colaborador_email = None
+    else:
+        item.colaborador_nome = '-'
+        item.colaborador_telefone = None
+        item.colaborador_email = None
+    if item.ITE_ESC_GRUPO:
+        try:
+            item.grupo_nome = TBGRUPOS.objects.get(GRU_id=item.ITE_ESC_GRUPO).GRU_nome_grupo
+        except TBGRUPOS.DoesNotExist:
+            item.grupo_nome = '-'
+    else:
+        item.grupo_nome = '-'
+    item.situacao_bloqueado = not item.ITE_ESC_SITUACAO
+    item.janela_descricao = JANELA_MAP.get(item.ITE_ESC_JANELA, '-') if item.ITE_ESC_JANELA else '-'
 
 
 @login_required
 @admin_required
 def apontamentos_escala_missa(request):
-    """
-    Lista itens da escala para apontamento (sem os três pontinhos)
-    """
-    # Buscar mês/ano da query string
-    mes = request.GET.get('mes', '')
-    ano = request.GET.get('ano', '')
-    
-    # Se não tiver mês/ano, usar mês e ano atual como padrão
-    if not mes or not ano:
+    """Lista itens da escala para apontamento (grupos e status)."""
+    mes_str = request.GET.get('mes', '')
+    ano_str = request.GET.get('ano', '')
+    grupos = TBGRUPOS.objects.filter(GRU_ativo=True).order_by('GRU_nome_grupo')
+
+    if not mes_str or not ano_str:
         hoje = date.today()
-        mes_atual = hoje.month
-        ano_atual = hoje.year
-        
-        # Buscar grupos mesmo sem filtro para o modal
-        grupos = TBGRUPOS.objects.filter(GRU_ativo=True).order_by('GRU_nome_grupo')
-        
         context = {
             'modo_dashboard': True,
             'sem_filtro': True,
-            'mes': mes_atual,
-            'ano': ano_atual,
+            'mes': hoje.month,
+            'ano': hoje.year,
             'grupos': grupos,
         }
         return render(request, 'admin_area/tpl_apontamentos_missas.html', context)
-    
+
     try:
-        mes = int(mes)
-        ano = int(ano)
-        
-        # Validar mês e ano
+        parsed = _parse_mes_ano(mes_str, ano_str)
+        if not parsed:
+            messages.error(request, 'Mês e ano devem ser números válidos (mês 1-12, ano 2000-2100).')
+            return _redirect_apontamentos()
+        mes, ano = parsed
+
         if mes < 1 or mes > 12:
             messages.error(request, 'Mês inválido. Use valores entre 1 e 12.')
-            return redirect('app_igreja:apontamentos_escala_missa')
-        
+            return _redirect_apontamentos()
         if ano < 2000 or ano > 2100:
             messages.error(request, 'Ano inválido.')
-            return redirect('app_igreja:apontamentos_escala_missa')
-        
-        # Buscar escala master
-        primeiro_dia_mes = date(ano, mes, 1)
+            return _redirect_apontamentos()
+
+        primeiro_dia_mes = _primeiro_dia(mes, ano)
         escala_master = TBESCALA.objects.filter(ESC_MESANO=primeiro_dia_mes).first()
-        
         if not escala_master:
             messages.info(request, f'Nenhuma escala encontrada para {mes:02d}/{ano}. Gere a escala primeiro.')
-            # Buscar grupos mesmo sem escala para o modal
-            grupos = TBGRUPOS.objects.filter(GRU_ativo=True).order_by('GRU_nome_grupo')
-            context = {
-                'modo_dashboard': True,
-                'sem_filtro': True,
-                'mes': mes,
-                'ano': ano,
-                'grupos': grupos,
-            }
+            context = {'modo_dashboard': True, 'sem_filtro': True, 'mes': mes, 'ano': ano, 'grupos': grupos}
             return render(request, 'admin_area/tpl_apontamentos_missas.html', context)
-        
-        # Buscar itens da escala
-        itens = TBITEM_ESCALA.objects.filter(
-            ITE_ESC_ESCALA=escala_master
-        ).order_by('ITE_ESC_DATA', 'ITE_ESC_HORARIO')
-        
-        # Organizar por dia para exibição
-        dias_semana_pt = {
-            0: 'Segunda-feira',
-            1: 'Terça-feira',
-            2: 'Quarta-feira',
-            3: 'Quinta-feira',
-            4: 'Sexta-feira',
-            5: 'Sábado',
-            6: 'Domingo'
-        }
-        
-        meses_pt = [
-            '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-        ]
-        
-        # Buscar todos os grupos para o select
-        grupos = TBGRUPOS.objects.filter(GRU_ativo=True).order_by('GRU_nome_grupo')
-        
-        # Adicionar nome do dia da semana, colaborador e grupo para cada item
+
+        itens = TBITEM_ESCALA.objects.filter(ITE_ESC_ESCALA=escala_master).order_by(
+            'ITE_ESC_DATA', 'ITE_ESC_HORARIO'
+        )
         for item in itens:
-            item.dia_semana_nome = dias_semana_pt.get(item.ITE_ESC_DATA.weekday(), '')
-            
-            # Buscar nome do colaborador
-            if item.ITE_ESC_COLABORADOR:
-                try:
-                    colaborador = TBCOLABORADORES.objects.get(COL_id=item.ITE_ESC_COLABORADOR)
-                    item.colaborador_nome = colaborador.COL_nome_completo
-                    item.colaborador_telefone = colaborador.COL_telefone
-                    item.colaborador_email = getattr(colaborador, 'COL_email', None)
-                except TBCOLABORADORES.DoesNotExist:
-                    item.colaborador_nome = '-'
-                    item.colaborador_telefone = None
-                    item.colaborador_email = None
-            else:
-                item.colaborador_nome = '-'
-                item.colaborador_telefone = None
-                item.colaborador_email = None
-            
-            # Buscar nome do grupo
-            if item.ITE_ESC_GRUPO:
-                try:
-                    grupo = TBGRUPOS.objects.get(GRU_id=item.ITE_ESC_GRUPO)
-                    item.grupo_nome = grupo.GRU_nome_grupo
-                except TBGRUPOS.DoesNotExist:
-                    item.grupo_nome = '-'
-            else:
-                item.grupo_nome = '-'
-            
-            # Adicionar informação de situação (bloqueado/desbloqueado)
-            item.situacao_bloqueado = not item.ITE_ESC_SITUACAO
-            
-            # Adicionar informação de janela (se houver)
-            if item.ITE_ESC_JANELA:
-                janela_map = {
-                    1: 'Todas Leituras',
-                    2: 'Diferente da escolha Anterior',
-                    3: 'Diferente das últimas duas escolhidas'
-                }
-                item.janela_descricao = janela_map.get(item.ITE_ESC_JANELA, '-')
-            else:
-                item.janela_descricao = '-'
-        
-        # Paginação
+            _enrich_item_apontamento(item)
+
         paginator = Paginator(itens, 50)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        
+        page_obj = paginator.get_page(request.GET.get('page'))
+
         context = {
             'page_obj': page_obj,
             'escala_master': escala_master,
             'mes': mes,
             'ano': ano,
-            'mes_nome': meses_pt[mes],
+            'mes_nome': MESES_PT[mes],
             'modo_dashboard': True,
             'grupos': grupos,
         }
-        
         return render(request, 'admin_area/tpl_apontamentos_missas.html', context)
-    
+
     except ValueError:
         messages.error(request, 'Mês e ano devem ser números válidos.')
-        return redirect('app_igreja:apontamentos_escala_missa')
+        return _redirect_apontamentos()
     except Exception as e:
-        logger.error(f"Erro ao listar apontamentos: {str(e)}", exc_info=True)
+        logger.error("Erro ao listar apontamentos: %s", str(e), exc_info=True)
         messages.error(request, f'Erro ao carregar apontamentos: {str(e)}')
-        return redirect('app_igreja:apontamentos_escala_missa')
+        return _redirect_apontamentos()
 
 
 @login_required
@@ -198,214 +168,123 @@ def apontamentos_escala_missa(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def atribuir_apontamento(request, item_id):
-    """
-    Atribui grupo e status a um item da escala
-    """
+    """Atribui grupo e status a um item da escala (AJAX)."""
     try:
         item = get_object_or_404(TBITEM_ESCALA, ITE_ESC_ID=item_id)
-        
         data = json.loads(request.body)
         grupo_id = data.get('grupo_id')
         status = data.get('status')
         enviar_mensagem = data.get('enviar_mensagem', False)
-        acao_situacao = data.get('acao_situacao')  # 'bloquear', 'desbloquear' ou 'janelas'
+        acao_situacao = data.get('acao_situacao')
         dia_inicial = data.get('dia_inicial')
         dia_final = data.get('dia_final')
-        janela = data.get('janela')  # 1, 2 ou 3
-        
-        # Validar status
-        if status not in ['DEFINIDO', 'EM_ABERTO', 'RESERVADO']:
+        janela = data.get('janela')
+
+        if status not in STATUS_VALIDOS:
             return JsonResponse({'success': False, 'error': 'Status inválido'}, status=400)
-        
-        # Processar bloqueio/desbloqueio/janelas por período se especificado
-        if acao_situacao and dia_inicial and dia_final:
+
+        if acao_situacao and dia_inicial is not None and dia_final is not None:
             try:
                 dia_inicial_int = int(dia_inicial)
                 dia_final_int = int(dia_final)
-                
-                # Validar dias
-                if dia_inicial_int < 1 or dia_inicial_int > 31 or dia_final_int < 1 or dia_final_int > 31:
+                if not (1 <= dia_inicial_int <= 31 and 1 <= dia_final_int <= 31):
                     return JsonResponse({'success': False, 'error': 'Dias inválidos'}, status=400)
-                
                 if dia_inicial_int > dia_final_int:
                     return JsonResponse({'success': False, 'error': 'Dia inicial deve ser menor ou igual ao dia final'}, status=400)
-                
-                # Buscar todos os itens do mesmo mês/ano no período especificado
-                primeiro_dia_mes = date(item.ITE_ESC_DATA.year, item.ITE_ESC_DATA.month, 1)
-                ultimo_dia_mes = monthrange(item.ITE_ESC_DATA.year, item.ITE_ESC_DATA.month)[1]
-                
-                # Ajustar dias para não ultrapassar o último dia do mês
-                dia_inicial_ajustado = min(dia_inicial_int, ultimo_dia_mes)
-                dia_final_ajustado = min(dia_final_int, ultimo_dia_mes)
-                
-                # Buscar itens no período
+
+                ano, mes = item.ITE_ESC_DATA.year, item.ITE_ESC_DATA.month
+                ultimo_dia = monthrange(ano, mes)[1]
+                dia_ini = min(dia_inicial_int, ultimo_dia)
+                dia_fim = min(dia_final_int, ultimo_dia)
+
                 itens_periodo = TBITEM_ESCALA.objects.filter(
-                    ITE_ESC_ESCALA=item.ITE_ESC_ESCALA
-                ).filter(
-                    ITE_ESC_DATA__day__gte=dia_inicial_ajustado,
-                    ITE_ESC_DATA__day__lte=dia_final_ajustado
+                    ITE_ESC_ESCALA=item.ITE_ESC_ESCALA,
+                    ITE_ESC_DATA__day__gte=dia_ini,
+                    ITE_ESC_DATA__day__lte=dia_fim
                 )
-                
+
                 if acao_situacao == 'janelas':
-                    # Validar valor de janela
-                    if janela not in [1, 2, 3]:
+                    if janela not in (1, 2, 3):
                         return JsonResponse({'success': False, 'error': 'Valor de janela inválido. Use 1, 2 ou 3.'}, status=400)
-                    
-                    # Atualizar janela de todos os itens do período
-                    itens_atualizados = itens_periodo.update(ITE_ESC_JANELA=janela)
-                    logger.info(f"✅ Janela {janela} aplicada no período: dias {dia_inicial_ajustado} a {dia_final_ajustado} - {itens_atualizados} item(ns) atualizado(s)")
+                    n = itens_periodo.update(ITE_ESC_JANELA=janela)
+                    logger.info("Janela %s aplicada no período: dias %s a %s - %s item(ns)", janela, dia_ini, dia_fim, n)
                 else:
-                    # Determinar valor da situação
-                    situacao_valor = True if acao_situacao == 'desbloquear' else False
-                    
-                    # Atualizar situação de todos os itens do período
-                    itens_atualizados = itens_periodo.update(ITE_ESC_SITUACAO=situacao_valor)
-                    logger.info(f"✅ {acao_situacao.capitalize()} período: dias {dia_inicial_ajustado} a {dia_final_ajustado} - {itens_atualizados} item(ns) atualizado(s)")
-                
+                    situacao_valor = acao_situacao == 'desbloquear'
+                    n = itens_periodo.update(ITE_ESC_SITUACAO=situacao_valor)
+                    logger.info("%s período: dias %s a %s - %s item(ns)", acao_situacao.capitalize(), dia_ini, dia_fim, n)
             except (ValueError, TypeError) as e:
                 return JsonResponse({'success': False, 'error': f'Erro ao processar período: {str(e)}'}, status=400)
-        
-        # Atualizar item atual
+
         if grupo_id:
             item.ITE_ESC_GRUPO = int(grupo_id)
         item.ITE_ESC_STATUS = status
         item.save()
-        
-        # Se um grupo foi atribuído, atribuir automaticamente para todos os itens do mesmo dia e horário
+
         if grupo_id:
             grupo_id_int = int(grupo_id)
-            # Buscar todos os itens do mesmo dia e horário (mesma escala)
             itens_mesmo_horario = TBITEM_ESCALA.objects.filter(
                 ITE_ESC_ESCALA=item.ITE_ESC_ESCALA,
                 ITE_ESC_DATA=item.ITE_ESC_DATA,
                 ITE_ESC_HORARIO=item.ITE_ESC_HORARIO
-            ).exclude(ITE_ESC_ID=item.ITE_ESC_ID)  # Excluir o item atual que já foi atualizado
-            
-            # Atualizar grupo para todos os itens do mesmo horário (mantendo o status individual)
-            itens_atualizados = 0
-            for item_horario in itens_mesmo_horario:
-                item_horario.ITE_ESC_GRUPO = grupo_id_int
-                item_horario.save()
-                itens_atualizados += 1
-            
-            if itens_atualizados > 0:
-                logger.info(f"✅ Grupo {grupo_id_int} atribuído automaticamente para {itens_atualizados} item(ns) do mesmo horário ({item.ITE_ESC_DATA.strftime('%d/%m/%Y')} às {item.ITE_ESC_HORARIO.strftime('%H:%M')})")
-        
-        # Se status for DEFINIDO e enviar_mensagem for True, enviar mensagem/email
+            ).exclude(ITE_ESC_ID=item.ITE_ESC_ID)
+            for it in itens_mesmo_horario:
+                it.ITE_ESC_GRUPO = grupo_id_int
+                it.save()
+            if itens_mesmo_horario:
+                logger.info(
+                    "Grupo %s atribuído para %s item(ns) do mesmo horário (%s às %s)",
+                    grupo_id_int, itens_mesmo_horario.count(),
+                    item.ITE_ESC_DATA.strftime('%d/%m/%Y'),
+                    item.ITE_ESC_HORARIO.strftime('%H:%M')
+                )
+
         if status == 'DEFINIDO' and enviar_mensagem:
-            # Buscar colaborador
             colaborador = None
             if item.ITE_ESC_COLABORADOR:
                 try:
                     colaborador = TBCOLABORADORES.objects.get(COL_id=item.ITE_ESC_COLABORADOR)
                 except TBCOLABORADORES.DoesNotExist:
                     pass
-            
+
             if colaborador:
-                # Enviar mensagem/email
-                from ...views.area_publica.views_whatsapp_api import send_whatsapp_message
-                from django.core.mail import send_mail
-                from django.conf import settings
-                
-                # Preparar mensagem
-                dias_semana_pt = {
-                    0: 'Segunda-feira',
-                    1: 'Terça-feira',
-                    2: 'Quarta-feira',
-                    3: 'Quinta-feira',
-                    4: 'Sexta-feira',
-                    5: 'Sábado',
-                    6: 'Domingo'
-                }
-                dia_semana = dias_semana_pt.get(item.ITE_ESC_DATA.weekday(), '')
-                
-                mensagem = (
+                dia_semana = DIAS_SEMANA_PT.get(item.ITE_ESC_DATA.weekday(), '')
+                texto = (
                     f"Estimado colaborador {colaborador.COL_nome_completo}, estou confirmando sua participação "
                     f"como colaborador executando o encargo de {item.ITE_ESC_ENCARGO or 'colaborador'} no dia "
                     f"{item.ITE_ESC_DATA.strftime('%d')} {dia_semana} na missa das "
                     f"{item.ITE_ESC_HORARIO.strftime('%H:%M')}, desde já contamos com a sua presença. Deus abençoe 🙏"
                 )
-                
-                # Enviar WhatsApp se tiver telefone
                 if colaborador.COL_telefone:
-                    # Limpar e formatar telefone para WhatsApp
-                    import re
-                    # Remover todos os caracteres não numéricos
                     telefone_limpo = re.sub(r'[^\d]', '', str(colaborador.COL_telefone))
-                    
-                    # Log do telefone original e limpo
-                    logger.info(f"📞 Telefone original: {colaborador.COL_telefone}")
-                    logger.info(f"📞 Telefone limpo: {telefone_limpo}")
-                    
-                    # Adicionar código do país se não tiver
-                    if not telefone_limpo.startswith('55'):
-                        telefone_completo = f"55{telefone_limpo}"
-                    else:
-                        telefone_completo = telefone_limpo
-                    
-                    # Log do telefone completo para API
-                    logger.info(f"📞 Telefone completo para API: {telefone_completo}")
-                    
-                    # Validar formato do telefone (deve ter 13 dígitos: 55 + DDD + número)
+                    telefone_completo = f"55{telefone_limpo}" if not telefone_limpo.startswith('55') else telefone_limpo
                     if len(telefone_completo) < 12 or len(telefone_completo) > 13:
-                        logger.error(f"❌ Telefone inválido: {telefone_completo} (tamanho: {len(telefone_completo)})")
+                        logger.error("Telefone inválido: %s", telefone_completo)
                         raise ValueError(f"Telefone inválido: {telefone_completo}")
-                    
-                    try:
-                        # Enviar foto da paróquia primeiro (se houver)
-                        from ...views.area_publica.views_whatsapp_api import send_whatsapp_image, get_imagem_capa_url
-                        
-                        # Buscar foto de capa da paróquia (VIS_FOTO_CAPA do TBVISUAL)
-                        imagem_url = get_imagem_capa_url(optimized=False)
-                        
-                        if imagem_url:
-                            logger.info(f"📸 URL da foto de capa: {imagem_url}")
-                            
-                            # Enviar foto primeiro
-                            resultado_imagem = send_whatsapp_image(telefone_completo, imagem_url)
-                            
-                            # Verificar se houve erro no envio da imagem
-                            if resultado_imagem.get('error'):
-                                logger.warning(f"⚠️  Erro ao enviar imagem, mas continuando com mensagem: {resultado_imagem.get('error')}")
-                            else:
-                                logger.info(f"📸 Foto de capa da paróquia enviada para {colaborador.COL_nome_completo}")
-                                
-                                # Pequeno delay para garantir que a imagem seja processada antes da mensagem
-                                import time
-                                time.sleep(1)
-                        else:
-                            logger.warning(f"⚠️  Foto de capa da paróquia não encontrada, enviando apenas mensagem")
-                        
-                        # Enviar mensagem
-                        resultado_mensagem = send_whatsapp_message(telefone_completo, mensagem)
-                        
-                        # Verificar se houve erro no envio
-                        if resultado_mensagem.get('error'):
-                            logger.error(f"❌ Erro ao enviar mensagem WhatsApp: {resultado_mensagem.get('error')}")
-                            logger.error(f"   Telefone usado: {telefone_completo}")
-                            logger.error(f"   Resposta da API: {resultado_mensagem}")
-                        else:
-                            logger.info(f"✅ Mensagem enviada com sucesso para colaborador {colaborador.COL_nome_completo}")
-                            logger.info(f"   Telefone: {telefone_completo}")
-                            logger.info(f"   Resposta da API: {resultado_mensagem}")
-                    except Exception as e:
-                        logger.error(f"❌ Erro ao enviar WhatsApp: {str(e)}", exc_info=True)
-                        logger.error(f"   Telefone usado: {telefone_completo if 'telefone_completo' in locals() else 'N/A'}")
-                        raise  # Re-raise para que o erro seja tratado acima
-                
-                # Enviar email se tiver (opcional - modelo pode não ter este campo)
-                # Nota: O modelo TBCOLABORADORES pode não ter campo de email
-                # Se precisar, adicione o campo ao modelo primeiro
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Apontamento atribuído com sucesso!'
-        })
-    
-    except Exception as e:
-        logger.error(f"Erro ao atribuir apontamento: {str(e)}", exc_info=True)
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
 
+                    try:
+                        from ...views.area_publica.views_whatsapp_api import (
+                            send_whatsapp_message,
+                            send_whatsapp_image,
+                            get_imagem_capa_url,
+                        )
+                        imagem_url = get_imagem_capa_url(optimized=False)
+                        if imagem_url:
+                            res_img = send_whatsapp_image(telefone_completo, imagem_url)
+                            if res_img.get('error'):
+                                logger.warning("Erro ao enviar imagem: %s", res_img.get('error'))
+                            else:
+                                time.sleep(1)
+                        res_msg = send_whatsapp_message(telefone_completo, texto)
+                        if res_msg.get('error'):
+                            logger.error("Erro ao enviar WhatsApp: %s", res_msg.get('error'))
+                        else:
+                            logger.info("Mensagem enviada para %s", colaborador.COL_nome_completo)
+                    except Exception as e:
+                        logger.error("Erro ao enviar WhatsApp: %s", str(e), exc_info=True)
+                        raise
+
+        return JsonResponse({'success': True, 'message': 'Apontamento atribuído com sucesso!'})
+
+    except Exception as e:
+        logger.error("Erro ao atribuir apontamento: %s", str(e), exc_info=True)
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

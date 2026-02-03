@@ -1,9 +1,8 @@
 from django.db import models
 
+
 class TBFUNCAO(models.Model):
-    """
-    Tabela de Funções - Define as funções/cargos da igreja
-    """
+    """Funções/cargos da igreja."""
     FUN_id = models.AutoField(primary_key=True, verbose_name="ID da Função")
     FUN_nome_funcao = models.CharField(max_length=255, verbose_name="Nome da Função")
 

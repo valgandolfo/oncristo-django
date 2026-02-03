@@ -1,16 +1,12 @@
 """
-WSGI config for pro_igrej3 project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.0/howto/deployment/wsgi/
+WSGI config for pro_igreja project.
 """
 
 import os
-
 from django.core.wsgi import get_wsgi_application
 
+# Aponta diretamente para o arquivo settings.py na raiz da pasta pro_igreja
+# Não depende mais de subpastas ou variáveis de ambiente complexas
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pro_igreja.settings')
 
 application = get_wsgi_application()

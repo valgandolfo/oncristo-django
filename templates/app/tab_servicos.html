@@ -1,0 +1,58 @@
+{% extends "app/app_base.html" %}
+
+{% block header %}
+<div class="header-app">
+    <div class="d-flex align-items-center px-3 py-2">
+        <span style="font-size: 1.5rem; margin-right: 12px;">📖</span>
+        <h1 class="mb-0 text-start">Projeto On Cristo</h1>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-4">Serviços</h4>
+
+<a href="{% url 'app_igreja:celebracoes_agendadas_pub' %}?modo=app" class="card-menu">
+    <div class="menu-icon-container bg-info">
+        <i class="fas fa-calendar-check"></i>
+    </div>
+    <div class="menu-text">
+        <p class="menu-title">Celebrações Agendadas</p>
+        <p class="menu-subtitle">Consulte celebrações agendadas</p>
+    </div>
+    <i class="fas fa-chevron-right text-muted small"></i>
+</a>
+
+<a href="{% url 'app_igreja:cadastro_dizimista_pub' %}?modo=app" class="card-menu">
+    <div class="menu-icon-container bg-green">
+        <i class="fas fa-hands-helping"></i>
+    </div>
+    <div class="menu-text">
+        <p class="menu-title">Quero ser Dizimista</p>
+        <p class="menu-subtitle">Junte-se à nossa comunidade de fé e amor</p>
+    </div>
+    <i class="fas fa-chevron-right text-muted small"></i>
+</a>
+
+<a href="/app_igreja/doacoes/?modo=app" class="card-menu">
+    <div class="menu-icon-container bg-success">
+        <i class="fas fa-hand-holding-heart"></i>
+    </div>
+    <div class="menu-text">
+        <p class="menu-title">PIX, Cartões, Doações</p>
+        <p class="menu-subtitle">Colabore com sua Paróquia</p>
+    </div>
+    <i class="fas fa-chevron-right text-muted small"></i>
+</a>
+
+<a href="/app_igreja/meus-pedidos-oracoes/?modo=app" class="card-menu">
+    <div class="menu-icon-container bg-blue">
+        <i class="fas fa-pray"></i>
+    </div>
+    <div class="menu-text">
+        <p class="menu-title">Pedidos de Orações</p>
+        <p class="menu-subtitle">Orações, Agradecimentos, Louvores...</p>
+    </div>
+    <i class="fas fa-chevron-right text-muted small"></i>
+</a>
+{% endblock %}

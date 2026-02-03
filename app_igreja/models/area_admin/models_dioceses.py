@@ -1,12 +1,12 @@
 from django.db import models
 from django.utils import timezone
-
+from django.core.files.base import ContentFile
+from PIL import Image
+import io
+import os
 
 class TBDIOCESE(models.Model):
-    """
-    Modelo para a tabela TBDIOCESE
-    Representa as dioceses da igreja
-    """
+    """Dioceses da igreja (registro único)."""
     DIO_id = models.AutoField(primary_key=True)
     DIO_nome_diocese = models.CharField(max_length=255, blank=True, null=True, verbose_name="Nome da Diocese")
     DIO_nome_bispo = models.CharField(max_length=255, blank=True, null=True, verbose_name="Nome do Bispo")
@@ -32,3 +32,34 @@ class TBDIOCESE(models.Model):
 
     def __str__(self):
         return self.DIO_nome_diocese or f'Diocese ID: {self.DIO_id}'
+
+    def save(self, *args, **kwargs):
+        """Sobrescreve o save para comprimir a imagem antes de enviar ao Wasabi."""
+        if self.DIO_foto_bispo:
+            try:
+                # 1. Abrir a imagem enviada
+                img = Image.open(self.DIO_foto_bispo)
+                
+                # 2. Converter para RGB (necessário para JPEG)
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+
+                # 3. Redimensionar (Máximo 800px)
+                output_size = (800, 800)
+                img.thumbnail(output_size)
+
+                # 4. Salvar no buffer de memória
+                buffer = io.BytesIO()
+                img.save(buffer, format='JPEG', quality=70, optimize=True)
+                buffer.seek(0)
+
+                # 5. Atualizar o campo com o novo conteúdo comprimido
+                # Mantemos o nome original mas com a extensão correta
+                filename = os.path.splitext(self.DIO_foto_bispo.name)[0] + '.jpg'
+                self.DIO_foto_bispo.save(filename, ContentFile(buffer.read()), save=False)
+                
+            except Exception as e:
+                # Se algo falhar na compressão, o log avisa mas o save continua
+                print(f"Erro ao comprimir imagem: {e}")
+
+        super(TBDIOCESE, self).save(*args, **kwargs)

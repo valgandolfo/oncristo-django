@@ -11,16 +11,6 @@
     }
     
     /* === HERO CONTENT (Cabeçalho) === */
-    .hero-content {
-        border: 1px solid #ef55b2;  
-        border-radius: 15px;
-        padding: 16px 32px;
-        background: #fff3cd;
-        display: block;
-        text-align: center;
-        margin: 10px auto 0 auto;
-        max-width: 920px;
-    }
     
     /* === CONTAINER DE CONTEÚDO === */
     .container-conteudo {
@@ -84,32 +74,6 @@
         font-style: normal;
     }
     
-    /* === BOTÃO FLUTUANTE === */
-    .fly-float-btn {
-        position: fixed;
-        bottom: 30px;
-        left: 30px;
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-        border-radius: 50%;
-        color: white;
-        font-size: 24px;
-        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
-        z-index: 1000;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-    }
-    
-    .fly-float-btn:hover {
-        transform: scale(1.1);
-        box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6);
-        color: white;
-    }
-    
     /* === OCULTAR FOOTER DO BASE.HTML === */
     .card-footer {
         display: none !important;
@@ -117,10 +81,6 @@
     
     /* === RESPONSIVO === */
     @media (max-width: 768px) {
-        .hero-content {
-            margin: 10px;
-            padding: 12px 16px;
-        }
         
         .container-conteudo {
             padding: 20px;
@@ -136,13 +96,6 @@
             max-height: 300px;
         }
         
-        .fly-float-btn {
-            width: 50px;
-            height: 50px;
-            font-size: 20px;
-            bottom: 20px;
-            left: 20px;
-        }
     }
 </style>
 {% endblock %}
@@ -262,7 +215,7 @@
 </div>
 
 <!-- Botão Flutuante HOME -->
-<a href="{% url 'home' %}" class="fly-float-btn" title="Voltar para Home">
+<a href="{{ url_retorno|default:'/' }}" class="fly-float-btn" title="Voltar">
     <i class="fas fa-home"></i>
 </a>
 

@@ -16,7 +16,7 @@ from ...models.area_admin.models_dizimistas import TBDIZIMISTAS
 from ...models.area_admin.models_colaboradores import TBCOLABORADORES
 from ...models.area_admin.models_grupos import TBGRUPOS
 from ...forms.area_admin.forms_whatsapp import MensagemWhatsAppForm
-from ...views.area_publica.views_whatsapp_api import send_whatsapp_message, send_whatsapp_image
+# from ...views.area_publica.views_whatsapp_api import send_whatsapp_message, send_whatsapp_image
 import logging
 
 logger = logging.getLogger(__name__)

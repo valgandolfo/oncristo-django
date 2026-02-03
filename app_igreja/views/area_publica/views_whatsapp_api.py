@@ -19,7 +19,7 @@ from django.conf import settings
 from dotenv import load_dotenv
 
 from ...models.area_admin.models_dizimistas import TBDIZIMISTAS
-from ...models.area_publica.models_liturgias import TBLITURGIA
+from ...models.area_admin.models_extrator_liturgias import TBLITURGIA
 from ...models.area_admin.models_celebracoes import TBCELEBRACOES
 from ...models.area_admin.models_oracoes import TBORACOES
 from ...models.area_admin.models_paroquias import TBPAROQUIA
@@ -63,79 +63,14 @@ def limpar_telefone(telefone):
     return telefone_limpo
 
 
-def get_ngrok_url():
-    """
-    Tenta obter a URL do ngrok automaticamente via API local
-    O ngrok expõe uma API em http://127.0.0.1:4040/api/tunnels
-    """
-    try:
-        response = requests.get('http://127.0.0.1:4040/api/tunnels', timeout=1)
-        if response.status_code == 200:
-            data = response.json()
-            tunnels = data.get('tunnels', [])
-            if tunnels:
-                # Pega o primeiro túnel HTTPS (ou HTTP se não houver HTTPS)
-                https_tunnel = next((t for t in tunnels if t.get('proto') == 'https'), None)
-                http_tunnel = next((t for t in tunnels if t.get('proto') == 'http'), None)
-                
-                tunnel = https_tunnel or http_tunnel
-                if tunnel:
-                    public_url = tunnel.get('public_url', '').rstrip('/')
-                    if public_url:
-                        logger.info(f"🌐 URL do ngrok detectada automaticamente: {public_url}")
-                        return public_url
-    except (requests.exceptions.RequestException, Exception) as e:
-        # ngrok não está rodando ou API não está acessível
-        logger.debug(f"Ngrok API não acessível: {e}")
-    return None
-
-
 def get_site_url():
     """
-    Obtém a URL do site para uso na API do WhatsApp
-    Ordem de prioridade (para API externa, ngrok tem prioridade):
-    1. URL do ngrok detectada automaticamente (se ngrok estiver rodando) - PRIORIDADE MÁXIMA
-    2. NGROK_URL do .env (ex: https://xxxx.ngrok-free.app)
-    3. SITE_URL do .env (ex: https://oncristo.com.br)
-    4. SITE_URL_LOCAL do .env (ex: http://0.0.0.0:8000) - apenas se ngrok não estiver disponível
-    5. URL padrão de produção
+    Obtém a URL do site para uso na API do WhatsApp.
+    Usa SITE_URL do .env ou padrão https://oncristo.com.br
     """
-    # 1. PRIORIDADE MÁXIMA: Tentar obter URL do ngrok automaticamente
-    ngrok_url = get_ngrok_url()
-    if ngrok_url:
-        logger.info(f"✅ URL do ngrok detectada automaticamente: {ngrok_url}")
-        return ngrok_url
-    
-    # 2. Tentar NGROK_URL do .env
-    site_url = os.getenv('NGROK_URL')
-    if site_url:
-        site_url = site_url.rstrip('/')
-        if not site_url.startswith('http://') and not site_url.startswith('https://'):
-            site_url = f'https://{site_url}'
-        logger.info(f"✅ URL do site configurada (NGROK_URL do .env): {site_url}")
-        return site_url
-    
-    # 3. Tentar SITE_URL do .env (produção)
-    site_url = os.getenv('SITE_URL')
-    if site_url:
-        site_url = site_url.rstrip('/')
-        if not site_url.startswith('http://') and not site_url.startswith('https://'):
-            site_url = f'https://{site_url}'
-        logger.info(f"✅ URL do site configurada (SITE_URL do .env): {site_url}")
-        return site_url
-    
-    # 4. SITE_URL_LOCAL do .env (apenas se ngrok não estiver disponível)
-    site_url = os.getenv('SITE_URL_LOCAL')
-    if site_url:
-        site_url = site_url.rstrip('/')
-        if not site_url.startswith('http://') and not site_url.startswith('https://'):
-            site_url = f'http://{site_url}'
-        logger.warning(f"⚠️ Usando SITE_URL_LOCAL (ngrok não detectado): {site_url}")
-        return site_url
-    
-    # 5. URL padrão de produção
-    site_url = 'https://oncristo.com.br'
-    logger.warning(f"⚠️ Usando URL padrão: {site_url}")
+    site_url = os.getenv('SITE_URL', 'https://oncristo.com.br').strip().rstrip('/')
+    if not site_url.startswith('http://') and not site_url.startswith('https://'):
+        site_url = f'https://{site_url}'
     return site_url
 
 
@@ -615,7 +550,7 @@ def send_whatsapp_menu_liturgias(phone):
         }
         
         site_url = get_site_url()
-        liturgias_url = f"{site_url}/app_igreja/liturgias/"
+        liturgias_url = f"{site_url}/app_igreja/liturgia-diaria/"
         logger.info(f"🔗 Link de liturgias gerado: {liturgias_url}")
         
         # Payload oficial da Whapi para mensagens interativas (type: button)
@@ -684,7 +619,7 @@ def send_whatsapp_menu_dizimista(phone):
             "channel-id": CHANNEL_ID
         }
         
-        # Obter URL do site (prioriza local/ngrok)
+        # Obter URL do site
         site_url = get_site_url()
         
         # Limpar telefone para URL (remover código do país se existir)
@@ -761,7 +696,7 @@ def send_whatsapp_menu_colaborador(phone):
             "channel-id": CHANNEL_ID
         }
         
-        # Obter URL do site (prioriza local/ngrok)
+        # Obter URL do site
         site_url = get_site_url()
         
         # Limpar telefone para URL (remover código do país se existir)
@@ -916,7 +851,7 @@ def send_whatsapp_menu_agendar_celebracao(phone):
         if telefone_limpo and telefone_limpo.startswith('55'):
             telefone_limpo = telefone_limpo[2:]
         
-        agendar_url = f"{site_url}/app_igreja/agendar-celebracao/?telefone={telefone_limpo}"
+        agendar_url = f"{site_url}/app_igreja/celebracoes-agendadas-pub/agendar/?telefone={telefone_limpo}"
         
         logger.info(f"🌐 URL de agendamento: {agendar_url}")
         
@@ -982,7 +917,7 @@ def send_whatsapp_menu_oracoes(phone):
             "channel-id": CHANNEL_ID
         }
         
-        # Obter URL do site (prioriza local/ngrok)
+        # Obter URL do site
         site_url = get_site_url()
         
         # Limpar telefone para URL (remover código do país se existir)
@@ -1052,13 +987,14 @@ def processar_botao_menu(button_id, sender_number):
     logger.info(f"🔘 Processando botão: {button_id} de {sender_number}")
     
     if button_id == "liturgias_nao":
-        # Usuário escolheu "Não" no menu de liturgias
+        # Usuário escolheu "Não" no menu de liturgias (mesma lógica do dizimista: URL dinâmica com get_site_url)
+        site_url = get_site_url()
+        url_liturgias = f"{site_url}/app_igreja/liturgia-diaria/"
         return send_whatsapp_message(
             sender_number,
             "📖 **LITURGIAS**\n\n"
             "Entendido! Se precisar acessar as liturgias depois, é só digitar qualquer mensagem para ver o menu novamente.\n\n"
-            "Ou acesse diretamente:\n"
-            "https://oncristo.com.br/app_igreja/liturgias/"
+            f"Ou acesse diretamente:\n{url_liturgias}"
         )
     
     elif button_id == "dizimista_nao":
@@ -1097,7 +1033,7 @@ def processar_botao_menu(button_id, sender_number):
     elif button_id == "agendar_nao":
         # Usuário escolheu "Não" no menu de agendar celebração
         site_url = get_site_url()
-        url_agendar = f"{site_url}/app_igreja/agendar-celebracao/"
+        url_agendar = f"{site_url}/app_igreja/celebracoes-agendadas-pub/agendar/"
         return send_whatsapp_message(
             sender_number,
             "🕯️ **AGENDAR CELEBRAÇÕES**\n\n"
@@ -1400,14 +1336,14 @@ def whatsapp_webhook(request):
                 "version": CURRENT_VERSION
             }, status=200)
         
-        # Processar formato "chats_updates" (formato alternativo Whapi Cloud)
+        # Processar formato "chats_updates" (Whapi envia a mensagem nova em after_update.last_message)
         elif data.get("chats_updates"):
             logger.info("Processando formato chats_updates")
             for chat_update in data.get("chats_updates", []):
-                before_update = chat_update.get("before_update", {})
-                last_message = before_update.get("last_message", {})
+                after_update = chat_update.get("after_update", {})
+                last_message = after_update.get("last_message", {})
                 
-                if last_message.get("from_me", True):
+                if last_message.get("from_me") is True:
                     continue
                 
                 message_id = last_message.get("id")
@@ -1416,8 +1352,9 @@ def whatsapp_webhook(request):
                 
                 processed_messages.add(message_id)
                 
-                sender_number = before_update.get("id")
-                message_type = last_message.get("type")
+                raw_id = last_message.get("from") or after_update.get("id")
+                sender_number = str(raw_id).split("@")[0].strip() if raw_id else None
+                message_type = (last_message.get("type") or "text").lower()
                 
                 # Rejeitar chamadas no formato chats_updates também (ptt é áudio, não chamada)
                 if message_type in ["call", "audio_call", "video_call"]:
@@ -1519,6 +1456,42 @@ def whatsapp_test_webhook(request):
         "timestamp": get_local_time(),
         "version": CURRENT_VERSION,
         "url_webhook": "/app_igreja/api/whatsapp/webhook/"
+    })
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def whatsapp_rota_diagnostico(request):
+    """
+    Diagnóstico da rota do webhook: mostra a URL exata para colocar na API (Whapi Cloud).
+    Acesse: https://oncristo.com.br/api/whatsapp/rota/
+    """
+    from django.urls import get_resolver
+    host = request.get_host()
+    scheme = 'https' if request.is_secure() else 'http'
+    base = f"{scheme}://{host}"
+    url_webhook_raiz = f"{base}/api/whatsapp/webhook/"
+    url_webhook_app = f"{base}/app_igreja/api/whatsapp/webhook/"
+    # Resolver raiz (pro_igreja.urls) tem path('api/whatsapp/webhook/', whatsapp_webhook)
+    resolver = get_resolver()
+    rotas = []
+    try:
+        for p in resolver.url_patterns:
+            if getattr(p, 'pattern', None) and 'whatsapp' in str(p.pattern):
+                rotas.append(str(p.pattern))
+    except Exception:
+        rotas = ['api/whatsapp/webhook/', 'api/whatsapp/rota/']
+    return JsonResponse({
+        "url_para_colocar_na_api_whapi": url_webhook_raiz,
+        "url_alternativa_com_prefixo_app": url_webhook_app,
+        "rota_tracada": [
+            "1. Requisição chega em pro_igreja.urls (ROOT_URLCONF)",
+            "2. path('api/whatsapp/webhook/', whatsapp_webhook) → view whatsapp_webhook",
+            "3. View: app_igreja.views.area_publica.views_whatsapp_api.whatsapp_webhook",
+        ],
+        "padroes_raiz": rotas,
+        "host_atual": host,
+        "version": CURRENT_VERSION,
     })
 
 

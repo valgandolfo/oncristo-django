@@ -2,14 +2,22 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.shortcuts import render
+from django.views.generic.base import RedirectView
+from django.conf import settings
+from app_igreja.views.area_publica.views_whatsapp_api import whatsapp_webhook, whatsapp_rota_diagnostico
 from app_igreja.models.area_admin.models_paroquias import TBPAROQUIA
 from app_igreja.models.area_admin.models_mural import TBMURAL
 from app_igreja.models.area_admin.models_visual import TBVISUAL
 from app_igreja.models.area_admin.models_banners import TBBANNERS
-from app_igreja.views.views_registro import register_view
+from app_igreja.views.area_publica.views_registro import register_view
 
 def home(request):
     """Página inicial da aplicação"""
+    # Se estiver no modo app, redirecionar para a home do app
+    if request.GET.get('modo') == 'app':
+        from django.shortcuts import redirect
+        return redirect('app_igreja:app_home')
+
     # Buscar dados da paróquia (primeira paróquia cadastrada)
     paroquia = None
     try:
@@ -50,7 +58,12 @@ def home(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
+    # Favicon na raiz (evita 404): /favicon.ico → arquivo em static/ ou staticfiles/
+    path('favicon.ico', RedirectView.as_view(url=settings.STATIC_URL + 'favicon.ico', permanent=False), name='favicon'),
+    # Webhook WhatsApp: https://oncristo.com.br/api/whatsapp/webhook/
+    path('api/whatsapp/webhook/', whatsapp_webhook, name='whatsapp_webhook_root'),
+    # Diagnóstico da rota: GET /api/whatsapp/rota/
+    path('api/whatsapp/rota/', whatsapp_rota_diagnostico, name='whatsapp_rota_diagnostico'),
     # URLs de autenticação padrão do Django
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),

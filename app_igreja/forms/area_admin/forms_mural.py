@@ -1,83 +1,39 @@
 from django import forms
-from app_igreja.models.area_admin.models_mural import TBMURAL
+from ...models.area_admin.models_mural import TBMURAL
 from .forms_commons import DateInputWidget
+
+_attrs = lambda **kw: {**{'class': 'form-control'}, **kw}
+_FILE_IMG = _attrs(accept='image/*')
+_LEGENDA = lambda n: _attrs(placeholder=f'Legenda para a foto {n}', maxlength='255')
 
 
 class MuralForm(forms.ModelForm):
+    """Formulário para Mural de Fotos."""
+
     class Meta:
         model = TBMURAL
         fields = [
-            'MUR_data_mural',
-            'MUR_titulo_mural',
-            'MUR_foto1_mural',
-            'MUR_foto2_mural',
-            'MUR_foto3_mural',
-            'MUR_foto4_mural',
-            'MUR_foto5_mural',
-            'MUR_legenda1_mural',
-            'MUR_legenda2_mural',
-            'MUR_legenda3_mural',
-            'MUR_legenda4_mural',
-            'MUR_legenda5_mural',
+            'MUR_data_mural', 'MUR_titulo_mural',
+            'MUR_foto1_mural', 'MUR_foto2_mural', 'MUR_foto3_mural',
+            'MUR_foto4_mural', 'MUR_foto5_mural',
+            'MUR_legenda1_mural', 'MUR_legenda2_mural', 'MUR_legenda3_mural',
+            'MUR_legenda4_mural', 'MUR_legenda5_mural',
             'MUR_ativo'
         ]
         widgets = {
-            'MUR_data_mural': DateInputWidget(attrs={
-                'class': 'form-control'
-            }),
-            'MUR_titulo_mural': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Digite o título do mural',
-                'maxlength': '255'
-            }),
-            'MUR_foto1_mural': forms.FileInput(attrs={
-                'class': 'form-control',
-                'accept': 'image/*'
-            }),
-            'MUR_foto2_mural': forms.FileInput(attrs={
-                'class': 'form-control',
-                'accept': 'image/*'
-            }),
-            'MUR_foto3_mural': forms.FileInput(attrs={
-                'class': 'form-control',
-                'accept': 'image/*'
-            }),
-            'MUR_foto4_mural': forms.FileInput(attrs={
-                'class': 'form-control',
-                'accept': 'image/*'
-            }),
-            'MUR_foto5_mural': forms.FileInput(attrs={
-                'class': 'form-control',
-                'accept': 'image/*'
-            }),
-            'MUR_legenda1_mural': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Legenda para a foto 1',
-                'maxlength': '255'
-            }),
-            'MUR_legenda2_mural': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Legenda para a foto 2',
-                'maxlength': '255'
-            }),
-            'MUR_legenda3_mural': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Legenda para a foto 3',
-                'maxlength': '255'
-            }),
-            'MUR_legenda4_mural': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Legenda para a foto 4',
-                'maxlength': '255'
-            }),
-            'MUR_legenda5_mural': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Legenda para a foto 5',
-                'maxlength': '255'
-            }),
-            'MUR_ativo': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
-            })
+            'MUR_data_mural': DateInputWidget(attrs=_attrs()),
+            'MUR_titulo_mural': forms.TextInput(attrs=_attrs(placeholder='Digite o título do mural', maxlength='255')),
+            'MUR_foto1_mural': forms.FileInput(attrs=_FILE_IMG),
+            'MUR_foto2_mural': forms.FileInput(attrs=_FILE_IMG),
+            'MUR_foto3_mural': forms.FileInput(attrs=_FILE_IMG),
+            'MUR_foto4_mural': forms.FileInput(attrs=_FILE_IMG),
+            'MUR_foto5_mural': forms.FileInput(attrs=_FILE_IMG),
+            'MUR_legenda1_mural': forms.TextInput(attrs=_LEGENDA(1)),
+            'MUR_legenda2_mural': forms.TextInput(attrs=_LEGENDA(2)),
+            'MUR_legenda3_mural': forms.TextInput(attrs=_LEGENDA(3)),
+            'MUR_legenda4_mural': forms.TextInput(attrs=_LEGENDA(4)),
+            'MUR_legenda5_mural': forms.TextInput(attrs=_LEGENDA(5)),
+            'MUR_ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
             'MUR_data_mural': 'Data do Mural',
@@ -92,7 +48,7 @@ class MuralForm(forms.ModelForm):
             'MUR_legenda3_mural': 'Legenda Foto 3',
             'MUR_legenda4_mural': 'Legenda Foto 4',
             'MUR_legenda5_mural': 'Legenda Foto 5',
-            'MUR_ativo': 'Mural Ativo'
+            'MUR_ativo': 'Mural Ativo',
         }
         help_texts = {
             'MUR_data_mural': 'Data de publicação do mural',
@@ -107,53 +63,25 @@ class MuralForm(forms.ModelForm):
             'MUR_legenda3_mural': 'Legenda para a terceira foto',
             'MUR_legenda4_mural': 'Legenda para a quarta foto',
             'MUR_legenda5_mural': 'Legenda para a quinta foto',
-            'MUR_ativo': 'Se marcado, o mural aparecerá na visualização pública'
+            'MUR_ativo': 'Se marcado, o mural aparecerá na visualização pública',
         }
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        # Adicionar classes CSS aos campos
-        for field_name, field in self.fields.items():
-            if field.widget.attrs.get('class'):
-                continue
-            if isinstance(field.widget, forms.TextInput):
-                field.widget.attrs['class'] = 'form-control'
-            elif isinstance(field.widget, forms.Textarea):
-                field.widget.attrs['class'] = 'form-control'
-            elif isinstance(field.widget, forms.Select):
-                field.widget.attrs['class'] = 'form-select'
-            elif isinstance(field.widget, forms.CheckboxInput):
-                field.widget.attrs['class'] = 'form-check-input'
-            elif isinstance(field.widget, forms.FileInput):
-                field.widget.attrs['class'] = 'form-control'
-    
+
     def clean_MUR_titulo_mural(self):
         titulo = self.cleaned_data.get('MUR_titulo_mural')
-        
-        if titulo:
-            # Remover espaços extras
-            titulo = titulo.strip()
-            
-            # Verificar se não está vazio após remoção de espaços
-            if not titulo:
-                raise forms.ValidationError('O título do mural não pode estar vazio.')
-        
-        return titulo
-    
+        if titulo and not titulo.strip():
+            raise forms.ValidationError('O título do mural não pode estar vazio.')
+        return titulo.strip() if titulo else titulo
+
     def clean(self):
         cleaned_data = super().clean()
-        
-        # Verificar se pelo menos uma foto foi enviada (apenas na criação)
-        if not self.instance.pk:  # Criação
-            foto1 = cleaned_data.get('MUR_foto1_mural')
-            foto2 = cleaned_data.get('MUR_foto2_mural')
-            foto3 = cleaned_data.get('MUR_foto3_mural')
-            foto4 = cleaned_data.get('MUR_foto4_mural')
-            foto5 = cleaned_data.get('MUR_foto5_mural')
-            
-            if not any([foto1, foto2, foto3, foto4, foto5]):
+        if not self.instance.pk:
+            fotos = [
+                cleaned_data.get('MUR_foto1_mural'),
+                cleaned_data.get('MUR_foto2_mural'),
+                cleaned_data.get('MUR_foto3_mural'),
+                cleaned_data.get('MUR_foto4_mural'),
+                cleaned_data.get('MUR_foto5_mural'),
+            ]
+            if not any(fotos):
                 raise forms.ValidationError('É necessário enviar pelo menos uma foto.')
-        
         return cleaned_data
-
