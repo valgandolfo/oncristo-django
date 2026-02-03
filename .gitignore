@@ -41,6 +41,18 @@ db.sqlite3-journal
 .env
 .env_remote_local
 
+# Flutter / Dart (evitar arquivos >50MB no GitHub)
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+**/build/
+**/ios/
+**/android/
+**/linux/
+**/windows/
+**/macos/
+
 # IDE
 .vscode/
 .idea/
